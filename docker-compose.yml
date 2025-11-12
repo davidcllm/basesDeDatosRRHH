@@ -24,7 +24,7 @@ services:
       DB_HOST: db
       DB_USER: admin
       DB_PASS: admin123
-      DB_NAME: empresa_db
+      DB_NAME: mydb
       FLASK_ENV: development
     ports:
       - "5000:5000"
@@ -32,6 +32,7 @@ services:
       - db
     volumes:
       - ./backend:/app
+      - ./frontend:/frontend
 
 volumes:
   db_data:

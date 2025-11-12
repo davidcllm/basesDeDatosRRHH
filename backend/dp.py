@@ -6,6 +6,6 @@ def get_connection():
         host=os.getenv("DB_HOST", "localhost"),
         user=os.getenv("DB_USER", "admin"),
         password=os.getenv("DB_PASS", "admin123"),
-        database=os.getenv("DB_NAME", "empresa_db"),
+        database=os.getenv("DB_NAME", "mydb"),
         cursorclass=pymysql.cursors.DictCursor
     )

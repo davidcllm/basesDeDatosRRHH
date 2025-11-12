@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>{{ RRHH }}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+  <nav style="background:#0066ff; padding:10px;">
+    <a href="/" style="color:white; margin-right:15px;">Empleados</a>
+    <a href="/nomina" style="color:white; margin-right:15px;">Nómina</a>
+    <a href="/asistencias" style="color:white; margin-right:15px;">Asistencias</a>
+    <a href="/evaluacion" style="color:white; margin-right:15px;">Evaluación</a>
+    <a href="/proyectos" style="color:white; margin-right:15px;">Proyectos</a>
+    <a href="/presupuestos" style="color:white; margin-right:15px;">Presupuestos</a>
+    <a href="/cuentas" style="color:white; margin-right:15px;">Cuentas</a>
+    <a href="/reportes" style="color:white; margin-right:15px;">Reportes</a>
+    <a href="/seguridad" style="color:white; margin-right:15px;">Seguridad</a>
+  </nav>
+
+  <div class="content">
+    {% block content %}{% endblock %}
+  </div>
+</body>
+</html>

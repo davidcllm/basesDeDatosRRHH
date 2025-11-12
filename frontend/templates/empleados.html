@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Gestión de Empleados</h1>
+
+<div class="form-container">
+  <form action="{{ url_for('empleados.agregar_empleado') }}" method="POST">
+    <input type="text" name="nombre" placeholder="Nombre" required>
+    <input type="text" name="apellido" placeholder="Apellido" required>
+    <input type="email" name="email" placeholder="Correo" required>
+    <button type="submit">Agregar Empleado</button>
+  </form>
+</div>
+
+<table>
+  <tr>
+    <th>ID</th>
+    <th>Nombre</th>
+    <th>Apellido</th>
+    <th>Email</th>
+    <th>Acciones</th>
+  </tr>
+  {% for e in empleados %}
+  <tr>
+    <td>{{ e.id_empleado }}</td>
+    <td>{{ e.nombre }}</td>
+    <td>{{ e.apellido }}</td>
+    <td>{{ e.email }}</td>
+    <td><a href="{{ url_for('empleados.eliminar_empleado', id=e.id_empleado) }}">🗑️</a></td>
+  </tr>
+  {% endfor %}
+</table>
+{% endblock %}
