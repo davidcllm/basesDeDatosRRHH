@@ -332,7 +332,7 @@ ENGINE = InnoDB;
 -- -----------------------------------------------------
 -- Table `mydb`.`EMPLEADO-AUSENECIA`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `mydb`.`EMPLEADO-AUSENECIA` (
+CREATE TABLE IF NOT EXISTS `mydb`.`EMPLEADO-AUSENCIA` (
   `id_empleado-ausencia` INT NOT NULL AUTO_INCREMENT,
   `id_empleado` INT NOT NULL,
   `id_ausencia` INT NOT NULL,
@@ -494,7 +494,7 @@ INSERT INTO `EMPLEADO-BENEFICIO` (id_empleado, id_beneficio, fecha_asignacion) V
 (2, 2, '2024-02-10'),
 (3, 3, '2024-03-01');
 
-INSERT INTO `EMPLEADO-AUSENECIA` (id_empleado, id_ausencia, fecha_inicio, fecha_final) VALUES
+INSERT INTO `EMPLEADO-AUSENCIA` (id_empleado, id_ausencia, fecha_inicio, fecha_final) VALUES
 (1, 1, '2024-02-01 09:00:00', '2024-02-03 18:00:00'),
 (2, 2, '2024-07-10 08:00:00', '2024-07-20 20:00:00'),
 (3, 3, '2024-04-05 10:00:00', '2024-04-06 18:00:00');
