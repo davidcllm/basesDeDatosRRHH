@@ -124,6 +124,8 @@ CREATE TABLE IF NOT EXISTS `mydb`.`EMPLEADO-CAPACITACION` (
   `id_empleado-capacitacion` INT NOT NULL AUTO_INCREMENT,
   `id_empleado` INT NOT NULL,
   `id_capacitacion` INT NOT NULL,
+  `fecha_inicio` DATE NOT NULL,
+  `fecha_fin` DATE NOT NULL,
   `resultado` DECIMAL(10,2) NOT NULL,
   `comentarios` VARCHAR(250) NULL,
   PRIMARY KEY (`id_empleado-capacitacion`),
@@ -138,8 +140,8 @@ CREATE TABLE IF NOT EXISTS `mydb`.`EMPLEADO-CAPACITACION` (
     FOREIGN KEY (`id_capacitacion`)
     REFERENCES `mydb`.`CAPACITACION` (`id_capacitacion`)
     ON DELETE NO ACTION
-    ON UPDATE NO ACTION)
-ENGINE = InnoDB;
+    ON UPDATE NO ACTION
+) ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
@@ -294,7 +296,7 @@ ENGINE = InnoDB;
 -- -----------------------------------------------------
 -- Table `mydb`.`BENFICIO`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `mydb`.`BENFICIO` (
+CREATE TABLE IF NOT EXISTS `mydb`.`BENEFICIO` (
   `id_beneficio` INT NOT NULL AUTO_INCREMENT,
   `nombre` VARCHAR(45) NOT NULL,
   `descripcion` VARCHAR(145) NOT NULL,
@@ -400,6 +402,113 @@ CREATE TABLE IF NOT EXISTS `mydb`.`EMPLEADO-EVALUACION` (
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;
+
+INSERT INTO `CUENTA_BANCARIA` (banco, numero_cuenta, saldo) VALUES
+('BBVA', '0011223344', 15000.00),
+('Santander', '5566778899', 23000.50),
+('Banorte', '9988776655', 12000.75);
+
+INSERT INTO `PLAN_CARRERA` (objetivo, etapas, fecha_inicio, fecha_fin) VALUES
+('Desarrollador Senior', 'Junior-Mid-Senior', '2025-01-01', '2027-01-01'),
+('Gerente de Proyectos', 'Analista-Lider-Gerente', '2024-05-01', '2026-05-01'),
+('Especialista en Finanzas', 'Junior-Senior-Especialista', '2023-03-01', '2025-03-01');
+
+INSERT INTO `DEPARTAMENTO` (nombre, descripcion) VALUES
+('Sistemas', 'Departamento de Tecnologías de la Información'),
+('Recursos Humanos', 'Gestión de personal'),
+('Finanzas', 'Control financiero y presupuestos');
+
+INSERT INTO `EMPLEADO`
+(id_cuenta_bancaria, id_plan_carrera, nombre_completo, direccion, telefono, fecha_nacimiento, cargo, fecha_contratacion, historial_laboral, id_departamento)
+VALUES
+(1, 1, 'Juan Pérez', 'Calle Uno #123', '555-1001', '1990-05-10', 'Developer', '2024-02-15', '2 años en soporte técnico', 1),
+(2, 2, 'María Gómez', 'Calle Dos #456', '555-2002', '1985-11-20', 'HR Manager', '2023-12-01', '5 años en gestión de personal', 2),
+(3, 3, 'Carlos López', 'Calle Tres #789', '555-3003', '1992-07-15', 'Analista Financiero', '2022-09-10', '3 años como auxiliar contable', 3);
+
+INSERT INTO `EVALUACION` (fecha_evaluacion, tipo, resultado, observaciones) VALUES
+('2024-06-01', 'Anual', 90.50, 'Excelente desempeño'),
+('2024-09-15', 'Semestral', 75.00, 'Cumplimiento adecuado'),
+('2025-01-10', 'Especial', 88.00, 'Mejoras visibles');
+
+INSERT INTO `CAPACITACION` (nombre, descripcion, fecha_inicio, fecha_fin, proveedor) VALUES
+('Python Básico', 'Introducción al lenguaje', '2024-01-10', '2024-01-20', 'Coding Academy'),
+('Liderazgo', 'Taller de habilidades gerenciales', '2023-05-01', '2023-05-05', 'HREdu'),
+('Finanzas Avanzadas', 'Optimización financiera', '2024-03-15', '2024-03-30', 'FinancePro');
+
+INSERT INTO `mydb`.`EMPLEADO-CAPACITACION`
+(id_empleado, id_capacitacion, fecha_inicio, fecha_fin, resultado, comentarios)
+VALUES
+(1, 1, '2025-01-10', '2025-01-20', 88.50, 'Cumplió con los objetivos del curso'),
+(2, 3, '2025-02-01', '2025-02-15', 92.00, 'Excelente rendimiento y participación'),
+(3, 2, '2025-03-05', '2025-03-18', 75.25, 'Necesita reforzar algunos temas');
+
+INSERT INTO `NOMINA` (salario_base, deducciones, percepciones, total_pagar) VALUES
+(15000.00, 2000.00, 3000.00, 16000.00),
+(18000.00, 2500.00, 3200.00, 18700.00),
+(22000.00, 3000.00, 4000.00, 23000.00);
+
+INSERT INTO `AUSENCIA` (id_empleado, tipo, fecha_inicio, fecha_fin, motivo) VALUES
+(1, 'Enfermedad', '2024-02-01', '2024-02-03', 'Gripe'),
+(2, 'Vacaciones', '2024-07-10', '2024-07-20', 'Viaje familiar'),
+(3, 'Permiso', '2024-04-05', '2024-04-06', 'Trámite personal');
+
+INSERT INTO `PRESUPUESTO` (periodo, monto_asignado, monto_utilizado, id_departamento) VALUES
+('2024-01-01', 500000.00, 200000.00, 1),
+('2024-01-01', 300000.00, 150000.00, 2),
+('2024-01-01', 700000.00, 500000.00, 3);
+
+INSERT INTO `PROYECTO` (nombre, descripcion) VALUES
+('Sistema Contable', 'Desarrollo de un sistema contable interno'),
+('Portal RH', 'Plataforma web de recursos humanos'),
+('App Financiera', 'Aplicación móvil para reportes financieros');
+
+INSERT INTO `EMPLEADO-PROYECTO` (id_empleado, id_proyecto, horas_asignadas, fecha_asignacion, fecha_entrega) VALUES
+(1, 1, 120, '2024-01-10', '2024-04-10'),
+(2, 2, 90, '2024-02-01', '2024-03-15'),
+(3, 3, 140, '2024-03-05', '2024-06-01');
+
+INSERT INTO `CENTRO_COSTO` (nombre, descipcion, id_departamento) VALUES
+('Infraestructura', 'Costos de hardware y redes', 1),
+('Capacitación', 'Gastos de cursos y formación', 2),
+('Contabilidad', 'Gestión financiera', 3);
+
+INSERT INTO `CUENTA_CONTABLE` (banco, numero_cuenta, tipo, saldo, id_centro_costo) VALUES
+('BBVA', 'CC1111', 'Operativa', 50000.00, 1),
+('Santander', 'CC2222', 'Inversión', 75000.00, 2),
+('Banorte', 'CC3333', 'Ahorro', 60000.00, 3);
+
+INSERT INTO `MOVIMIENTO_FINANCIERO`
+(id_cuenta_contable, fecha_hora_movimiento, tipo, monto, descripcion, id_cuenta_bancaria, tipo_cuenta)
+VALUES
+(1, '2024-02-10 10:30:00', 'Cargo', 5000.00, 'Compra de equipos', 1, 1),
+(2, '2024-03-05 14:00:00', 'Abono', 12000.00, 'Ingreso extra', 2, 1),
+(3, '2024-04-01 09:45:00', 'Cargo', 3000.00, 'Pago de servicio', 3, 1);
+
+INSERT INTO `BENEFICIO` (nombre, descripcion, tipo) VALUES
+('Vales de despensa', 'Apoyo alimentario mensual', 'Monetario'),
+('Seguro Médico', 'Cobertura médica privada', 'Salud'),
+('Bono de desempeño', 'Recompensa por objetivos cumplidos', 'Económico');
+
+INSERT INTO `EMPLEADO-BENEFICIO` (id_empleado, id_beneficio, fecha_asignacion) VALUES
+(1, 1, '2024-02-01'),
+(2, 2, '2024-02-10'),
+(3, 3, '2024-03-01');
+
+INSERT INTO `EMPLEADO-AUSENECIA` (id_empleado, id_ausencia, fecha_inicio, fecha_final) VALUES
+(1, 1, '2024-02-01 09:00:00', '2024-02-03 18:00:00'),
+(2, 2, '2024-07-10 08:00:00', '2024-07-20 20:00:00'),
+(3, 3, '2024-04-05 10:00:00', '2024-04-06 18:00:00');
+
+INSERT INTO `EMPLEADO-NOMINA` (id_empleado, id_nomina, fecha_inicio, fecha_fin) VALUES
+(1, 1, '2024-02-01 00:00:00', '2024-02-28 23:59:59'),
+(2, 2, '2024-02-01 00:00:00', '2024-02-28 23:59:59'),
+(3, 3, '2024-02-01 00:00:00', '2024-02-28 23:59:59');
+
+INSERT INTO `EMPLEADO-EVALUACION` (id_empleado, id_evaluacion, fecha_inicio, fecha_fin) VALUES
+(1, 1, '2024-06-01 09:00:00', '2024-06-01 10:00:00'),
+(2, 2, '2024-09-15 09:00:00', '2024-09-15 10:00:00'),
+(3, 3, '2025-01-10 09:00:00', '2025-01-10 10:00:00');
+
 
 
 SET SQL_MODE=@OLD_SQL_MODE;
