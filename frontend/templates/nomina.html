@@ -1,5 +1,48 @@
 {% extends "base.html" %}
 {% block content %}
 <h1>Módulo de Nómina y Compensaciones</h1>
-<p>En construcción...</p>
+
+<div class="form-container">
+  <form action="{{ url_for('nomina.agregar') }}" method="POST">
+
+    <label for="id_empleado">Empleado:</label>
+    <select id="id_empleado" required>
+      <option value="">-- Seleccionar Empleado --</option>
+      {% for emp in empleados %}
+        <option value="{{ emp.id_empleado }}">{{ emp.nombre }} {{ emp.apellido }}</option>
+      {% endfor %}
+
+    <input type="number" name="salario_base" placeholder="Salario base" required step="0.01">
+    <input type="number" name="deducciones" placeholder="Deducciones" required step="0.01">
+    <input type="number" name="percepciones" placeholder="Percepciones" required step="0.01">
+
+    <button type="submit">Agregar Datos</button>
+  </form>
+</div>
+
+<table>
+    <thead>
+     <tr>
+       <th>id_nomina</th>
+       <th>Empleado</th>
+       <th>Salario base</th>
+       <th>Deducciones</th>
+       <th>Percepciones</th>
+       <th>Total a pagar</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    {% for n in nomina %}
+    <tr>
+      <td>{{ n.id_nomina }}</td>
+      <td>{{ n.id_empleado }}</td> 
+      <td>{{ n.salario_base | currency}}</td>
+      <td>{{ n.deducciones | currency}}</td>
+      <td>{{ n.percepciones | currency}}</td>
+      <td>{{ n.total_pagar | currency}}</td>
+    </tr>
+    {% endfor %}
+    </tbody>
+</table>
 {% endblock %}
