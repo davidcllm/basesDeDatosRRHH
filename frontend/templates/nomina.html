@@ -37,10 +37,10 @@
     <tr>
       <td>{{ n.id_nomina }}</td>
       <td>{{ n.id_empleado }}</td> 
-      <td>{{ n.salario_base }}</td>
-      <td>{{ n.deducciones }}</td>
-      <td>{{ n.percepciones }}</td>
-      <td>{{ n.total_pagar }}</td>
+      <td>{{ n.salario_base | currency}}</td>
+      <td>{{ n.deducciones | currency}}</td>
+      <td>{{ n.percepciones | currency}}</td>
+      <td>{{ n.total_pagar | currency}}</td>
     </tr>
     {% endfor %}
     </tbody>

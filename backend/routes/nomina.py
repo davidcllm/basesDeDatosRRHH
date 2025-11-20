@@ -1,8 +1,10 @@
-from flask import Blueprint, render_template, request, redirect, url_for
+from flask import Blueprint, render_template, request, redirect, url_for, Flask
 from dp import get_connection
 
+from jinja2 import Environment, FileSystemLoader
 
 nomina_bp = Blueprint("nomina", __name__)
+app = Flask(__name__)
 
 @nomina_bp.route("/nomina")
 def nomina():
@@ -33,6 +35,17 @@ def obtener_empleados():
     cnx.close()
     return {"emplados", empleados}
 '''
+
+def format_currency(value):
+    if value is None:
+        return "0.00"
+    try:
+        return "${:,.2f}".format(float(value))
+    except (TypeError, ValueError):
+        return "0.00"
+
+    
+app.jinja_env.filters['currency'] = format_currency
 
 
 @nomina_bp.route("/nomina/agregar_salario", methods=["POST"])

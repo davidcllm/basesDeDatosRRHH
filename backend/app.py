@@ -9,7 +9,25 @@ from routes.presupuestos import presupuestos_bp
 from routes.reportes import reportes_bp
 from routes.seguridad import seguridad_bp
 
+from jinja2 import Environment, FileSystemLoader
+
+
 app = Flask(__name__, template_folder="../frontend/templates", static_folder="../frontend/static")
+
+
+
+@app.template_filter('currency')
+def format_currency(value):
+    if value is None:
+        return "0.00"
+    try:
+        return "${:,.2f}".format(float(value))
+    except (TypeError, ValueError):
+        return "0.00"
+
+    
+app.jinja_env.filters['currency'] = format_currency
+
 
 # Registrar blueprints
 app.register_blueprint(empleados_bp)
