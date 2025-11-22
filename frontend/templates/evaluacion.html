@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% block content %}
+
 <h1>Módulo de Evaluación, Capacitación y Desarrollo</h1>
 
 <!-- ================================================= -->
@@ -19,11 +20,11 @@
     <tbody>
         {% for e in evaluaciones %}
         <tr>
-            <td>{{ e[0] }}</td>
-            <td>{{ e[1] }}</td>
-            <td>{{ e[2] }}</td>
-            <td>{{ e[3] }}</td>
-            <td>{{ e[4] }}</td>
+            <td>{{ e.id_evaluacion }}</td>
+            <td>{{ e.fecha_evaluacion }}</td>
+            <td>{{ e.tipo }}</td>
+            <td>{{ e.resultado }}</td>
+            <td>{{ e.observaciones }}</td>
         </tr>
         {% endfor %}
     </tbody>
@@ -46,11 +47,11 @@
     <tbody>
         {% for r in empleado_evaluaciones %}
         <tr>
-            <td>{{ r[0] }}</td>
-            <td>{{ r[1] }}</td>
-            <td>{{ r[2] }}</td>
-            <td>{{ r[3] }}</td>
-            <td>{{ r[4] }}</td>
+            <td>{{ r["id_empleado-evaluacion"] }}</td>
+            <td>{{ r.id_empleado }}</td>
+            <td>{{ r.id_evaluacion }}</td>
+            <td>{{ r.fecha_inicio }}</td>
+            <td>{{ r.fecha_fin }}</td>
         </tr>
         {% endfor %}
     </tbody>
@@ -74,12 +75,12 @@
     <tbody>
         {% for c in capacitaciones %}
         <tr>
-            <td>{{ c[0] }}</td>
-            <td>{{ c[1] }}</td>
-            <td>{{ c[2] }}</td>
-            <td>{{ c[3] }}</td>
-            <td>{{ c[4] }}</td>
-            <td>{{ c[5] }}</td>
+            <td>{{ c.id_capacitacion }}</td>
+            <td>{{ c.nombre }}</td>
+            <td>{{ c.descripcion }}</td>
+            <td>{{ c.fecha_inicio }}</td>
+            <td>{{ c.fecha_fin }}</td>
+            <td>{{ c.proveedor }}</td>
         </tr>
         {% endfor %}
     </tbody>
@@ -104,13 +105,13 @@
     <tbody>
         {% for ec in empleado_capacitaciones %}
         <tr>
-            <td>{{ ec[0] }}</td>
-            <td>{{ ec[1] }}</td>
-            <td>{{ ec[2] }}</td>
-            <td>{{ ec[3] }}</td>
-            <td>{{ ec[4] }}</td>
-            <td>{{ ec[5] }}</td>
-            <td>{{ ec[6] }}</td>
+            <td>{{ ec["id_empleado-capacitacion"] }}</td>
+            <td>{{ ec.id_empleado }}</td>
+            <td>{{ ec.id_capacitacion }}</td>
+            <td>{{ ec.fecha_inicio }}</td>
+            <td>{{ ec.fecha_fin }}</td>
+            <td>{{ ec.resultado }}</td>
+            <td>{{ ec.comentarios }}</td>
         </tr>
         {% endfor %}
     </tbody>
@@ -133,11 +134,11 @@
     <tbody>
         {% for p in planes_carrera %}
         <tr>
-            <td>{{ p[0] }}</td>
-            <td>{{ p[1] }}</td>
-            <td>{{ p[2] }}</td>
-            <td>{{ p[3] }}</td>
-            <td>{{ p[4] }}</td>
+            <td>{{ p.id_plan_carrera }}</td>
+            <td>{{ p.objetivo }}</td>
+            <td>{{ p.etapas }}</td>
+            <td>{{ p.fecha_inicio }}</td>
+            <td>{{ p.fecha_fin }}</td>
         </tr>
         {% endfor %}
     </tbody>
