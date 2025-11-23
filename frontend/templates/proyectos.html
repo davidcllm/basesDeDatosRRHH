@@ -1,5 +1,140 @@
 {% extends "base.html" %}
 {% block content %}
-<h1>Gestión de Proyectos y Centros de Costo</h1>
-<p>En construcción...</p>
+
+<h1>Gestión de Proyectos</h1>
+
+<!-- CREAR PROYECTO -->
+<div class="form-container">
+    <form action="{{ url_for('proyectos.crear_proyecto') }}" method="POST">
+
+        <label for="nombre">Nombre del proyecto:</label>
+        <input type="text" name="nombre" required>
+
+        <label for="descripcion">Descripción:</label>
+        <textarea name="descripcion"></textarea>
+
+        <button type="submit" class="btn-primary">Crear proyecto</button>
+    </form>
+</div>
+
+<hr>
+
+<h2>Proyectos registrados</h2>
+
+<table>
+    <tr>
+        <th>ID</th>
+        <th>Proyecto</th>
+        <th>Descripción</th>
+        <th>Acciones</th>
+    </tr>
+
+    {% for p in proyectos %}
+    <tr>
+        <td>{{ p.id_proyecto }}</td>
+        <td>{{ p.nombre }}</td>
+        <td>{{ p.descripcion }}</td>
+        <td>
+
+            <!-- BOTÓN EDITAR -->
+            <button class="btn-secondary"onclick="toggleEditar({{ p.id_proyecto }})">
+                Editar
+            </button>
+
+            <!-- ELIMINAR -->
+            <form action="{{ url_for('proyectos.eliminar_proyecto', id=p.id_proyecto) }}"
+                  method="POST" style="display:inline;">
+                <button class="btn-danger" onclick="return confirm('¿Eliminar proyecto?')">
+                    Eliminar
+                </button>
+            </form>
+
+            <!-- BOTÓN ASIGNAR EMPLEADO -->
+            <button class="btn-primary"onclick="toggleAsignar({{ p.id_proyecto }})">
+                Asignar empleado
+            </button>
+        </td>
+    </tr>
+
+    <!-- FORMULARIO EDITAR -->
+    <tr id="editar-{{ p.id_proyecto }}" style="display:none;">
+        <td colspan="4">
+            <div class="form-container-mini">
+                <h3>Editar proyecto</h3>
+
+                <form action="{{ url_for('proyectos.actualizar_proyecto', id=p.id_proyecto) }}"
+                      method="POST">
+
+                    <label>Nombre:</label>
+                    <input type="text" name="nombre" value="{{ p.nombre }}" required>
+
+                    <label>Descripción:</label>
+                    <textarea name="descripcion">{{ p.descripcion }}</textarea>
+
+                    <button class="btn-primary" type="submit">Guardar cambios</button>
+                    <br>
+                    <button type="button" class="btn-secondary"onclick="toggleEditar({{ p.id_proyecto }})">
+                        Cancelar
+                    </button>
+                </form>
+            </div>
+        </td>
+    </tr>
+
+    <!-- FORMULARIO ASIGNAR EMPLEADO -->
+    <tr id="asignar-{{ p.id_proyecto }}" style="display:none;">
+        <td colspan="4">
+            <div class="form-container-mini">
+                <h3>Asignar empleado a: {{ p.nombre }}</h3>
+
+                <form action="{{ url_for('proyectos.asignar_empleado') }}" method="POST">
+
+                    <!-- ID del proyecto -->
+                    <input type="hidden" name="id_proyecto" value="{{ p.id_proyecto }}">
+
+                    <label>Empleado:</label>
+                    <select name="id_empleado" required>
+                        <option value="">Seleccione un empleado</option>
+                        {% for e in empleados %}
+                        <option value="{{ e.id_empleado }}">{{ e.nombre_completo }}</option>
+                        {% endfor %}
+                    </select>
+
+                    <label>Horas asignadas:</label>
+                    <input type="number" name="horas_asignadas" min="1" required>
+
+                    <label>Fecha asignación:</label>
+                    <input type="date" name="fecha_asignacion" required>
+
+                    <label>Fecha entrega:</label>
+                    <input type="date" name="fecha_entrega" required>
+
+                    <button class="btn-primary" type="submit">Asignar</button>
+
+                    <br>
+
+                    <button type="button" class="btn-secondary"onclick="toggleAsignar({{ p.id_proyecto }})">
+                        Cancelar
+                    </button>
+                </form>
+            </div>
+        </td>
+    </tr>
+
+
+    {% endfor %}
+</table>
+
+<script>
+function toggleEditar(id) {
+    const row = document.getElementById("editar-" + id);
+    row.style.display = row.style.display === "none" ? "table-row" : "none";
+}
+
+function toggleAsignar(id) {
+    const row = document.getElementById("asignar-" + id);
+    row.style.display = row.style.display === "none" ? "table-row" : "none";
+}
+</script>
+
 {% endblock %}
