@@ -1,5 +1,64 @@
-{% extends "base.html" %}
+{% extends 'base.html' %}
 {% block content %}
-<h1>Control de Asistencias y Ausencias</h1>
-<p>En construcción...</p>
+<h1>Asistencias</h1>
+
+<div class="form-container">
+  <form action="{{ url_for('asistencias.agregar_ausencia') }}" method="POST">
+
+    <label for="id_empleado">Empleado:</label>
+    <select name="id_empleado" required>
+      <option value="">-- Seleccionar Empleado --</option>
+      {% for emp in empleados %}
+        <option value="{{ emp.id_empleado }}">{{ emp.nombre_completo }}</option>
+      {% endfor %}
+    </select>
+
+    <input type="text" name="tipo" placeholder="Tipo (Vacaciones, Permiso, Enfermedad...)" required>
+    <input type="date" name="fecha_inicio" required>
+    <input type="date" name="fecha_fin" required>
+    <input type="text" name="motivo" placeholder="Motivo" required>
+
+    <button type="submit">Registrar ausencia</button>
+  </form>
+</div>
+
+<h2>Ausencias registradas</h2>
+<table>
+    <tr>
+        <th>ID</th>
+        <th>ID Empleado</th>
+        <th>Tipo</th>
+        <th>Fecha Inicio</th>
+        <th>Fecha Fin</th>
+        <th>Motivo</th>
+    </tr>
+    {% for a in ausencias %}
+    <tr>
+        <td>{{ a.id_ausencia }}</td>
+        <td>{{ a.id_empleado }}</td>
+        <td>{{ a.tipo }}</td>
+        <td>{{ a.fecha_inicio }}</td>
+        <td>{{ a.fecha_fin }}</td>
+        <td>{{ a.motivo }}</td>
+    </tr>
+    {% endfor %}
+</table>
+
+<h2>Empleado - Ausencia</h2>
+<table>
+    <tr>
+        <th>ID Empleado</th>
+        <th>ID Ausencia</th>
+        <th>Fecha Inicio</th>
+        <th>Fecha Final</th>
+    </tr>
+    {% for ea in empleado_ausencias %}
+    <tr>
+        <td>{{ ea.id_empleado }}</td>
+        <td>{{ ea.id_ausencia }}</td>
+        <td>{{ ea.fecha_inicio }}</td>
+        <td>{{ ea.fecha_final }}</td>
+    </tr>
+    {% endfor %}
+</table>
 {% endblock %}

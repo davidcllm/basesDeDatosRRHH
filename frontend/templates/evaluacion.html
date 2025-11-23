@@ -1,5 +1,147 @@
 {% extends "base.html" %}
 {% block content %}
-<h1>Evaluación y Desarrollo</h1>
-<p>En construcción...</p>
+
+<h1>Módulo de Evaluación, Capacitación y Desarrollo</h1>
+
+<!-- ================================================= -->
+<!-- EVALUACIONES -->
+<!-- ================================================= -->
+<h2>Evaluaciones de Desempeño</h2>
+<table>
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Fecha</th>
+            <th>Tipo</th>
+            <th>Resultado</th>
+            <th>Observaciones</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for e in evaluaciones %}
+        <tr>
+            <td>{{ e.id_evaluacion }}</td>
+            <td>{{ e.fecha_evaluacion }}</td>
+            <td>{{ e.tipo }}</td>
+            <td>{{ e.resultado }}</td>
+            <td>{{ e.observaciones }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<!-- ================================================= -->
+<!-- EMPLEADO - EVALUACION -->
+<!-- ================================================= -->
+<h2>Relación Empleado - Evaluación</h2>
+<table>
+    <thead>
+        <tr>
+            <th>ID Relación</th>
+            <th>ID Empleado</th>
+            <th>ID Evaluación</th>
+            <th>Fecha Inicio</th>
+            <th>Fecha Fin</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for r in empleado_evaluaciones %}
+        <tr>
+            <td>{{ r["id_empleado-evaluacion"] }}</td>
+            <td>{{ r.id_empleado }}</td>
+            <td>{{ r.id_evaluacion }}</td>
+            <td>{{ r.fecha_inicio }}</td>
+            <td>{{ r.fecha_fin }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<!-- ================================================= -->
+<!-- CAPACITACIÓN -->
+<!-- ================================================= -->
+<h2>Capacitaciones</h2>
+<table>
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Nombre</th>
+            <th>Descripción</th>
+            <th>Inicio</th>
+            <th>Fin</th>
+            <th>Proveedor</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for c in capacitaciones %}
+        <tr>
+            <td>{{ c.id_capacitacion }}</td>
+            <td>{{ c.nombre }}</td>
+            <td>{{ c.descripcion }}</td>
+            <td>{{ c.fecha_inicio }}</td>
+            <td>{{ c.fecha_fin }}</td>
+            <td>{{ c.proveedor }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<!-- ================================================= -->
+<!-- EMPLEADO - CAPACITACIÓN -->
+<!-- ================================================= -->
+<h2>Relación Empleado - Capacitación</h2>
+<table>
+    <thead>
+        <tr>
+            <th>ID Relación</th>
+            <th>ID Empleado</th>
+            <th>ID Capacitación</th>
+            <th>Inicio</th>
+            <th>Fin</th>
+            <th>Resultado</th>
+            <th>Comentarios</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for ec in empleado_capacitaciones %}
+        <tr>
+            <td>{{ ec["id_empleado-capacitacion"] }}</td>
+            <td>{{ ec.id_empleado }}</td>
+            <td>{{ ec.id_capacitacion }}</td>
+            <td>{{ ec.fecha_inicio }}</td>
+            <td>{{ ec.fecha_fin }}</td>
+            <td>{{ ec.resultado }}</td>
+            <td>{{ ec.comentarios }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<!-- ================================================= -->
+<!-- PLANES DE CARRERA -->
+<!-- ================================================= -->
+<h2>Planes de Carrera</h2>
+<table>
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Objetivo</th>
+            <th>Etapas</th>
+            <th>Inicio</th>
+            <th>Fin</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for p in planes_carrera %}
+        <tr>
+            <td>{{ p.id_plan_carrera }}</td>
+            <td>{{ p.objetivo }}</td>
+            <td>{{ p.etapas }}</td>
+            <td>{{ p.fecha_inicio }}</td>
+            <td>{{ p.fecha_fin }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
 {% endblock %}
