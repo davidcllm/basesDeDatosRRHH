@@ -423,7 +423,10 @@ INSERT INTO `EMPLEADO`
 VALUES
 (1, 1, 'Juan Pérez', 'Calle Uno #123', '555-1001', '1990-05-10', 'Developer', '2024-02-15', '2 años en soporte técnico', 1),
 (2, 2, 'María Gómez', 'Calle Dos #456', '555-2002', '1985-11-20', 'HR Manager', '2023-12-01', '5 años en gestión de personal', 2),
-(3, 3, 'Carlos López', 'Calle Tres #789', '555-3003', '1992-07-15', 'Analista Financiero', '2022-09-10', '3 años como auxiliar contable', 3);
+(3, 3, 'Carlos López', 'Calle Tres #789', '555-3003', '1992-07-15', 'Analista Financiero', '2022-09-10', '3 años como auxiliar contable', 3),
+(1, 2, 'Ana Martínez', 'Calle Cuatro #321', '555-4004', '1988-03-25', 'Project Manager', '2024-01-20', '4 años en gestión de proyectos', 1),
+(2, 1, 'Luis Rodríguez', 'Calle Cinco #654', '555-5005', '1991-12-30', 'Software Engineer', '2023-11-15', '3 años en desarrollo web', 1),
+(3, 3, 'Sofía Hernández', 'Calle Seis #987', '555-6006', '1987-09-05', 'Financial Advisor', '2022-08-05', '6 años en asesoría financiera', 3);
 
 INSERT INTO `EVALUACION` (fecha_evaluacion, tipo, resultado, observaciones) VALUES
 ('2024-06-01', 'Anual', 90.50, 'Excelente desempeño'),
@@ -475,7 +478,8 @@ INSERT INTO `CENTRO_COSTO` (nombre, descipcion, id_departamento) VALUES
 INSERT INTO `CUENTA_CONTABLE` (banco, numero_cuenta, tipo, saldo, id_centro_costo) VALUES
 ('BBVA', 'CC1111', 'Operativa', 50000.00, 1),
 ('Santander', 'CC2222', 'Inversión', 75000.00, 2),
-('Banorte', 'CC3333', 'Ahorro', 60000.00, 3);
+('Banorte', 'CC3333', 'Ahorro', 60000.00, 3),
+('HSBC', 'CC4444', 'Operativa', 82000.00, 1);
 
 INSERT INTO `MOVIMIENTO_FINANCIERO`
 (id_cuenta_contable, fecha_hora_movimiento, tipo, monto, descripcion, id_cuenta_bancaria, tipo_cuenta)
