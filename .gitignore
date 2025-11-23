@@ -1,0 +1,10 @@
+backend/__pycache__/dp.cpython-312.pyc
+backend/routes/__pycache__/asistencias.cpython-312.pyc
+backend/routes/__pycache__/evaluacion.cpython-312.pyc
+backend/routes/__pycache__/cuentas.cpython-312.pyc
+backend/routes/__pycache__/empleados.cpython-312.pyc
+backend/routes/__pycache__/nomina.cpython-312.pyc
+backend/routes/__pycache__/proyectos.cpython-312.pyc
+backend/routes/__pycache__/presupuestos.cpython-312.pyc
+backend/routes/__pycache__/reportes.cpython-312.pyc
+backend/routes/__pycache__/seguridad.cpython-312.pyc
