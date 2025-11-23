@@ -1,5 +1,255 @@
 {% extends "base.html" %}
 {% block content %}
-<h1>Presupuestos y Gastos</h1>
-<p>En construcción...</p>
+
+<h1 class="titulo-vista">Presupuestos y Gastos</h1>
+
+<div class="acciones-superior">
+    <button class="btn-primary" onclick="toggleForm()">+ Nuevo Presupuesto</button>
+</div>
+
+<!-- FORMULARIO CREAR -->
+<div id="formulario" class="form-container" style="display:none;">
+    <h2>Crear Presupuesto</h2>
+
+    <form action="{{ url_for('presupuestos.crear_presupuesto') }}" method="POST">
+
+        <label>Periodo (AAAA-MM):</label>
+        <input type="text" name="periodo" placeholder="2025-01" required>
+
+        <label>Monto asignado:</label>
+        <input type="number" step="0.01" name="monto_asignado" required>
+
+        <label>Monto utilizado:</label>
+        <input type="number" step="0.01" name="monto_utilizado" required>
+
+        <label>Departamento:</label>
+        <select name="id_departamento" required>
+            {% for d in departamentos %}
+                <option value="{{ d.id_departamento }}">{{ d.nombre }}</option>
+            {% endfor %}
+        </select>
+        <br>
+        <button type="submit" class="btn-primary">Guardar</button>
+        <br>
+        <button type="button" class="btn-secondary"onclick="toggleForm()">Cancelar</button>
+    </form>
+</div>
+
+
+<!-- LISTADO -->
+<h2 class="subtitulo">Listado de Presupuestos</h2>
+
+<table class="tabla">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Periodo</th>
+            <th>Asignado</th>
+            <th>Utilizado</th>
+            <th>Departamento</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+
+    <tbody>
+        {% for p in presupuestos %}
+        <tr>
+            <td>{{ p.id_presupuesto }}</td>
+            <td>{{ p.periodo }}</td>
+            <td>${{ p.monto_asignado }}</td>
+            <td>${{ p.monto_utilizado }}</td>
+            <td>{{ p.departamento }}</td>
+
+            <td>
+                <!-- Botón editar abre modal -->
+                <button class="btn-secondary"onclick="abrirEditar({{ p.id_presupuesto }})">Editar</button>
+
+                <form action="{{ url_for('presupuestos.eliminar_presupuesto', id=p.id_presupuesto) }}"
+                      method="POST" style="display:inline;">
+                    <button class="btn-danger" onclick="return confirm('Eliminar presupuesto?')">Eliminar</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+
+<!-- MODAL EDITAR -->
+<div id="modalEditar" class="form-container" style="display:none;">
+    <h2>Editar Presupuesto</h2>
+
+    <form id="formEditar" method="POST">
+
+        <label>Periodo:</label>
+        <input type="text" name="periodo" id="edit_periodo" required>
+
+        <label>Monto asignado:</label>
+        <input type="number" step="0.01" name="monto_asignado" id="edit_asignado" required>
+
+        <label>Monto utilizado:</label>
+        <input type="number" step="0.01" name="monto_utilizado" id="edit_utilizado" required>
+
+        <label>Departamento:</label>
+        <select name="id_departamento" id="edit_departamento">
+            {% for d in departamentos %}
+                <option value="{{ d.id_departamento }}">{{ d.nombre }}</option>
+            {% endfor %}
+        </select>
+        <br>
+        <button type="submit" class="btn-primary">Actualizar</button>
+        <br>
+        <button type="button" class="btn-secondary" onclick="cerrarEditar()">Cancelar</button>
+    </form>
+</div>
+
+
+<script>
+function toggleForm() {
+    const f = document.getElementById("formulario");
+    f.style.display = f.style.display === "none" ? "block" : "none";
+}
+
+function abrirEditar(id) {
+    const modal = document.getElementById("modalEditar");
+    modal.style.display = "block";
+
+    const row = [...document.querySelectorAll("tbody tr")]
+        .find(r => r.children[0].innerText == id);
+
+    document.getElementById("edit_periodo").value = row.children[1].innerText;
+    document.getElementById("edit_asignado").value = row.children[2].innerText.replace("$", "");
+    document.getElementById("edit_utilizado").value = row.children[3].innerText.replace("$", "");
+
+    document.getElementById("formEditar").action =
+        "/presupuestos/actualizar/" + id;
+}
+
+function cerrarEditar() {
+    document.getElementById("modalEditar").style.display = "none";
+}
+</script>
+
+<hr><br>
+<h2 class="subtitulo">Centros de Costo</h2>
+
+<div class="acciones-superior">
+    <button class="btn-primary" onclick="toggleFormCentro()">+ Nuevo Centro de Costo</button>
+</div>
+
+<!-- FORM CREAR CENTRO COSTO -->
+<div id="formCentro" class="form-container" style="display:none;">
+    <h2>Crear Centro de Costo</h2>
+
+    <form action="{{ url_for('presupuestos.crear_centro_costo') }}" method="POST">
+
+        <label>Nombre:</label>
+        <input type="text" name="nombre" required>
+
+        <label>Descripción:</label>
+        <input type="text" name="descripcion" required>
+
+        <label>Departamento:</label>
+        <select name="id_departamento" required>
+            {% for d in departamentos %}
+                <option value="{{ d.id_departamento }}">{{ d.nombre }}</option>
+            {% endfor %}
+        </select>
+        <br>
+        <button class="btn-primary">Guardar</button>
+        <br>
+        <button type="button" class="btn-secondary" onclick="toggleFormCentro()">Cancelar</button>
+    </form>
+</div>
+
+
+<!-- TABLA CENTROS DE COSTO -->
+<table class="tabla">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Centro</th>
+            <th>Descripción</th>
+            <th>Departamento</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+
+    <tbody>
+        {% for c in centros %}
+        <tr>
+            <td>{{ c.id_centro_costo }}</td>
+            <td>{{ c.nombre }}</td>
+            <td>{{ c.descipcion }}</td>
+            <td>{{ c.departamento }}</td>
+
+            <td>
+                <button class="btn-secondary"onclick="editarCentro({{ c.id_centro_costo }})">
+                    Editar
+                </button>
+
+                <form action="{{ url_for('presupuestos.eliminar_centro_costo', id=c.id_centro_costo) }}"
+                      method="POST" style="display:inline;">
+                    <button class="btn-danger" onclick="return confirm('¿Eliminar centro de costo?')">
+                        Eliminar
+                    </button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+
+<!-- MODAL EDITAR CENTRO COSTO -->
+<div id="modalCentro" class="form-container" style="display:none;">
+    <h2>Editar Centro de Costo</h2>
+
+    <form id="formEditarCentro" method="POST">
+
+        <label>Nombre:</label>
+        <input type="text" name="nombre" id="editCC_nombre" required placeholder="Nombre del Centro Costo">
+
+        <label>Descripción:</label>
+        <input type="text" name="descripcion" id="editCC_desc" required placeholder="Descripción del Centro Costo">
+
+        <label>Departamento:</label>
+        <select name="id_departamento" id="editCC_depto">
+            {% for d in departamentos %}
+                <option value="{{ d.id_departamento }}">{{ d.nombre }}</option>
+            {% endfor %}
+        </select>
+        <br>
+        <button class="btn-primary">Actualizar</button>
+        <br>
+        <button type="button" class="btn-secondary" onclick="cerrarCentro()">Cancelar</button>
+    </form>
+</div>
+
+
+<script>
+function toggleFormCentro() {
+    const f = document.getElementById("formCentro");
+    f.style.display = f.style.display === "none" ? "block" : "none";
+}
+
+function editarCentro(id) {
+    const modal = document.getElementById("modalCentro");
+    modal.style.display = "block";
+
+    const row = [...document.querySelectorAll("tbody tr")]
+        .find(r => r.children[0].innerText == id);
+
+    //document.getElementById("editCC_nombre").value = row.children[1].innerText;
+    //document.getElementById("editCC_desc").value = row.children[2].innerText;
+
+    document.getElementById("formEditarCentro").action =
+        "/centro_costo/actualizar/" + id;
+}
+
+function cerrarCentro() {
+    document.getElementById("modalCentro").style.display = "none";
+}
+</script>
+
 {% endblock %}
