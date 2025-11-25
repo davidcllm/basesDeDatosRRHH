@@ -3,7 +3,7 @@
 
 <h1>Módulo de Evaluación, Capacitación y Desarrollo</h1>
 
-<!-- FORMULARIO AGREGAR (centrado) -->
+<!-- FORMULARIO AGREGAR -->
 <div class="form-container" style="width:520px; margin: 20px auto;">
   <form action="{{ url_for('evaluacion.agregar_evaluacion') }}" method="POST" style="display:flex;flex-direction:column;gap:8px;">
     <h2 style="text-align:center; margin:0 0 6px 0;">Agregar Evaluación</h2>
@@ -55,6 +55,7 @@
 
 <!-- TABLA EVALUACIONES -->
 <h2 style="margin-top:12px;">Evaluaciones de Desempeño</h2>
+
 <table>
   <thead>
     <tr>
@@ -94,20 +95,23 @@
       </td>
     </tr>
 
-    <!-- EDIT MODAL (oculto hasta que se abra) -->
+    <!-- MODAL EDITAR -->
     <div id="overlay-eval-{{ e.id_evaluacion }}" class="modal-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.35);z-index:999;" onclick="closeEditModal({{ e.id_evaluacion }})"></div>
 
     <div id="modal-eval-{{ e.id_evaluacion }}" class="edit-modal" style="display:none;position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);width:640px;background:#fff;border-radius:8px;padding:18px;z-index:1000;box-shadow:0 8px 24px rgba(0,0,0,0.15);">
       <h3 style="margin-top:0;">Editar Evaluación #{{ e.id_evaluacion }}</h3>
 
       <form action="{{ url_for('evaluacion.editar_evaluacion', id_eval=e.id_evaluacion) }}" method="POST" style="display:flex;flex-direction:column;gap:10px;">
-        <div style="display:flex;gap:10px;align-items:center;">
+
+        <div style="display:flex;gap:10px;">
           <div style="flex:1;">
             <label>ID Empleado</label>
             <select name="id_empleado" style="width:100%;">
               <option value="">-- Seleccionar Empleado --</option>
               {% for emp in empleados %}
-                <option value="{{ emp.id_empleado }}" {% if emp.id_empleado == e.id_empleado %}selected{% endif %}>{{ emp.nombre_completo }}</option>
+                <option value="{{ emp.id_empleado }}" {% if emp.id_empleado == e.id_empleado %}selected{% endif %}>
+                  {{ emp.nombre_completo }}
+                </option>
               {% endfor %}
             </select>
           </div>
@@ -123,20 +127,17 @@
           </div>
         </div>
 
-        <!-- horizontal row -->
-        <div style="display:flex;gap:10px;align-items:center;">
+        <div style="display:flex;gap:10px;">
           <div style="flex:1;">
             <label>Resultado</label>
             <input type="text" name="resultado" value="{{ e.resultado }}" required>
           </div>
-
           <div style="flex:2;">
             <label>Observaciones</label>
             <input type="text" name="observaciones" value="{{ e.observaciones }}">
           </div>
         </div>
 
-        <!-- fechas inicio/fin horizontal -->
         <div style="display:flex;gap:10px;">
           <div style="flex:1;">
             <label>Fecha Inicio</label>
@@ -158,46 +159,78 @@
   </tbody>
 </table>
 
-<!-- CAPACITACIONES -->
+<!-- CAPACITACIONES (MODIFICADA SOLO EN 'Curso') -->
 <h2 style="margin-top:18px;">Capacitaciones</h2>
+
 <table>
   <thead>
     <tr>
-      <th>ID</th><th>Nombre</th><th>Descripción</th><th>Inicio</th><th>Fin</th><th>Proveedor</th>
+      <th>ID</th>
+      <th>Nombre Empleado</th>
+      <th>Curso</th>
+      <th>Descripción</th>
+      <th>Inicio</th>
+      <th>Fin</th>
+      <th>Proveedor</th>
+      <th>Resultado</th>
+      <th>Comentarios</th>
+      <th>Acciones</th>
     </tr>
   </thead>
+
   <tbody>
     {% for c in capacitaciones %}
+    {% set relacion = None %}
+    {% for ec in empleado_capacitaciones %}
+        {% if ec.id_capacitacion == c.id_capacitacion %}
+            {% set relacion = ec %}
+        {% endif %}
+    {% endfor %}
+
     <tr>
       <td>{{ c.id_capacitacion }}</td>
+
+      <td>
+        {% if relacion %}
+            {% for emp in empleados %}
+                {% if emp.id_empleado == relacion.id_empleado %}
+                    {{ emp.nombre_completo }}
+                {% endif %}
+            {% endfor %}
+        {% else %}
+            —
+        {% endif %}
+      </td>
+
       <td>{{ c.nombre }}</td>
+
       <td>{{ c.descripcion }}</td>
       <td>{{ c.fecha_inicio }}</td>
       <td>{{ c.fecha_fin }}</td>
       <td>{{ c.proveedor }}</td>
-    </tr>
-    {% endfor %}
-  </tbody>
-</table>
 
-<!-- EMPLEADO - CAPACITACIÓN -->
-<h2 style="margin-top:18px;">Relación Empleado - Capacitación</h2>
-<table>
-  <thead>
-    <tr>
-      <th>ID Rel</th><th>ID Empleado</th><th>ID Cap</th><th>Inicio</th><th>Fin</th><th>Resultado</th><th>Comentarios</th>
-    </tr>
-  </thead>
-  <tbody>
-    {% for ec in empleado_capacitaciones %}
-    <tr>
-      <td>{{ ec["id_empleado-capacitacion"] }}</td>
-      <td>{{ ec.id_empleado }}</td>
-      <td>{{ ec.id_capacitacion }}</td>
-      <td>{{ ec.fecha_inicio }}</td>
-      <td>{{ ec.fecha_fin }}</td>
-      <td>{{ ec.resultado }}</td>
-      <td>{{ ec.comentarios }}</td>
+      <td>
+        {% if relacion %}
+            {{ relacion.resultado }}
+        {% else %}
+            —
+        {% endif %}
+      </td>
+
+      <td>
+        {% if relacion %}
+            {{ relacion.comentarios }}
+        {% else %}
+            —
+        {% endif %}
+      </td>
+
+      <td style="width:180px;">
+        <div style="display:flex;gap:8px;justify-content:flex-end;">
+          <button>Editar</button>
+          <button>Eliminar</button>
+        </div>
+      </td>
     </tr>
     {% endfor %}
   </tbody>
