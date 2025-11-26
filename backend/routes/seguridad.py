@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash
-from flask_jwt_extended import jwt_required
+from flask_jwt_extended import jwt_required, get_jwt_identity
 from routes.auth import roles_required
 from dp import get_connection
 
@@ -14,7 +14,8 @@ def seguridad():
     try:
         cnx = get_connection()
         cursor = cnx.cursor()  # DictCursor ya configurado en get_connection()
-        cursor.execute("SELECT id_usuario, email, rol FROM USUARIO ORDER BY email;")
+        current_email = get_jwt_identity()
+        cursor.execute("SELECT id_usuario, email, rol FROM USUARIO WHERE email <> %s ORDER BY email;", (current_email,))
         usuarios = cursor.fetchall()
     except Exception as e:
         usuarios = []
@@ -41,6 +42,17 @@ def modificar_rol(id_usuario):
     try:
         cnx = get_connection()
         cursor = cnx.cursor()
+        # Evitar que el admin modifique su propio rol: comprobar email del id recibido
+        current_email = get_jwt_identity()
+        cursor.execute("SELECT email FROM USUARIO WHERE id_usuario = %s;", (id_usuario,))
+        row = cursor.fetchone()
+        if not row:
+            flash("Usuario no encontrado.", "error")
+            return redirect(url_for("seguridad.seguridad"))
+        if row.get("email") == current_email:
+            flash("No puedes modificar tu propio rol.", "error")
+            return redirect(url_for("seguridad.seguridad"))
+
         cursor.execute("UPDATE USUARIO SET rol = %s WHERE id_usuario = %s;", (new_rol, id_usuario))
         cnx.commit()
         flash("Rol actualizado correctamente.", "success")
