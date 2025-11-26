@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Login - RRHH</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <!-- Formulario de INICIO DE SESIÓN -->
+    <div style="max-width: 400px; width: 100%; margin: 50px auto; padding: 30px; border: 1px solid #ddd; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); background-color: white;">
+        <h2 style="text-align: center; color: #0066ff; margin-bottom: 25px;">Iniciar Sesión</h2>
+
+        <!-- Manejo de mensajes Flash -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <ul style="list-style: none; padding: 0; margin-bottom: 20px;">
+            {% for category, message in messages %}
+                {% set color = 'red' if 'error' in category else 'green' if 'success' in category else 'blue' %}
+                <li style="color: {{ color }}; margin-bottom: 10px; padding: 10px; border-radius: 5px; background-color: rgba(0,102,255,0.03); border: 1px solid rgba(0,0,0,0.05);">
+                    {{ message }}
+                </li>
+            {% endfor %}
+            </ul>
+        {% endif %}
+        {% endwith %}
+
+    <form method="POST" action="{{ url_for('auth.login') }}">
+        <div style="margin-bottom: 20px;">
+            <label for="email" style="display: block; margin-bottom: 5px; font-weight: bold;">Email:</label>
+            <input type="email" id="email" name="email" required 
+             style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box;">
+        </div>
+        <div style="margin-bottom: 20px;">
+            <label for="password" style="display: block; margin-bottom: 5px; font-weight: bold;">Contraseña:</label>
+            <input type="password" id="password" name="password" required 
+            style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box;">
+        </div>
+        <button type="submit"  
+        style="width: 100%; padding: 12px; background-color: #0066ff; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; font-weight: bold; transition: background-color 0.3s;">
+            Entrar
+        </button>
+    </form> 
+    <p style="text-align: center; margin-top: 20px; font-size: 0.9em;">
+        ¿No tienes cuenta? <a id="openRegisterModal" class="btn-register-link">Regístrate aquí</a>
+    </p>
+
+    </div>
+
+    <!-- MODAL DE REGISTRO (oculto por defecto) -->
+    <div id="registerModal" class="modal" style="display:none; max-width: 400px; width: 100%; margin: 50px auto; padding: 30px; border: 1px solid #ddd; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); background-color: white;">
+        <div class="modal-content">
+            <span class="close" id="closeRegisterModal">&times;</span>
+            <h2 style="text-align: center; color: #0066ff; margin-bottom: 25px;">Registro de Usuario</h2>
+            
+            <form method="POST" action="{{ url_for('auth.register') }}">
+                
+                <div style="margin-bottom: 20px;">
+                    <label for="reg_email" style="display: block; margin-bottom: 5px; font-weight: bold;">Email:</label>
+                    <input type="email" id="reg_email" name="email" required 
+                           style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box;">
+                </div>
+                
+                <div style="margin-bottom: 20px;">
+                    <label for="reg_password" style="display: block; margin-bottom: 5px; font-weight: bold;">Contraseña:</label>
+                    <input type="password" id="reg_password" name="password" required 
+                           style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box;">
+                </div>
+
+                <div style="margin-bottom: 25px;">
+                    <label for="reg_rol" style="display: block; margin-bottom: 5px; font-weight: bold;">Rol:</label>
+                    <select id="reg_rol" name="rol" required
+                            style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; background-color: white;">
+                        <option value="" disabled selected>Selecciona un rol</option>
+                        {% for r in ['administrador', 'finanzas', 'recursos_humanos'] %}
+                            <option value="{{ r }}">{{ r.replace('_', ' ')|title }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <button type="submit" 
+                        style="width: 100%; padding: 12px; background-color: #0066ff; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; font-weight: bold;">
+                    Registrar Nuevo Usuario
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- JavaScript para manejar el Modal -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var modal = document.getElementById('registerModal');
+            var btn = document.getElementById('openRegisterModal');
+            var span = document.getElementById('closeRegisterModal');
+
+            // Abrir el modal al hacer clic en el enlace
+            if(btn) {
+                btn.onclick = function() {
+                    modal.style.display = "block";
+                }
+            }
+
+            // Cerrar el modal al hacer clic en (x)
+            if(span) {
+                span.onclick = function() {
+                    modal.style.display = "none";
+                }
+            }
+
+            // Cerrar el modal al hacer clic fuera del contenido
+            window.onclick = function(event) {
+                if (event.target == modal) {
+                    modal.style.display = "none";
+                }
+            }
+            
+            // Lógica para reabrir el modal si hay un mensaje flash de registro (éxito o error)
+            var flashMessages = document.querySelectorAll('li');
+            var isRegisterFlash = false;
+            flashMessages.forEach(function(li) {
+                var text = li.textContent || li.innerText;
+                // Verificamos si el mensaje flash contiene texto relacionado con el registro
+                if (text.includes("Error al registrar") || text.includes("Registro exitoso")) {
+                    isRegisterFlash = true;
+                }
+            });
+
+            if (isRegisterFlash) {
+                modal.style.display = "block";
+            }
+        });
+    </script>
+</body>
+</html>

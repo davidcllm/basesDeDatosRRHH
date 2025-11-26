@@ -1,4 +1,6 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash 
+from flask_jwt_extended import jwt_required
+from routes.auth import roles_required
 from dp import get_connection
 import pymysql
 
@@ -6,6 +8,8 @@ evaluacion_bp = Blueprint("evaluacion", __name__)
 
 
 @evaluacion_bp.route("/evaluacion")
+@jwt_required()
+@roles_required('administrador','recursos_humanos')
 def evaluacion():
     cnx = get_connection()
     cursor = cnx.cursor(pymysql.cursors.DictCursor)
@@ -61,6 +65,8 @@ def evaluacion():
 # AGREGAR
 # ---------------------------
 @evaluacion_bp.route("/evaluacion/agregar", methods=["POST"])
+@jwt_required()
+@roles_required('administrador','recursos_humanos')
 def agregar_evaluacion():
     id_empleado = request.form.get("id_empleado") or None
     fecha_evaluacion = request.form.get("fecha_evaluacion")
@@ -100,6 +106,8 @@ def agregar_evaluacion():
 # EDITAR
 # ---------------------------
 @evaluacion_bp.route("/evaluacion/editar/<int:id_eval>", methods=["POST"])
+@jwt_required()
+@roles_required('administrador','recursos_humanos')
 def editar_evaluacion(id_eval):
     fecha_evaluacion = request.form.get("fecha_evaluacion")
     tipo = request.form.get("tipo")
@@ -151,6 +159,8 @@ def editar_evaluacion(id_eval):
 # ELIMINAR
 # ---------------------------
 @evaluacion_bp.route("/evaluacion/eliminar/<int:id_eval>", methods=["POST"])
+@jwt_required()
+@roles_required('administrador','recursos_humanos')
 def eliminar_evaluacion(id_eval):
     cnx = get_connection()
     cursor = cnx.cursor()

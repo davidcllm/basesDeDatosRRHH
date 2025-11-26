@@ -1,10 +1,14 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash
+from flask_jwt_extended import jwt_required
+from routes.auth import roles_required
 from dp import get_connection
 import pymysql
 
 asistencias_bp = Blueprint("asistencias", __name__)
 
 @asistencias_bp.route("/asistencias")
+@jwt_required()
+@roles_required('administrador','recursos_humanos')
 def asistencias():
     cnx = get_connection()
     cursor = cnx.cursor(pymysql.cursors.DictCursor)
@@ -38,6 +42,8 @@ def asistencias():
 #   AGREGAR AUSENCIA
 # ----------------------------------------------------
 @asistencias_bp.route("/asistencias/agregar_ausencia", methods=["POST"])
+@jwt_required()
+@roles_required('administrador','recursos_humanos')
 def agregar_ausencia():
 
     id_empleado = request.form["id_empleado"]
@@ -77,6 +83,8 @@ def agregar_ausencia():
 #   EDITAR AUSENCIA
 # ----------------------------------------------------
 @asistencias_bp.route("/asistencias/editar/<int:id_ausencia>", methods=["POST"])
+@jwt_required()
+@roles_required('administrador','recursos_humanos')
 def editar_ausencia(id_ausencia):
 
     id_empleado = request.form["id_empleado"]
@@ -116,6 +124,8 @@ def editar_ausencia(id_ausencia):
 #   ELIMINAR AUSENCIA
 # ----------------------------------------------------
 @asistencias_bp.route("/asistencias/eliminar/<int:id_ausencia>", methods=["POST"])
+@jwt_required()
+@roles_required('administrador','recursos_humanos')
 def eliminar_ausencia(id_ausencia):
 
     cnx = get_connection()

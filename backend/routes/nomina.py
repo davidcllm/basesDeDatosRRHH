@@ -1,10 +1,14 @@
 from flask import Blueprint, render_template, request, redirect, url_for
+from flask_jwt_extended import jwt_required
+from routes.auth import roles_required
 from dp import get_connection
 import pymysql
 
 nomina_bp = Blueprint("nomina", __name__)
 
 @nomina_bp.route("/nomina")
+@jwt_required()
+@roles_required('administrador','finanzas', 'recursos_humanos')
 def nomina():
     cnx = get_connection()
     # usar DictCursor explícito para consistencia
@@ -29,6 +33,8 @@ def nomina():
 
 
 @nomina_bp.route("/nomina/agregar_nomina", methods=["POST"])
+@jwt_required()
+@roles_required('administrador','finanzas')
 def agregar_nomina():
     # leer formulario
     id_empleado = int(request.form["id_empleado"])
@@ -56,6 +62,8 @@ def agregar_nomina():
 
 
 @nomina_bp.route("/nomina/eliminar_nomina/<int:id_nomina>", methods=["POST"])
+@jwt_required()
+@roles_required('administrador','finanzas')
 def eliminar_nomina(id_nomina):
     cnx = get_connection()
     cursor = cnx.cursor()
@@ -68,6 +76,8 @@ def eliminar_nomina(id_nomina):
 
 
 @nomina_bp.route("/nomina/editar_nomina/<int:id_nomina>", methods=["POST"])
+@jwt_required()
+@roles_required('administrador','finanzas')
 def editar_nomina(id_nomina):
     # sólo permitir editar salario_base, deducciones y percepciones
     salario_base = float(request.form.get("salario_base", 0) or 0)

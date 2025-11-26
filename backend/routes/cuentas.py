@@ -1,9 +1,13 @@
 from flask import Blueprint, render_template, request, redirect, url_for
 from dp import get_connection
+from flask_jwt_extended import jwt_required
+from routes.auth import roles_required
 
 cuentas_bp = Blueprint("cuentas", __name__)
 
 @cuentas_bp.route("/cuentas", methods=["GET", "POST"])
+@jwt_required()
+@roles_required('administrador','finanzas')
 def cuentas():
     if request.method == "POST":
         banco = request.form["banco"]
@@ -49,6 +53,8 @@ def cuentas():
 
 
 @cuentas_bp.route("/cuentas/agregar_cuenta_contable", methods=["POST"])
+@jwt_required()
+@roles_required('administrador','finanzas')
 def agregar_cuenta_contable():
     banco = request.form["banco"]
     numero_cuenta = request.form["numero_cuenta"]
@@ -68,6 +74,8 @@ def agregar_cuenta_contable():
     return redirect(url_for("cuentas.cuentas"))
 
 @cuentas_bp.route("/cuentas/eliminar_cuenta_contable/<int:id_cuenta>", methods=["POST"])
+@jwt_required()
+@roles_required('administrador','finanzas')
 def eliminar_cuenta_contable(id_cuenta):
     cnx = get_connection()
     cursor = cnx.cursor()
@@ -79,6 +87,8 @@ def eliminar_cuenta_contable(id_cuenta):
     return redirect(url_for("cuentas.cuentas"))
 
 @cuentas_bp.route("/id_cuenta_contable/actualizar_cuenta_contable/<int:id>", methods=["POST"])
+@jwt_required()
+@roles_required('administrador','finanzas')
 def actualizar_cuenta_contable(id):
     banco = request.form["banco"]
     numero_cuenta = request.form["numero_cuenta"]

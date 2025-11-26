@@ -6,16 +6,49 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
-  <nav style="background:#0066ff; padding:10px;">
-    <a href="/" style="color:white; margin-right:15px;">Empleados</a>
-    <a href="/nomina" style="color:white; margin-right:15px;">Nómina</a>
-    <a href="/asistencias" style="color:white; margin-right:15px;">Asistencias</a>
-    <a href="/evaluacion" style="color:white; margin-right:15px;">Evaluación</a>
-    <a href="/proyectos" style="color:white; margin-right:15px;">Proyectos</a>
-    <a href="/presupuestos" style="color:white; margin-right:15px;">Presupuestos</a>
-    <a href="/cuentas" style="color:white; margin-right:15px;">Cuentas</a>
-    <a href="/reportes" style="color:white; margin-right:15px;">Reportes</a>
-    <a href="/seguridad" style="color:white; margin-right:15px;">Seguridad</a>
+  <nav style="background:#0066ff; padding:12px;">
+    {% if current_role == 'administrador' %}
+      <a href="/empleados" style="color:white; margin-right:15px;">Empleados</a>
+      <a href="/nomina" style="color:white; margin-right:15px;">Nómina</a>
+      <a href="/asistencias" style="color:white; margin-right:15px;">Asistencias</a>
+      <a href="/evaluacion" style="color:white; margin-right:15px;">Evaluación</a>
+      <a href="/proyectos" style="color:white; margin-right:15px;">Proyectos</a>
+      <a href="/presupuestos" style="color:white; margin-right:15px;">Presupuestos</a>
+      <a href="/cuentas" style="color:white; margin-right:15px;">Cuentas</a>
+      <a href="/reportes" style="color:white; margin-right:15px;">Reportes</a>
+      <a href="/seguridad" style="color:white; margin-right:15px;">Seguridad</a>
+
+    {% if current_role %}
+      <a href="{{ url_for('auth.logout') }}" style="color:white; margin-left:525px;">
+        Cerrar Sesión
+      </a>
+    {% endif %}
+    {% elif current_role == 'finanzas' %}
+      <a href="/empleados" style="color:white; margin-right:15px;">Empleados</a>
+      <a href="/nomina" style="color:white; margin-right:15px;">Nómina</a>
+      <a href="/presupuestos" style="color:white; margin-right:15px;">Presupuestos</a>
+      <a href="/cuentas" style="color:white; margin-right:15px;">Cuentas</a>
+      <a href="/reportes" style="color:white; margin-right:15px;">Reportes</a>
+
+    {% if current_role %}
+      <a href="{{ url_for('auth.logout') }}" style="color:white; margin-left:905px;">
+        Cerrar Sesión
+      </a>
+    {% endif %}
+    {% elif current_role == 'recursos_humanos' %}
+      <a href="/empleados" style="color:white; margin-right:15px;">Empleados</a>
+      <a href="/nomina" style="color:white; margin-right:15px;">Nómina</a>
+      <a href="/asistencias" style="color:white; margin-right:15px;">Asistencias</a>
+      <a href="/evaluacion" style="color:white; margin-right:15px;">Evaluación</a>
+      <a href="/proyectos" style="color:white; margin-right:15px;">Proyectos</a>
+      <a href="/reportes" style="color:white; margin-right:15px;">Reportes</a>
+
+    {% if current_role %}
+      <a href="{{ url_for('auth.logout') }}" style="color:white; margin-left:815px;">
+        Cerrar Sesión
+      </a>
+    {% endif %}
+    {% endif %}
   </nav>
 
   <div class="content">
