@@ -1,11 +1,30 @@
 import pymysql
 from flask import Blueprint, request, jsonify, render_template, redirect, url_for, flash, session
-from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity, get_jwt, unset_jwt_cookies
+from flask_jwt_extended import (
+    create_access_token, jwt_required, get_jwt_identity, get_jwt,
+    unset_jwt_cookies, set_access_cookies, verify_jwt_in_request
+)
 from werkzeug.security import check_password_hash
+from functools import wraps
 
 from dp import get_connection, create_user_in_db 
 
 auth_bp = Blueprint('auth', __name__)
+
+# Decorador reutilizable para controlar acceso por roles
+def roles_required(*allowed_roles):
+    def wrapper(fn):
+        @wraps(fn)
+        def decorator(*args, **kwargs):
+            # Verifica que exista un JWT válido
+            verify_jwt_in_request()
+            claims = get_jwt()
+            rol = claims.get("rol")
+            if rol not in allowed_roles:
+                return jsonify({"msg": "Forbidden - role not allowed"}), 403
+            return fn(*args, **kwargs)
+        return decorator
+    return wrapper
 
 @auth_bp.route("/login", methods=["GET", "POST"])
 def login():
@@ -37,11 +56,17 @@ def login():
             flash("Contraseña incorrecta.", "error")
             return render_template("login.html")
 
-        # Credenciales correctas -> guardar rol en sesión y redirigir a empleados
+        # Credenciales correctas -> crear JWT con claim 'rol' y guardarlo en cookie
+        additional_claims = {"rol": user["rol"]}
+        access_token = create_access_token(identity=user["email"], additional_claims=additional_claims)
+        response = redirect(url_for("empleados.empleados"))
+        set_access_cookies(response, access_token)
+
+        # Guardar datos mínimos en sesión (opcional, para templates)
         session["role"] = user["rol"]
         session["email"] = user["email"]
         flash("Inicio de sesión correcto.", "success")
-        return redirect(url_for("empleados.empleados"))
+        return response
 
     # Mostrar formulario GET
     return render_template("login.html")
