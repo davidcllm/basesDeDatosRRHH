@@ -167,13 +167,13 @@ CREATE TABLE IF NOT EXISTS `mydb`.`AUSENCIA` (
   `fecha_inicio` DATETIME NOT NULL,
   `fecha_fin` DATETIME NOT NULL,
   `motivo` VARCHAR(100) NOT NULL,
-  PRIMARY KEY (`id_ausencia`))
+  PRIMARY KEY (`id_ausencia`),
   CONSTRAINT `fk_ausencia_empleado`
     FOREIGN KEY (`id_empleado`)
     REFERENCES `mydb`.`EMPLEADO` (`id_empleado`)
     ON DELETE CASCADE
-    ON UPDATE CASCADE;
-ENGINE = InnoDB;
+    ON UPDATE CASCADE
+) ENGINE = InnoDB;
 
 -- -----------------------------------------------------
 -- Table `mydb`.`ASISTENCIA`
@@ -183,13 +183,13 @@ CREATE TABLE IF NOT EXISTS `mydb`.`ASISTENCIA` (
   `id_empleado` INT NOT NULL,
   `fecha_inicio` DATETIME NOT NULL,
   `fecha_fin` DATETIME NOT NULL,
-  PRIMARY KEY (`id_asistencia`))
+  PRIMARY KEY (`id_asistencia`),
   CONSTRAINT `fk_asistencia_empleado`
     FOREIGN KEY (`id_empleado`)
     REFERENCES `mydb`.`EMPLEADO` (`id_empleado`)
     ON DELETE CASCADE
-    ON UPDATE CASCADE;
-ENGINE = InnoDB;
+    ON UPDATE CASCADE
+) ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
@@ -485,7 +485,7 @@ INSERT INTO `mydb`.`AUSENCIA` (`id_empleado`, `tipo`, `fecha_inicio`, `fecha_fin
 (2, 'Vacaciones', '2024-12-20 00:00:00', '2024-12-27 23:59:59', 'Vacaciones anuales'),
 (3, 'Permiso', '2025-03-10 09:00:00', '2025-03-10 13:00:00', 'Cita médica');
 
-NSERT INTO `mydb`.`ASISTENCIA` (`id_empleado`, `fecha_inicio`, `fecha_fin`) VALUES
+INSERT INTO `mydb`.`ASISTENCIA` (`id_empleado`, `fecha_inicio`, `fecha_fin`) VALUES
 (1, '2025-01-02 08:30:00', '2025-01-02 17:30:00'),
 (2, '2025-01-02 09:00:00', '2025-01-02 18:00:00'),
 (3, '2025-01-02 08:45:00', '2025-01-02 17:15:00');
