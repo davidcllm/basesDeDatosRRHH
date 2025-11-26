@@ -8,7 +8,7 @@
   <form action="{{ url_for('evaluacion.agregar_evaluacion') }}" method="POST" style="display:flex;flex-direction:column;gap:8px;">
     <h2 style="text-align:center; margin:0 0 6px 0;">Agregar Evaluación</h2>
 
-    <label>ID Empleado:</label>
+    <label>Empleado:</label>
     <select name="id_empleado" required>
       <option value="">-- Seleccionar Empleado --</option>
       {% for emp in empleados %}
