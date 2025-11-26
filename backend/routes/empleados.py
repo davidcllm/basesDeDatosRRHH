@@ -6,7 +6,7 @@ empleados_bp = Blueprint("empleados", __name__)
 @empleados_bp.route("/empleados")
 def empleados():
     cnx = get_connection()
-    cursor = cnx.cursor(dictionary=True)
+    cursor = cnx.cursor()
     cursor.execute("SELECT * FROM EMPLEADO;")
     empleados = cursor.fetchall()
     cursor.close()

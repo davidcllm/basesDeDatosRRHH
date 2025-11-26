@@ -403,6 +403,15 @@ CREATE TABLE IF NOT EXISTS `mydb`.`EMPLEADO-EVALUACION` (
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;
 
+-- Creación de la tabla USUARIO
+CREATE TABLE IF NOT EXISTS `mydb`.`USUARIO` (
+  `id_usuario` INT NOT NULL AUTO_INCREMENT,
+  `email` VARCHAR(100) NOT NULL UNIQUE, -- Usaremos el email como nombre de usuario
+  `password_hash` VARCHAR(255) NOT NULL, -- Para almacenar el hash de la contraseña
+  `rol` ENUM('administrador', 'finanzas', 'recursos_humanos') NOT NULL,
+  PRIMARY KEY (`id_usuario`))
+ENGINE = InnoDB;
+
 INSERT INTO `CUENTA_BANCARIA` (banco, numero_cuenta, saldo) VALUES
 ('BBVA', '0011223344', 15000.00),
 ('Santander', '5566778899', 23000.50),
@@ -518,4 +527,3 @@ INSERT INTO `EMPLEADO-EVALUACION` (id_empleado, id_evaluacion, fecha_inicio, fec
 SET SQL_MODE=@OLD_SQL_MODE;
 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS;
---hola test branch
