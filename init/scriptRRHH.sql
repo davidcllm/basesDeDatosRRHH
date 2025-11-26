@@ -164,10 +164,31 @@ CREATE TABLE IF NOT EXISTS `mydb`.`AUSENCIA` (
   `id_ausencia` INT NOT NULL AUTO_INCREMENT,
   `id_empleado` INT NOT NULL,
   `tipo` VARCHAR(45) NOT NULL,
-  `fecha_inicio` DATE NOT NULL,
-  `fecha_fin` DATE NOT NULL,
+  `fecha_inicio` DATETIME NOT NULL,
+  `fecha_fin` DATETIME NOT NULL,
   `motivo` VARCHAR(100) NOT NULL,
   PRIMARY KEY (`id_ausencia`))
+  CONSTRAINT `fk_ausencia_empleado`
+    FOREIGN KEY (`id_empleado`)
+    REFERENCES `mydb`.`EMPLEADO` (`id_empleado`)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE;
+ENGINE = InnoDB;
+
+-- -----------------------------------------------------
+-- Table `mydb`.`ASISTENCIA`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `mydb`.`ASISTENCIA` (
+  `id_asistencia` INT NOT NULL AUTO_INCREMENT,
+  `id_empleado` INT NOT NULL,
+  `fecha_inicio` DATETIME NOT NULL,
+  `fecha_fin` DATETIME NOT NULL,
+  PRIMARY KEY (`id_asistencia`))
+  CONSTRAINT `fk_asistencia_empleado`
+    FOREIGN KEY (`id_empleado`)
+    REFERENCES `mydb`.`EMPLEADO` (`id_empleado`)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE;
 ENGINE = InnoDB;
 
 
@@ -459,10 +480,15 @@ INSERT INTO `NOMINA` (salario_base, deducciones, percepciones, total_pagar) VALU
 (18000.00, 2500.00, 3200.00, 18700.00),
 (22000.00, 3000.00, 4000.00, 23000.00);
 
-INSERT INTO `AUSENCIA` (id_empleado, tipo, fecha_inicio, fecha_fin, motivo) VALUES
-(1, 'Enfermedad', '2024-02-01', '2024-02-03', 'Gripe'),
-(2, 'Vacaciones', '2024-07-10', '2024-07-20', 'Viaje familiar'),
-(3, 'Permiso', '2024-04-05', '2024-04-06', 'Trámite personal');
+INSERT INTO `mydb`.`AUSENCIA` (`id_empleado`, `tipo`, `fecha_inicio`, `fecha_fin`, `motivo`) VALUES
+(1, 'Enfermedad', '2024-10-01 09:00:00', '2024-10-03 18:00:00', 'Gripe'),
+(2, 'Vacaciones', '2024-12-20 00:00:00', '2024-12-27 23:59:59', 'Vacaciones anuales'),
+(3, 'Permiso', '2025-03-10 09:00:00', '2025-03-10 13:00:00', 'Cita médica');
+
+NSERT INTO `mydb`.`ASISTENCIA` (`id_empleado`, `fecha_inicio`, `fecha_fin`) VALUES
+(1, '2025-01-02 08:30:00', '2025-01-02 17:30:00'),
+(2, '2025-01-02 09:00:00', '2025-01-02 18:00:00'),
+(3, '2025-01-02 08:45:00', '2025-01-02 17:15:00');
 
 INSERT INTO `PRESUPUESTO` (periodo, monto_asignado, monto_utilizado, id_departamento) VALUES
 ('2024-01-01', 500000.00, 200000.00, 1),
