@@ -6,27 +6,71 @@
   <form action="{{ url_for('empleados.agregar_empleado') }}" method="POST">
     <input type="text" name="nombre" placeholder="Nombre" required>
     <input type="text" name="apellido" placeholder="Apellido" required>
-    <input type="email" name="email" placeholder="Correo" required>
+    <input type="text" name="direccion" placeholder="Dirección" required>
+    <input type="text" name="telefono" placeholder="Teléfono" required>
+    <input type="date" name="fecha_nacimiento" placeholder="Fecha Nacimiento" required>
+    <input type="text" name="cargo" placeholder="Cargo" required>
+    <input type="date" name="fecha_contratacion" placeholder="Fecha Contratación">
+    <textarea name="historial_laboral" placeholder="Historial Laboral"></textarea>
+
+    <!-- Dropdowns for foreign keys -->
+    <select name="id_cuenta_bancaria" required>
+      <option value="">-- Cuenta Bancaria --</option>
+      <option value="1">Cuenta 1</option>
+      <option value="2">Cuenta 2</option>
+      <option value="3">Cuenta 3</option>
+    </select>
+
+    <select name="id_plan_carrera" required>
+      <option value="">-- Plan Carrera --</option>
+      <option value="1">Junior Developer</option>
+      <option value="2">Manager</option>
+      <option value="3">Analyst</option>
+    </select>
+
+    <select name="id_departamento" required>
+      <option value="">-- Departamento --</option>
+      <option value="1">IT</option>
+      <option value="2">HR</option>
+      <option value="3">Finance</option>
+    </select>
+
     <button type="submit">Agregar Empleado</button>
   </form>
 </div>
 
-<table>
-  <tr>
-    <th>ID</th>
-    <th>Nombre</th>
-    <th>Apellido</th>
-    <th>Email</th>
-    <th>Acciones</th>
-  </tr>
+<table class="table" style="width:95%;margin:20px auto;">
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Nombre Completo</th>
+      <th>Cargo</th>
+      <th>Teléfono</th>
+      <th>Acciones</th>
+    </tr>
+  </thead>
+
+  <tbody>
   {% for e in empleados %}
-  <tr>
+  <tr id="row-{{ e.id_empleado }}">
     <td>{{ e.id_empleado }}</td>
-    <td>{{ e.nombre }}</td>
-    <td>{{ e.apellido }}</td>
-    <td>{{ e.email }}</td>
-    <td><a href="{{ url_for('empleados.eliminar_empleado', id=e.id_empleado) }}">🗑️</a></td>
+    <td>{{ e.nombre_completo }}</td>
+    <td>{{ e.cargo }}</td>
+    <td>{{ e.telefono }}</td>
+ 
+    <td style="width:220px;">
+      <div style="display:flex;gap:8px;justify-content:flex-end;align-items:center;">
+      <form action="{{ url_for('empleados.eliminar_empleado', id=e.id_empleado) }}" method="POST" style="margin:0;">
+      <button type="submit" class="btn btn-primary" style="background:#007bff;border-color:#007bff;padding:6px 18px;border-radius:6px;color:#fff;" onclick="return confirm('Eliminar nómina?')">Eliminar</button>
+
+      </div>
+    </td>
   </tr>
+  {% else %}
+      <tr>
+        <td colspan="5" style="text-align:center;">No hay empleados registrados.</td>
+      </tr>
   {% endfor %}
+  </tbody>
 </table>
 {% endblock %}
