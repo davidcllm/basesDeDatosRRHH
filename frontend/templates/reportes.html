@@ -1,5 +1,304 @@
 {% extends "base.html" %}
 {% block content %}
-<h1>Reportes Financieros</h1>
-<p>En construcción...hola</p>
+
+<h1 class="titulo-vista">Reportes y Estadísticas</h1>
+<p style="opacity:0.75;margin-bottom:18px;">
+  Módulo de consulta general de información de Recursos Humanos y Finanzas.
+</p>
+
+<style>
+  .report-card {
+    max-width: 1100px;
+    margin: 18px auto;
+    padding: 16px 18px;
+    border-radius: 10px;
+    background: #ffffff;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  }
+  .report-card h2 {
+    margin-top: 0;
+    margin-bottom: 10px;
+    font-size: 20px;
+  }
+  .report-card p.desc {
+    margin: 0 0 12px 0;
+    font-size: 14px;
+    color: #555;
+  }
+  .report-table-wrapper {
+    max-height: 260px;
+    overflow-y: auto;
+    border-radius: 6px;
+    border: 1px solid #e1e1e1;
+    background: #fafafa;
+  }
+  .report-table-wrapper table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  .report-table-wrapper th,
+  .report-table-wrapper td {
+    padding: 6px 8px;
+    font-size: 13px;
+    border-bottom: 1px solid #e1e1e1;
+  }
+  .report-table-wrapper th {
+    background: #f0f4ff;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+  }
+  .empty-msg {
+    padding: 10px;
+    text-align: center;
+    font-size: 13px;
+    color: #777;
+  }
+</style>
+
+<!-- ===========================
+     1) RESUMEN DE NÓMINA
+=========================== -->
+<div class="report-card">
+  <h2>Resumen de Nómina</h2>
+  <p class="desc">
+    Muestra los registros de nómina por empleado, incluyendo salario base, deducciones,
+    percepciones y total a pagar.
+  </p>
+
+  <div class="report-table-wrapper">
+    {% if rep_nomina and rep_nomina|length > 0 %}
+    <table>
+      <thead>
+        <tr>
+          <th>ID Nómina</th>
+          <th>Empleado</th>
+          <th>Salario base</th>
+          <th>Deducciones</th>
+          <th>Percepciones</th>
+          <th>Total a pagar</th>
+          <th>Periodo inicio</th>
+          <th>Periodo fin</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for n in rep_nomina %}
+        <tr>
+          <td>{{ n.id_nomina }}</td>
+          <td>{{ n.nombre_completo }}</td>
+          <td>{{ n.salario_base | default(n.salario_base) }}</td>
+          <td>{{ n.deducciones | default(n.deducciones) }}</td>
+          <td>{{ n.percepciones | default(n.percepciones) }}</td>
+          <td>{{ n.total_pagar | default(n.total_pagar) }}</td>
+          <td>{{ n.fecha_inicio }}</td>
+          <td>{{ n.fecha_fin }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+      <div class="empty-msg">No hay información de nómina registrada.</div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- ===========================
+     2) AUSENCIAS
+=========================== -->
+<div class="report-card">
+  <h2>Ausencias del Personal</h2>
+  <p class="desc">
+    Registra las ausencias por empleado, indicando tipo, fechas y motivo.
+  </p>
+
+  <div class="report-table-wrapper">
+    {% if rep_ausencias and rep_ausencias|length > 0 %}
+    <table>
+      <thead>
+        <tr>
+          <th>Empleado</th>
+          <th>Tipo</th>
+          <th>Fecha inicio</th>
+          <th>Fecha fin</th>
+          <th>Motivo</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for a in rep_ausencias %}
+        <tr>
+          <td>{{ a.nombre_completo }}</td>
+          <td>{{ a.tipo }}</td>
+          <td>{{ a.fecha_inicio }}</td>
+          <td>{{ a.fecha_fin }}</td>
+          <td>{{ a.motivo }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+      <div class="empty-msg">No hay ausencias registradas.</div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- ===========================
+     3) EVALUACIONES
+=========================== -->
+<div class="report-card">
+  <h2>Evaluaciones de Desempeño</h2>
+  <p class="desc">
+    Muestra la información de evaluaciones aplicadas a los empleados.
+  </p>
+
+  <div class="report-table-wrapper">
+    {% if rep_evaluaciones and rep_evaluaciones|length > 0 %}
+    <table>
+      <thead>
+        <tr>
+          <th>Empleado</th>
+          <th>Fecha evaluación</th>
+          <th>Tipo</th>
+          <th>Resultado</th>
+          <th>Observaciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for ev in rep_evaluaciones %}
+        <tr>
+          <td>{{ ev.nombre_completo }}</td>
+          <td>{{ ev.fecha_evaluacion }}</td>
+          <td>{{ ev.tipo }}</td>
+          <td>{{ ev.resultado }}</td>
+          <td>{{ ev.observaciones }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+      <div class="empty-msg">No hay evaluaciones registradas.</div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- ===========================
+     4) CAPACITACIONES
+=========================== -->
+<div class="report-card">
+  <h2>Capacitaciones por Empleado</h2>
+  <p class="desc">
+    Detalle de las capacitaciones realizadas por los empleados, fechas y resultados.
+  </p>
+
+  <div class="report-table-wrapper">
+    {% if rep_capacitaciones and rep_capacitaciones|length > 0 %}
+    <table>
+      <thead>
+        <tr>
+          <th>Empleado</th>
+          <th>Capacitación</th>
+          <th>Proveedor</th>
+          <th>Fecha inicio</th>
+          <th>Fecha fin</th>
+          <th>Resultado</th>
+          <th>Comentarios</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for c in rep_capacitaciones %}
+        <tr>
+          <td>{{ c.nombre_completo }}</td>
+          <td>{{ c.capacitacion }}</td>
+          <td>{{ c.proveedor }}</td>
+          <td>{{ c.fecha_inicio }}</td>
+          <td>{{ c.fecha_fin }}</td>
+          <td>{{ c.resultado }}</td>
+          <td>{{ c.comentarios }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+      <div class="empty-msg">No hay capacitaciones registradas.</div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- ===========================
+     5) PROYECTOS
+=========================== -->
+<div class="report-card">
+  <h2>Participación en Proyectos</h2>
+  <p class="desc">
+    Lista de proyectos en los que participa cada empleado, con horas asignadas y fechas.
+  </p>
+
+  <div class="report-table-wrapper">
+    {% if rep_proyectos and rep_proyectos|length > 0 %}
+    <table>
+      <thead>
+        <tr>
+          <th>Empleado</th>
+          <th>Proyecto</th>
+          <th>Horas asignadas</th>
+          <th>Fecha asignación</th>
+          <th>Fecha entrega</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in rep_proyectos %}
+        <tr>
+          <td>{{ p.nombre_completo }}</td>
+          <td>{{ p.proyecto }}</td>
+          <td>{{ p.horas_asignadas }}</td>
+          <td>{{ p.fecha_asignacion }}</td>
+          <td>{{ p.fecha_entrega }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+      <div class="empty-msg">No hay asignaciones de proyectos registradas.</div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- ===========================
+     6) PRESUPUESTOS
+=========================== -->
+<div class="report-card">
+  <h2>Presupuestos por Departamento</h2>
+  <p class="desc">
+    Información de montos asignados, utilizados y restante por departamento.
+  </p>
+
+  <div class="report-table-wrapper">
+    {% if rep_presupuestos and rep_presupuestos|length > 0 %}
+    <table>
+      <thead>
+        <tr>
+          <th>Departamento</th>
+          <th>Periodo</th>
+          <th>Monto asignado</th>
+          <th>Monto utilizado</th>
+          <th>Restante</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for pr in rep_presupuestos %}
+        <tr>
+          <td>{{ pr.departamento }}</td>
+          <td>{{ pr.periodo }}</td>
+          <td>{{ pr.monto_asignado }}</td>
+          <td>{{ pr.monto_utilizado }}</td>
+          <td>{{ pr.restante }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+      <div class="empty-msg">No hay presupuestos registrados.</div>
+    {% endif %}
+  </div>
+</div>
+
 {% endblock %}
