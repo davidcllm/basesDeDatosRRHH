@@ -451,12 +451,12 @@ INSERT INTO `DEPARTAMENTO` (nombre, descripcion) VALUES
 INSERT INTO `EMPLEADO`
 (id_cuenta_bancaria, id_plan_carrera, nombre_completo, direccion, telefono, fecha_nacimiento, cargo, fecha_contratacion, historial_laboral, id_departamento)
 VALUES
-(1, 1, 'Juan Pérez', 'Calle Uno #123', '555-1001', '1990-05-10', 'Developer', '2024-02-15', '2 años en soporte técnico', 1),
-(2, 2, 'María Gómez', 'Calle Dos #456', '555-2002', '1985-11-20', 'HR Manager', '2023-12-01', '5 años en gestión de personal', 2),
-(3, 3, 'Carlos López', 'Calle Tres #789', '555-3003', '1992-07-15', 'Analista Financiero', '2022-09-10', '3 años como auxiliar contable', 3),
-(1, 2, 'Ana Martínez', 'Calle Cuatro #321', '555-4004', '1988-03-25', 'Project Manager', '2024-01-20', '4 años en gestión de proyectos', 1),
-(2, 1, 'Luis Rodríguez', 'Calle Cinco #654', '555-5005', '1991-12-30', 'Software Engineer', '2023-11-15', '3 años en desarrollo web', 1),
-(3, 3, 'Sofía Hernández', 'Calle Seis #987', '555-6006', '1987-09-05', 'Financial Advisor', '2022-08-05', '6 años en asesoría financiera', 3);
+(1, 1, 'Juan Pérez', 'Calle Uno #123', '555 1001', '1990-05-10', 'Developer', '2024-02-15', '2 años en soporte técnico', 1),
+(2, 2, 'María Gómez', 'Calle Dos #456', '555 2002', '1985-11-20', 'HR Manager', '2023-12-01', '5 años en gestión de personal', 2),
+(3, 3, 'Carlos López', 'Calle Tres #789', '555 3003', '1992-07-15', 'Analista Financiero', '2022-09-10', '3 años como auxiliar contable', 3),
+(1, 2, 'Ana Martínez', 'Calle Cuatro #321', '555 4004', '1988-03-25', 'Project Manager', '2024-01-20', '4 años en gestión de proyectos', 1),
+(2, 1, 'Luis Rodríguez', 'Calle Cinco #654', '555 5005', '1991-12-30', 'Software Engineer', '2023-11-15', '3 años en desarrollo web', 1),
+(3, 3, 'Sofía Hernández', 'Calle Seis #987', '555 6006', '1987-09-05', 'Financial Advisor', '2022-08-05', '6 años en asesoría financiera', 3);
 
 INSERT INTO `EVALUACION` (fecha_evaluacion, tipo, resultado, observaciones) VALUES
 ('2024-06-01', 'Anual', 90.50, 'Excelente desempeño'),

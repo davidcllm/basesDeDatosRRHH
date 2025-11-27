@@ -4,13 +4,21 @@
 
 <div class="form-container">
   <form action="{{ url_for('empleados.agregar_empleado') }}" method="POST">
-    <input type="text" name="nombre" placeholder="Nombre" required>
-    <input type="text" name="apellido" placeholder="Apellido" required>
+    <input type="text" name="nombre" placeholder="Nombre" required
+      oninput="this.value = this.value.replace(/[^A-Za-zÁÉÍÓÚáéíóúñÑ\s]/g, '')">
+    <input type="text" name="apellido" placeholder="Apellido" required
+      oninput="this.value = this.value.replace(/[^A-Za-zÁÉÍÓÚáéíóúñÑ\s]/g, '')">
     <input type="text" name="direccion" placeholder="Dirección" required>
-    <input type="text" name="telefono" placeholder="Teléfono" required>
+    <input type="text" name="telefono" placeholder="Teléfono" required
+      oninput="this.value = this.value.replace(/[^0-9\s]/g, '')">
+
+    <label>Fecha Nacimiento:</label>
     <input type="date" name="fecha_nacimiento" placeholder="Fecha Nacimiento" required>
+
     <input type="text" name="cargo" placeholder="Cargo" required>
+    <label>Fecha Contratación:</label>
     <input type="date" name="fecha_contratacion" placeholder="Fecha Contratación">
+    <label>Historial Laboral:</label>
     <textarea name="historial_laboral" placeholder="Historial Laboral"></textarea>
 
     <!-- Dropdowns for foreign keys -->
@@ -44,33 +52,169 @@
     <tr>
       <th>ID</th>
       <th>Nombre Completo</th>
-      <th>Cargo</th>
+      <th>Dirección</th>
       <th>Teléfono</th>
+      <th>Fecha Nacimiento</th>
+      <th>Cargo</th>
+      <th>Fecha Contratación</th>
+      <th>Historial Laboral</th>
+      <th>Departamento</th>
       <th>Acciones</th>
     </tr>
   </thead>
 
   <tbody>
-  {% for e in empleados %}
-  <tr id="row-{{ e.id_empleado }}">
-    <td>{{ e.id_empleado }}</td>
-    <td>{{ e.nombre_completo }}</td>
-    <td>{{ e.cargo }}</td>
-    <td>{{ e.telefono }}</td>
- 
-    <td style="width:220px;">
-      <div style="display:flex;gap:8px;justify-content:flex-end;align-items:center;">
-      <form action="{{ url_for('empleados.eliminar_empleado', id=e.id_empleado) }}" method="POST" style="margin:0;">
-      <button type="submit" class="btn btn-primary" style="background:#007bff;border-color:#007bff;padding:6px 18px;border-radius:6px;color:#fff;" onclick="return confirm('Eliminar nómina?')">Eliminar</button>
+    {% for e in empleados %}
+    <tr id="row-{{ e.id_empleado }}">
+      <td>{{ e.id_empleado }}</td>
+      <td>{{ e.nombre_completo }}</td>
+      <td>{{ e.direccion }}</td>
+      <td>{{ e.telefono }}</td>
+      <td>{{ e.fecha_nacimiento }}</td>
+      <td>{{ e.cargo }}</td>
+      <td>{{ e.fecha_contratacion }}</td>
+      <td>{{ e.historial_laboral }}</td>
+      <td>{{ e.id_departamento }}</td>
 
-      </div>
-    </td>
-  </tr>
-  {% else %}
-      <tr>
-        <td colspan="5" style="text-align:center;">No hay empleados registrados.</td>
-      </tr>
-  {% endfor %}
+      <td style="width:220px;">
+        <div style="display:flex;gap:8px;justify-content:flex-end;align-items:center;">
+          <button type="button" class="btn btn-link" onclick="openEditModal({{ e.id_empleado }})"
+            style="padding:0 8px;">Editar</button>
+          <form action="{{ url_for('empleados.eliminar_empleado', id=e.id_empleado) }}" method="POST" style="margin:0;">
+            <button type="submit" class="btn btn-primary"
+              style="background:#007bff;border-color:#007bff;padding:6px 18px;border-radius:6px;color:#fff;"
+              onclick="return confirm('Eliminar empleado?')">Eliminar</button>
+          </form>
+        </div>
+      </td>
+    </tr>
+
+    <!-- Modal de edición -->
+    <div id="overlay-empleado-{{ e.id_empleado }}" class="modal-overlay"
+      style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.35);z-index:999;"
+      onclick="closeEditModal({{ e.id_empleado }})"></div>
+
+    <div id="modal-empleado-{{ e.id_empleado }}" class="edit-modal"
+      style="display:none;position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);width:600px;background:#fff;border-radius:8px;padding:22px;z-index:1000;max-height:90vh;overflow-y:auto;box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+      <h3 style="margin-top:0;margin-bottom:20px;color:#333;">Editar Empleado</h3>
+      <form action="{{ url_for('empleados.editar_empleado', id=e.id_empleado) }}" method="POST">
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:15px;">
+          <!-- Nombre y Apellido -->
+          {% set parts = e.nombre_completo.split(' ', 1) %}
+          <div class="form-group">
+            <label style="display:block;margin-bottom:5px;font-weight:bold;color:#555;">Nombre</label>
+            <input type="text" name="nombre" value="{{ parts[0] }}" required
+              oninput="this.value = this.value.replace(/[^A-Za-zÁÉÍÓÚáéíóúñÑ\s]/g, '')"
+              style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
+          </div>
+          <div class="form-group">
+            <label style="display:block;margin-bottom:5px;font-weight:bold;color:#555;">Apellido</label>
+            <input type="text" name="apellido" value="{{ parts[1] if parts|length > 1 else '' }}" required
+              oninput="this.value = this.value.replace(/[^A-Za-zÁÉÍÓÚáéíóúñÑ\s]/g, '')"
+              style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
+          </div>
+
+          <!-- Dirección y Teléfono -->
+          <div class="form-group">
+            <label style="display:block;margin-bottom:5px;font-weight:bold;color:#555;">Dirección</label>
+            <input type="text" name="direccion" value="{{ e.direccion }}" required
+              style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
+          </div>
+          <div class="form-group">
+            <label style="display:block;margin-bottom:5px;font-weight:bold;color:#555;">Teléfono</label>
+            <input type="text" name="telefono" value="{{ e.telefono }}" required
+              oninput="this.value = this.value.replace(/[^0-9\s]/g, '')"
+              style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
+          </div>
+
+          <!-- Fecha Nacimiento y Cargo -->
+          <div class="form-group">
+            <label style="display:block;margin-bottom:5px;font-weight:bold;color:#555;">Fecha Nacimiento</label>
+            <input type="date" name="fecha_nacimiento" value="{{ e.fecha_nacimiento }}" required
+              style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
+          </div>
+          <div class="form-group">
+            <label style="display:block;margin-bottom:5px;font-weight:bold;color:#555;">Cargo</label>
+            <input type="text" name="cargo" value="{{ e.cargo }}" required
+              style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
+          </div>
+
+          <!-- Fecha Contratación -->
+          <div class="form-group">
+            <label style="display:block;margin-bottom:5px;font-weight:bold;color:#555;">Fecha Contratación</label>
+            <input type="date" name="fecha_contratacion" value="{{ e.fecha_contratacion }}"
+              style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
+          </div>
+
+          <!-- Dropdowns -->
+          <div class="form-group">
+            <label style="display:block;margin-bottom:5px;font-weight:bold;color:#555;">Cuenta Bancaria</label>
+            <select name="id_cuenta_bancaria" required
+              style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
+              <option value="">-- Seleccionar --</option>
+              <option value="1" {% if e.id_cuenta_bancaria==1 %}selected{% endif %}>Cuenta 1</option>
+              <option value="2" {% if e.id_cuenta_bancaria==2 %}selected{% endif %}>Cuenta 2</option>
+              <option value="3" {% if e.id_cuenta_bancaria==3 %}selected{% endif %}>Cuenta 3</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label style="display:block;margin-bottom:5px;font-weight:bold;color:#555;">Plan Carrera</label>
+            <select name="id_plan_carrera" required
+              style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
+              <option value="">-- Seleccionar --</option>
+              <option value="1" {% if e.id_plan_carrera==1 %}selected{% endif %}>Junior Developer</option>
+              <option value="2" {% if e.id_plan_carrera==2 %}selected{% endif %}>Manager</option>
+              <option value="3" {% if e.id_plan_carrera==3 %}selected{% endif %}>Analyst</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label style="display:block;margin-bottom:5px;font-weight:bold;color:#555;">Departamento</label>
+            <select name="id_departamento" required
+              style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
+              <option value="">-- Seleccionar --</option>
+              <option value="1" {% if e.id_departamento==1 %}selected{% endif %}>IT</option>
+              <option value="2" {% if e.id_departamento==2 %}selected{% endif %}>HR</option>
+              <option value="3" {% if e.id_departamento==3 %}selected{% endif %}>Finance</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Historial Laboral (Full Width) -->
+        <div class="form-group" style="margin-top:15px;">
+          <label style="display:block;margin-bottom:5px;font-weight:bold;color:#555;">Historial Laboral</label>
+          <textarea name="historial_laboral"
+            style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;min-height:80px;font-family:inherit;">{{ e.historial_laboral }}</textarea>
+        </div>
+
+        <div style="display:flex;gap:10px;margin-top:20px;">
+          <button type="submit" class="btn"
+            style="flex:1;background:#0069ff;color:#fff;padding:10px;border-radius:6px;border:0;cursor:pointer;font-weight:bold;">Actualizar</button>
+          <button type="button" class="btn"
+            style="flex:1;background:#e9ecef;color:#333;padding:10px;border-radius:6px;border:0;cursor:pointer;font-weight:bold;"
+            onclick="closeEditModal({{ e.id_empleado }})">Cancelar</button>
+        </div>
+      </form>
+    </div>
+
+    {% else %}
+    <tr>
+      <td colspan="5" style="text-align:center;">No hay empleados registrados.</td>
+    </tr>
+    {% endfor %}
   </tbody>
 </table>
+
+<script>
+  function openEditModal(id) {
+    document.getElementById('overlay-empleado-' + id).style.display = 'block';
+    document.getElementById('modal-empleado-' + id).style.display = 'block';
+  }
+  function closeEditModal(id) {
+    document.getElementById('overlay-empleado-' + id).style.display = 'none';
+    document.getElementById('modal-empleado-' + id).style.display = 'none';
+  }
+</script>
 {% endblock %}
