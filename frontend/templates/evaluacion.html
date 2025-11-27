@@ -3,7 +3,7 @@
 
 <h1>Módulo de Evaluación, Capacitación y Desarrollo</h1>
 
-<!-- FORMULARIO AGREGAR -->
+<!-- FORMULARIO AGREGAR EVALUACION -->
 <div class="form-container" style="width:520px; margin: 20px auto;">
   <form action="{{ url_for('evaluacion.agregar_evaluacion') }}" method="POST" style="display:flex;flex-direction:column;gap:8px;">
     <h2 style="text-align:center; margin:0 0 6px 0;">Agregar Evaluación</h2>
@@ -49,14 +49,14 @@
       </div>
     </div>
 
-    <button type="submit" style="width:100%; margin-top:6px;">Agregar</button>
+    <button type="submit" class="btn btn-primary" style="width:100%; margin-top:6px;">Agregar Evaluación</button>
   </form>
 </div>
 
 <!-- TABLA EVALUACIONES -->
 <h2 style="margin-top:12px;">Evaluaciones de Desempeño</h2>
 
-<table>
+<table class="table" style="width:95%;margin:20px auto;">
   <thead>
     <tr>
       <th>ID</th>
@@ -76,26 +76,26 @@
     {% for e in evaluaciones %}
     <tr id="row-eval-{{ e.id_evaluacion }}">
       <td>{{ e.id_evaluacion }}</td>
-      <td>{{ e.id_empleado }}</td>
-      <td>{{ e.nombre_completo or '' }}</td>
+      <td>{{ e.id_empleado or '—' }}</td>
+      <td>{{ e.nombre_completo or '—' }}</td>
       <td>{{ e.fecha_evaluacion }}</td>
       <td>{{ e.tipo }}</td>
       <td>{{ e.resultado }}</td>
-      <td>{{ e.observaciones }}</td>
-      <td>{{ e.fecha_inicio }}</td>
-      <td>{{ e.fecha_fin }}</td>
-      <td style="width:200px;">
-        <div style="display:flex;gap:8px;justify-content:flex-end;">
-          <button type="button" onclick="openEditModal({{ e.id_evaluacion }})">Editar</button>
+      <td>{{ e.observaciones or '—' }}</td>
+      <td>{{ e.fecha_inicio or '—' }}</td>
+      <td>{{ e.fecha_fin or '—' }}</td>
+      <td style="width:220px;">
+        <div style="display:flex;gap:8px;justify-content:flex-end;align-items:center;">
+          <button type="button" class="btn btn-link" onclick="openEditModal({{ e.id_evaluacion }})" style="padding:0 8px;">Editar</button>
 
           <form action="{{ url_for('evaluacion.eliminar_evaluacion', id_eval=e.id_evaluacion) }}" method="POST" style="margin:0;">
-            <button type="submit" onclick="return confirm('¿Eliminar evaluación?')">Eliminar</button>
+            <button type="submit" class="btn btn-primary" style="background:#007bff;border-color:#007bff;padding:6px 18px;border-radius:6px;color:#fff;" onclick="return confirm('¿Eliminar evaluación?')">Eliminar</button>
           </form>
         </div>
       </td>
     </tr>
 
-    <!-- MODAL EDITAR -->
+    <!-- MODAL EDITAR EVALUACION -->
     <div id="overlay-eval-{{ e.id_evaluacion }}" class="modal-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.35);z-index:999;" onclick="closeEditModal({{ e.id_evaluacion }})"></div>
 
     <div id="modal-eval-{{ e.id_evaluacion }}" class="edit-modal" style="display:none;position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);width:640px;background:#fff;border-radius:8px;padding:18px;z-index:1000;box-shadow:0 8px 24px rgba(0,0,0,0.15);">
@@ -106,7 +106,7 @@
         <div style="display:flex;gap:10px;">
           <div style="flex:1;">
             <label>ID Empleado</label>
-            <select name="id_empleado" style="width:100%;">
+            <select name="id_empleado" style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
               <option value="">-- Seleccionar Empleado --</option>
               {% for emp in empleados %}
                 <option value="{{ emp.id_empleado }}" {% if emp.id_empleado == e.id_empleado %}selected{% endif %}>
@@ -118,39 +118,39 @@
 
           <div style="flex:1;">
             <label>Fecha Evaluación</label>
-            <input type="date" name="fecha_evaluacion" value="{{ e.fecha_evaluacion }}" required>
+            <input type="date" name="fecha_evaluacion" value="{{ e.fecha_evaluacion }}" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
           </div>
 
           <div style="flex:1;">
             <label>Tipo</label>
-            <input type="text" name="tipo" value="{{ e.tipo }}" required>
+            <input type="text" name="tipo" value="{{ e.tipo }}" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
           </div>
         </div>
 
         <div style="display:flex;gap:10px;">
           <div style="flex:1;">
             <label>Resultado</label>
-            <input type="text" name="resultado" value="{{ e.resultado }}" required>
+            <input type="text" name="resultado" value="{{ e.resultado }}" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
           </div>
           <div style="flex:2;">
             <label>Observaciones</label>
-            <input type="text" name="observaciones" value="{{ e.observaciones }}">
+            <input type="text" name="observaciones" value="{{ e.observaciones or '' }}" style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
           </div>
         </div>
 
         <div style="display:flex;gap:10px;">
           <div style="flex:1;">
             <label>Fecha Inicio</label>
-            <input type="date" name="fecha_inicio" value="{{ e.fecha_inicio }}">
+            <input type="date" name="fecha_inicio" value="{{ e.fecha_inicio or '' }}" style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
           </div>
           <div style="flex:1;">
             <label>Fecha Fin</label>
-            <input type="date" name="fecha_fin" value="{{ e.fecha_fin }}">
+            <input type="date" name="fecha_fin" value="{{ e.fecha_fin or '' }}" style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
           </div>
         </div>
 
         <div style="display:flex;gap:8px;justify-content:flex-end;">
-          <button type="submit" style="background:#0066ff;color:#fff;padding:8px 14px;border-radius:6px;border:0;">Actualizar</button>
+          <button type="submit" style="background:#0069ff;color:#fff;padding:8px 14px;border-radius:6px;border:0;">Actualizar</button>
           <button type="button" onclick="closeEditModal({{ e.id_evaluacion }})" style="background:#e9ecef;padding:8px 14px;border-radius:6px;border:0;">Cancelar</button>
         </div>
       </form>
@@ -159,10 +159,59 @@
   </tbody>
 </table>
 
-<!-- CAPACITACIONES (MODIFICADA SOLO EN 'Curso') -->
-<h2 style="margin-top:18px;">Capacitaciones</h2>
 
-<table>
+<!-- FORMULARIO AGREGAR CAPACITACION -->
+<div class="form-container" style="width:520px; margin: 20px auto;">
+  <form action="{{ url_for('evaluacion.agregar_capacitacion') }}" method="POST" style="display:flex;flex-direction:column;gap:8px;">
+    <h2 style="text-align:center; margin:0 0 6px 0;">Agregar Capacitación</h2>
+
+    <label>Empleado:</label>
+    <select name="id_empleado" required>
+      <option value="">-- Seleccionar Empleado --</option>
+      {% for emp in empleados %}
+        <option value="{{ emp.id_empleado }}">{{ emp.nombre_completo }}</option>
+      {% endfor %}
+    </select>
+
+    <label>Curso:</label>
+    <select name="id_capacitacion" required>
+      <option value="">-- Seleccionar Curso --</option>
+      {% for cap in planes_carrera %}
+        <option value="{{ cap.id_capacitacion }}">{{ cap.nombre }}</option>
+      {% endfor %}
+    </select>
+
+    <div style="display:flex;gap:8px;">
+      <div style="flex:1;">
+        <label>Fecha Inicio:</label>
+        <input type="date" name="fecha_inicio" required>
+      </div>
+      <div style="flex:1;">
+        <label>Fecha Fin:</label>
+        <input type="date" name="fecha_fin" required>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:8px;">
+      <div style="flex:1;">
+        <label>Resultado:</label>
+        <input type="number" name="resultado" placeholder="0.00" step="0.01" min="0" max="100">
+      </div>
+      <div style="flex:1;">
+        <label>Comentarios:</label>
+        <input type="text" name="comentarios">
+      </div>
+    </div>
+
+    <button type="submit" class="btn btn-primary" style="width:100%; margin-top:6px;">Agregar Capacitación</button>
+  </form>
+</div>
+
+
+<!-- TABLA CAPACITACIONES -->
+<h2 style="margin-top:12px;">Capacitaciones</h2>
+
+<table class="table" style="width:95%;margin:20px auto;">
   <thead>
     <tr>
       <th>ID</th>
@@ -180,77 +229,185 @@
 
   <tbody>
     {% for c in capacitaciones %}
-    {% set relacion = None %}
-    {% for ec in empleado_capacitaciones %}
-        {% if ec.id_capacitacion == c.id_capacitacion %}
-            {% set relacion = ec %}
-        {% endif %}
-    {% endfor %}
-
-    <tr>
-      <td>{{ c.id_capacitacion }}</td>
-
-      <td>
-        {% if relacion %}
-            {% for emp in empleados %}
-                {% if emp.id_empleado == relacion.id_empleado %}
-                    {{ emp.nombre_completo }}
-                {% endif %}
-            {% endfor %}
-        {% else %}
-            —
-        {% endif %}
-      </td>
-
+    <tr id="row-cap-{{ c['id_empleado-capacitacion'] }}">
+      <td>{{ c['id_empleado-capacitacion'] }}</td>
+      <td>{{ c.nombre_completo or '—' }}</td>
       <td>{{ c.nombre }}</td>
-
       <td>{{ c.descripcion }}</td>
       <td>{{ c.fecha_inicio }}</td>
       <td>{{ c.fecha_fin }}</td>
       <td>{{ c.proveedor }}</td>
+      <td>{{ c.resultado or '—' }}</td>
+      <td>{{ c.comentarios or '—' }}</td>
+      <td style="width:220px;">
+        <div style="display:flex;gap:8px;justify-content:flex-end;align-items:center;">
+          <button type="button" class="btn btn-link" onclick="openCapacitacionModal({{ c['id_empleado-capacitacion'] }})" style="padding:0 8px;">Editar</button>
 
-      <td>
-        {% if relacion %}
-            {{ relacion.resultado }}
-        {% else %}
-            —
-        {% endif %}
-      </td>
-
-      <td>
-        {% if relacion %}
-            {{ relacion.comentarios }}
-        {% else %}
-            —
-        {% endif %}
-      </td>
-
-      <td style="width:180px;">
-        <div style="display:flex;gap:8px;justify-content:flex-end;">
-          <button>Editar</button>
-          <button>Eliminar</button>
+          <form action="{{ url_for('evaluacion.eliminar_capacitacion', id_empleado_capacitacion=c['id_empleado-capacitacion']) }}" method="POST" style="margin:0;">
+            <button type="submit" class="btn btn-primary" style="background:#007bff;border-color:#007bff;padding:6px 18px;border-radius:6px;color:#fff;" onclick="return confirm('¿Eliminar capacitación?')">Eliminar</button>
+          </form>
         </div>
       </td>
     </tr>
+
+    <!-- MODAL EDITAR CAPACITACION -->
+    <div id="overlay-cap-{{ c['id_empleado-capacitacion'] }}" class="modal-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.35);z-index:999;" onclick="closeCapacitacionModal({{ c['id_empleado-capacitacion'] }})"></div>
+
+    <div id="modal-cap-{{ c['id_empleado-capacitacion'] }}" class="edit-modal" style="display:none;position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);width:640px;background:#fff;border-radius:8px;padding:18px;z-index:1000;box-shadow:0 8px 24px rgba(0,0,0,0.15);">
+      <h3 style="margin-top:0;">Editar Capacitación #{{ c['id_empleado-capacitacion'] }}</h3>
+
+      <form action="{{ url_for('evaluacion.editar_capacitacion', id_empleado_capacitacion=c['id_empleado-capacitacion']) }}" method="POST" style="display:flex;flex-direction:column;gap:10px;">
+
+        <div style="display:flex;gap:10px;">
+          <div style="flex:1;">
+            <label>Empleado</label>
+            <select name="id_empleado" style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
+              <option value="">-- Seleccionar Empleado --</option>
+              {% for emp in empleados %}
+                <option value="{{ emp.id_empleado }}" {% if emp.id_empleado == c.id_empleado %}selected{% endif %}>
+                  {{ emp.nombre_completo }}
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div style="flex:1;">
+            <label>Curso</label>
+            <input type="text" name="curso" value="{{ c.nombre }}" disabled style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;background:#f5f5f5;">
+          </div>
+        </div>
+
+        <div style="display:flex;gap:10px;">
+          <div style="flex:1;">
+            <label>Fecha Inicio</label>
+            <input type="date" name="fecha_inicio" value="{{ c.fecha_inicio }}" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
+          </div>
+          <div style="flex:1;">
+            <label>Fecha Fin</label>
+            <input type="date" name="fecha_fin" value="{{ c.fecha_fin }}" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
+          </div>
+        </div>
+
+        <div style="display:flex;gap:10px;">
+          <div style="flex:1;">
+            <label>Resultado</label>
+            <input type="number" name="resultado" value="{{ c.resultado or '' }}" placeholder="0.00" step="0.01" min="0" max="100" style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
+          </div>
+          <div style="flex:2;">
+            <label>Comentarios</label>
+            <input type="text" name="comentarios" value="{{ c.comentarios or '' }}" style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
+          </div>
+        </div>
+
+        <div style="display:flex;gap:8px;justify-content:flex-end;">
+          <button type="submit" style="background:#0069ff;color:#fff;padding:8px 14px;border-radius:6px;border:0;">Actualizar</button>
+          <button type="button" onclick="closeCapacitacionModal({{ c['id_empleado-capacitacion'] }})" style="background:#e9ecef;padding:8px 14px;border-radius:6px;border:0;">Cancelar</button>
+        </div>
+      </form>
+    </div>
     {% endfor %}
   </tbody>
 </table>
 
-<!-- PLANES DE CARRERA -->
+
+<!-- FORMULARIO AGREGAR PLAN DE CARRERA -->
+<div class="form-container" style="width:520px; margin: 20px auto;">
+  <form action="{{ url_for('evaluacion.agregar_plan_carrera') }}" method="POST" style="display:flex;flex-direction:column;gap:8px;">
+    <h2 style="text-align:center; margin:0 0 6px 0;">Agregar Plan de Carrera</h2>
+
+    <label>Objetivo:</label>
+    <input type="text" name="objetivo" placeholder="Ej: Desarrollador Senior" required>
+
+    <label>Etapas:</label>
+    <input type="text" name="etapas" placeholder="Ej: Junior-Mid-Senior" required>
+
+    <div style="display:flex;gap:8px;">
+      <div style="flex:1;">
+        <label>Fecha Inicio:</label>
+        <input type="date" name="fecha_inicio" required>
+      </div>
+      <div style="flex:1;">
+        <label>Fecha Fin:</label>
+        <input type="date" name="fecha_fin" required>
+      </div>
+    </div>
+
+    <button type="submit" class="btn btn-primary" style="width:100%; margin-top:6px;">Agregar Plan de Carrera</button>
+  </form>
+</div>
+
+
+<!-- TABLA PLANES DE CARRERA -->
 <h2 style="margin-top:18px;">Planes de Carrera</h2>
-<table>
+<table class="table" style="width:95%;margin:20px auto;">
   <thead>
-    <tr><th>ID</th><th>Objetivo</th><th>Etapas</th><th>Inicio</th><th>Fin</th></tr>
+    <tr>
+      <th>ID</th>
+      <th>Nombre Empleado</th>
+      <th>Objetivo</th>
+      <th>Etapas</th>
+      <th>Inicio</th>
+      <th>Fin</th>
+      <th>Acciones</th>
+    </tr>
   </thead>
   <tbody>
     {% for p in planes_carrera %}
-    <tr>
+    <tr id="row-plan-{{ p.id_plan_carrera }}">
       <td>{{ p.id_plan_carrera }}</td>
+      <td>{{ p.nombre_completo or '—' }}</td>
       <td>{{ p.objetivo }}</td>
       <td>{{ p.etapas }}</td>
       <td>{{ p.fecha_inicio }}</td>
       <td>{{ p.fecha_fin }}</td>
+      <td style="width:220px;">
+        <div style="display:flex;gap:8px;justify-content:flex-end;align-items:center;">
+          <button type="button" class="btn btn-link" onclick="openPlanModal({{ p.id_plan_carrera }})" style="padding:0 8px;">Editar</button>
+
+          <form action="{{ url_for('evaluacion.eliminar_plan_carrera', id_plan=p.id_plan_carrera) }}" method="POST" style="margin:0;">
+            <button type="submit" class="btn btn-primary" style="background:#007bff;border-color:#007bff;padding:6px 18px;border-radius:6px;color:#fff;" onclick="return confirm('¿Eliminar plan de carrera?')">Eliminar</button>
+          </form>
+        </div>
+      </td>
     </tr>
+
+    <!-- MODAL EDITAR PLAN DE CARRERA -->
+    <div id="overlay-plan-{{ p.id_plan_carrera }}" class="modal-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.35);z-index:999;" onclick="closePlanModal({{ p.id_plan_carrera }})"></div>
+
+    <div id="modal-plan-{{ p.id_plan_carrera }}" class="edit-modal" style="display:none;position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);width:640px;background:#fff;border-radius:8px;padding:18px;z-index:1000;box-shadow:0 8px 24px rgba(0,0,0,0.15);">
+      <h3 style="margin-top:0;">Editar Plan de Carrera #{{ p.id_plan_carrera }}</h3>
+
+      <form action="{{ url_for('evaluacion.editar_plan_carrera', id_plan=p.id_plan_carrera) }}" method="POST" style="display:flex;flex-direction:column;gap:10px;">
+
+        <div style="display:flex;gap:10px;">
+          <div style="flex:1;">
+            <label>Objetivo</label>
+            <input type="text" name="objetivo" value="{{ p.objetivo }}" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
+          </div>
+
+          <div style="flex:1;">
+            <label>Etapas</label>
+            <input type="text" name="etapas" value="{{ p.etapas }}" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
+          </div>
+        </div>
+
+        <div style="display:flex;gap:10px;">
+          <div style="flex:1;">
+            <label>Fecha Inicio</label>
+            <input type="date" name="fecha_inicio" value="{{ p.fecha_inicio }}" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
+          </div>
+          <div style="flex:1;">
+            <label>Fecha Fin</label>
+            <input type="date" name="fecha_fin" value="{{ p.fecha_fin }}" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
+          </div>
+        </div>
+
+        <div style="display:flex;gap:8px;justify-content:flex-end;">
+          <button type="submit" style="background:#0069ff;color:#fff;padding:8px 14px;border-radius:6px;border:0;">Actualizar</button>
+          <button type="button" onclick="closePlanModal({{ p.id_plan_carrera }})" style="background:#e9ecef;padding:8px 14px;border-radius:6px;border:0;">Cancelar</button>
+        </div>
+      </form>
+    </div>
     {% endfor %}
   </tbody>
 </table>
@@ -263,6 +420,24 @@ function openEditModal(id){
 function closeEditModal(id){
   document.getElementById('overlay-eval-' + id).style.display = 'none';
   document.getElementById('modal-eval-' + id).style.display = 'none';
+}
+
+function openCapacitacionModal(id){
+  document.getElementById('overlay-cap-' + id).style.display = 'block';
+  document.getElementById('modal-cap-' + id).style.display = 'block';
+}
+function closeCapacitacionModal(id){
+  document.getElementById('overlay-cap-' + id).style.display = 'none';
+  document.getElementById('modal-cap-' + id).style.display = 'none';
+}
+
+function openPlanModal(id){
+  document.getElementById('overlay-plan-' + id).style.display = 'block';
+  document.getElementById('modal-plan-' + id).style.display = 'block';
+}
+function closePlanModal(id){
+  document.getElementById('overlay-plan-' + id).style.display = 'none';
+  document.getElementById('modal-plan-' + id).style.display = 'none';
 }
 </script>
 

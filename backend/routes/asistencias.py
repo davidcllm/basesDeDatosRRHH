@@ -21,6 +21,15 @@ def asistencias():
     """)
     ausencias = cursor.fetchall()
 
+    cursor.execute("""
+        SELECT ast.id_asistencia, ast.id_empleado, ast.fecha_inicio, ast.fecha_fin,
+               e.nombre_completo
+        FROM ASISTENCIA ast
+        LEFT JOIN EMPLEADO e ON ast.id_empleado = e.id_empleado
+        ORDER BY ast.fecha_inicio DESC;
+    """)
+    asistencias_registros = cursor.fetchall()
+
     cursor.execute("SELECT id_empleado, nombre_completo FROM EMPLEADO ORDER BY nombre_completo;")
     empleados = cursor.fetchall()
 
@@ -33,6 +42,7 @@ def asistencias():
     return render_template(
         "asistencias.html",
         ausencias=ausencias,
+        asistencias_registros=asistencias_registros,
         empleados=empleados,
         empleado_ausencias=empleado_ausencias
     )
@@ -138,4 +148,92 @@ def eliminar_ausencia(id_ausencia):
     cursor.close()
     cnx.close()
 
+    return redirect(url_for("asistencias.asistencias"))
+
+
+# ----------------------------------------------------
+#   AGREGAR ASISTENCIA
+# ----------------------------------------------------
+@asistencias_bp.route("/asistencias/agregar_asistencia", methods=["POST"])
+@jwt_required()
+@roles_required('administrador','recursos_humanos')
+def agregar_asistencia():
+
+    id_empleado = request.form["id_empleado"]
+    fecha_inicio = request.form["fecha_inicio"]
+    fecha_fin = request.form["fecha_fin"]
+
+    # VALIDACIÓN: inicio no puede ser mayor a fin
+    if fecha_inicio > fecha_fin:
+        flash("La fecha de inicio no puede ser posterior a la fecha final.", "error")
+        return redirect(url_for("asistencias.asistencias"))
+
+    cnx = get_connection()
+    cursor = cnx.cursor()
+
+    cursor.execute("""
+        INSERT INTO ASISTENCIA (id_empleado, fecha_inicio, fecha_fin)
+        VALUES (%s, %s, %s);
+    """, (id_empleado, fecha_inicio, fecha_fin))
+
+    cnx.commit()
+    cursor.close()
+    cnx.close()
+
+    flash("Asistencia registrada correctamente.", "success")
+    return redirect(url_for("asistencias.asistencias"))
+
+
+# ----------------------------------------------------
+#   EDITAR ASISTENCIA
+# ----------------------------------------------------
+@asistencias_bp.route("/asistencias/editar_asistencia/<int:id_asistencia>", methods=["POST"])
+@jwt_required()
+@roles_required('administrador','recursos_humanos')
+def editar_asistencia(id_asistencia):
+
+    id_empleado = request.form["id_empleado"]
+    fecha_inicio = request.form["fecha_inicio"]
+    fecha_fin = request.form["fecha_fin"]
+
+    # VALIDACIÓN: inicio no puede ser mayor a fin
+    if fecha_inicio > fecha_fin:
+        flash("La fecha de inicio no puede ser posterior a la fecha final.", "error")
+        return redirect(url_for("asistencias.asistencias"))
+
+    cnx = get_connection()
+    cursor = cnx.cursor()
+
+    cursor.execute("""
+        UPDATE ASISTENCIA
+        SET id_empleado=%s, fecha_inicio=%s, fecha_fin=%s
+        WHERE id_asistencia=%s;
+    """, (id_empleado, fecha_inicio, fecha_fin, id_asistencia))
+
+    cnx.commit()
+    cursor.close()
+    cnx.close()
+
+    flash("Asistencia actualizada correctamente.", "success")
+    return redirect(url_for("asistencias.asistencias"))
+
+
+# ----------------------------------------------------
+#   ELIMINAR ASISTENCIA
+# ----------------------------------------------------
+@asistencias_bp.route("/asistencias/eliminar_asistencia/<int:id_asistencia>", methods=["POST"])
+@jwt_required()
+@roles_required('administrador','recursos_humanos')
+def eliminar_asistencia(id_asistencia):
+
+    cnx = get_connection()
+    cursor = cnx.cursor()
+
+    cursor.execute("DELETE FROM ASISTENCIA WHERE id_asistencia=%s;", (id_asistencia,))
+
+    cnx.commit()
+    cursor.close()
+    cnx.close()
+
+    flash("Asistencia eliminada correctamente.", "success")
     return redirect(url_for("asistencias.asistencias"))
