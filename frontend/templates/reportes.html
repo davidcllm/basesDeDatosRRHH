@@ -1,35 +1,37 @@
 {% extends "base.html" %}
 {% block content %}
 
-<h1 class="titulo-vista">Reportes y Estadísticas</h1>
+<h1>Reportes y Estadísticas</h1>
+<p>Módulo de consulta general de información de Recursos Humanos y Finanzas.</p>
 
-<!-- DESCARGA COMPLETA -->
-<div style="margin-bottom:20px;">
-    <a href="/reportes/zip" class="btn-primary">
-        Descargar todos los reportes (ZIP)
-    </a>
+<!-- ====== MENÚ DE DESCARGAS ====== -->
+<div style="display:flex; gap:10px; flex-wrap:wrap; margin: 15px 0;">
+    <a href="{{ url_for('reportes.exportar_csv', tipo='nomina') }}" class="btn-primary">CSV Nómina</a>
+    <a href="{{ url_for('reportes.exportar_csv', tipo='ausencias') }}" class="btn-primary">CSV Ausencias</a>
+    <a href="{{ url_for('reportes.exportar_csv', tipo='evaluaciones') }}" class="btn-primary">CSV Evaluaciones</a>
+    <a href="{{ url_for('reportes.exportar_csv', tipo='capacitaciones') }}" class="btn-primary">CSV Capacitaciones</a>
+    <a href="{{ url_for('reportes.exportar_csv', tipo='proyectos') }}" class="btn-primary">CSV Proyectos</a>
+    <a href="{{ url_for('reportes.exportar_csv', tipo='presupuestos') }}" class="btn-primary">CSV Presupuestos</a>
+    <a href="{{ url_for('reportes.exportar_todo_csv') }}" class="btn-secondary">📦 Descargar Todo</a>
 </div>
 
-<!-- ================================================================ -->
-<!-- 1️⃣ RESUMEN DE NÓMINA -->
-<!-- ================================================================ -->
-<h2 class="subtitulo">Resumen de Nómina</h2>
+<hr>
 
-<a href="/reportes/csv/nomina" class="btn-secondary" style="margin-bottom:10px;display:inline-block;">
-    Descargar CSV
-</a>
-
-<table class="tabla">
+<!-- ===================== -->
+<!-- 1) RESUMEN DE NÓMINA -->
+<!-- ===================== -->
+<h2>Resumen de Nómina</h2>
+<table>
     <thead>
         <tr>
             <th>ID Nómina</th>
             <th>Empleado</th>
-            <th>Salario Base</th>
+            <th>Salario base</th>
             <th>Deducciones</th>
             <th>Percepciones</th>
-            <th>Total a Pagar</th>
-            <th>Inicio</th>
-            <th>Fin</th>
+            <th>Total a pagar</th>
+            <th>Periodo inicio</th>
+            <th>Periodo fin</th>
         </tr>
     </thead>
     <tbody>
@@ -37,10 +39,10 @@
         <tr>
             <td>{{ r.id_nomina }}</td>
             <td>{{ r.nombre_completo }}</td>
-            <td>${{ r.salario_base }}</td>
-            <td>${{ r.deducciones }}</td>
-            <td>${{ r.percepciones }}</td>
-            <td>${{ r.total_pagar }}</td>
+            <td>{{ r.salario_base | currency }}</td>
+            <td>{{ r.deducciones | currency }}</td>
+            <td>{{ r.percepciones | currency }}</td>
+            <td>{{ r.total_pagar | currency }}</td>
             <td>{{ r.fecha_inicio }}</td>
             <td>{{ r.fecha_fin }}</td>
         </tr>
@@ -48,24 +50,16 @@
     </tbody>
 </table>
 
-<br>
+<hr>
 
-<!-- ================================================================ -->
-<!-- 2️⃣ AUSENCIAS DEL PERSONAL -->
-<!-- ================================================================ -->
-<h2 class="subtitulo">Ausencias del Personal</h2>
-
-<a href="/reportes/csv/ausencias" class="btn-secondary" style="margin-bottom:10px;display:inline-block;">
-    Descargar CSV
-</a>
-
-<table class="tabla">
+<h2>Ausencias del Personal</h2>
+<table>
     <thead>
         <tr>
             <th>Empleado</th>
             <th>Tipo</th>
-            <th>Inicio</th>
-            <th>Fin</th>
+            <th>Fecha inicio</th>
+            <th>Fecha fin</th>
             <th>Motivo</th>
         </tr>
     </thead>
@@ -82,52 +76,36 @@
     </tbody>
 </table>
 
-<br>
+<hr>
 
-<!-- ================================================================ -->
-<!-- 3️⃣ EVALUACIONES -->
-<!-- ================================================================ -->
-<h2 class="subtitulo">Evaluaciones de Desempeño</h2>
-
-<a href="/reportes/csv/evaluaciones" class="btn-secondary" style="margin-bottom:10px;display:inline-block;">
-    Descargar CSV
-</a>
-
-<table class="tabla">
+<h2>Evaluaciones de Desempeño</h2>
+<table>
     <thead>
         <tr>
             <th>Empleado</th>
-            <th>Fecha Evaluación</th>
+            <th>Fecha evaluación</th>
             <th>Tipo</th>
             <th>Resultado</th>
             <th>Observaciones</th>
         </tr>
     </thead>
     <tbody>
-        {% for ev in rep_evaluaciones %}
+        {% for e in rep_evaluaciones %}
         <tr>
-            <td>{{ ev.nombre_completo }}</td>
-            <td>{{ ev.fecha_evaluacion }}</td>
-            <td>{{ ev.tipo }}</td>
-            <td>{{ ev.resultado }}</td>
-            <td>{{ ev.observaciones }}</td>
+            <td>{{ e.nombre_completo }}</td>
+            <td>{{ e.fecha_evaluacion }}</td>
+            <td>{{ e.tipo }}</td>
+            <td>{{ e.resultado }}</td>
+            <td>{{ e.observaciones }}</td>
         </tr>
         {% endfor %}
     </tbody>
 </table>
 
-<br>
+<hr>
 
-<!-- ================================================================ -->
-<!-- 4️⃣ CAPACITACIONES -->
-<!-- ================================================================ -->
-<h2 class="subtitulo">Capacitaciones por Empleado</h2>
-
-<a href="/reportes/csv/capacitaciones" class="btn-secondary" style="margin-bottom:10px;display:inline-block;">
-    Descargar CSV
-</a>
-
-<table class="tabla">
+<h2>Capacitaciones por Empleado</h2>
+<table>
     <thead>
         <tr>
             <th>Empleado</th>
@@ -154,25 +132,17 @@
     </tbody>
 </table>
 
-<br>
+<hr>
 
-<!-- ================================================================ -->
-<!-- 5️⃣ PROYECTOS -->
-<!-- ================================================================ -->
-<h2 class="subtitulo">Participación en Proyectos</h2>
-
-<a href="/reportes/csv/proyectos" class="btn-secondary" style="margin-bottom:10px;display:inline-block;">
-    Descargar CSV
-</a>
-
-<table class="tabla">
+<h2>Participación en Proyectos</h2>
+<table>
     <thead>
         <tr>
             <th>Empleado</th>
             <th>Proyecto</th>
-            <th>Horas Asignadas</th>
-            <th>Fecha Asignación</th>
-            <th>Fecha Entrega</th>
+            <th>Horas asignadas</th>
+            <th>Fecha asignación</th>
+            <th>Fecha entrega</th>
         </tr>
     </thead>
     <tbody>
@@ -188,35 +158,27 @@
     </tbody>
 </table>
 
-<br>
+<hr>
 
-<!-- ================================================================ -->
-<!-- 6️⃣ PRESUPUESTOS -->
-<!-- ================================================================ -->
-<h2 class="subtitulo">Presupuestos por Departamento</h2>
-
-<a href="/reportes/csv/presupuestos" class="btn-secondary" style="margin-bottom:10px;display:inline-block;">
-    Descargar CSV
-</a>
-
-<table class="tabla">
+<h2>Presupuestos por Departamento</h2>
+<table>
     <thead>
         <tr>
             <th>Departamento</th>
             <th>Periodo</th>
-            <th>Asignado</th>
-            <th>Utilizado</th>
+            <th>Monto asignado</th>
+            <th>Monto utilizado</th>
             <th>Restante</th>
         </tr>
     </thead>
     <tbody>
-        {% for pr in rep_presupuestos %}
+        {% for p in rep_presupuestos %}
         <tr>
-            <td>{{ pr.departamento }}</td>
-            <td>{{ pr.periodo }}</td>
-            <td>${{ pr.monto_asignado }}</td>
-            <td>${{ pr.monto_utilizado }}</td>
-            <td>${{ pr.restante }}</td>
+            <td>{{ p.departamento }}</td>
+            <td>{{ p.periodo }}</td>
+            <td>{{ p.monto_asignado | currency }}</td>
+            <td>{{ p.monto_utilizado | currency }}</td>
+            <td>{{ p.restante | currency }}</td>
         </tr>
         {% endfor %}
     </tbody>
