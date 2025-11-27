@@ -20,13 +20,14 @@ h1 {
   box-shadow: 0 0 10px rgba(0,0,0,0.1);
 }
 
-form input {
+form input, form select, form textarea {
   display: block;
   width: 95%;
   margin: 10px auto;
   padding: 10px;
   border: 1px solid #ccc;
   border-radius: 4px;
+  font-family: inherit; /* Ensures textarea uses the same font */
 }
 
 form button {
