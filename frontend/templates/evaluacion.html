@@ -6,50 +6,35 @@
 <!-- FORMULARIO AGREGAR EVALUACION -->
 <div class="form-container" style="width:520px; margin: 20px auto;">
   <form action="{{ url_for('evaluacion.agregar_evaluacion') }}" method="POST" style="display:flex;flex-direction:column;gap:8px;">
-    <h2 style="text-align:center; margin:0 0 6px 0;">Agregar Evaluación</h2>
+    <h2 style="text-align:center; margin:0 0 12px 0;">Agregar Evaluación</h2>
 
     <label>Empleado:</label>
-    <select name="id_empleado" required>
+    <select name="id_empleado" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
       <option value="">-- Seleccionar Empleado --</option>
       {% for emp in empleados %}
         <option value="{{ emp.id_empleado }}">{{ emp.nombre_completo }}</option>
       {% endfor %}
     </select>
 
-    <div style="display:flex;gap:8px;">
-      <div style="flex:1;">
-        <label>Fecha Evaluación:</label>
-        <input type="date" name="fecha_evaluacion" required>
-      </div>
-      <div style="flex:1;">
-        <label>Tipo:</label>
-        <input type="text" name="tipo" placeholder="Anual / Semestral..." required>
-      </div>
-    </div>
+    <label style="margin-top:0;">Fecha Evaluación:</label>
+    <input type="datetime-local" name="fecha_evaluacion" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
 
-    <div style="display:flex;gap:8px;">
-      <div style="flex:1;">
-        <label>Resultado:</label>
-        <input type="text" name="resultado" required>
-      </div>
-      <div style="flex:1;">
-        <label>Observaciones:</label>
-        <input type="text" name="observaciones">
-      </div>
-    </div>
+    <label style="margin-top:0;">Tipo:</label>
+    <input type="text" name="tipo" placeholder="Anual / Semestral..." required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
 
-    <div style="display:flex;gap:8px;">
-      <div style="flex:1;">
-        <label>Fecha Inicio:</label>
-        <input type="date" name="fecha_inicio" required>
-      </div>
-      <div style="flex:1;">
-        <label>Fecha Fin:</label>
-        <input type="date" name="fecha_fin" required>
-      </div>
-    </div>
+    <label style="margin-top:0;">Resultado:</label>
+    <input type="text" name="resultado" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
 
-    <button type="submit" class="btn btn-primary" style="width:100%; margin-top:6px;">Agregar Evaluación</button>
+    <label style="margin-top:0;">Observaciones:</label>
+    <input type="text" name="observaciones" style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
+
+    <label style="margin-top:0;">Fecha Inicio:</label>
+    <input type="datetime-local" name="fecha_inicio" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
+
+    <label style="margin-top:0;">Fecha Fin:</label>
+    <input type="datetime-local" name="fecha_fin" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
+
+    <button type="submit" class="btn btn-primary" style="width:100%; margin-top:12px;">Agregar Evaluación</button>
   </form>
 </div>
 
@@ -118,7 +103,7 @@
 
           <div style="flex:1;">
             <label>Fecha Evaluación</label>
-            <input type="date" name="fecha_evaluacion" value="{{ e.fecha_evaluacion }}" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
+            <input type="datetime-local" name="fecha_evaluacion" value="{{ e.fecha_evaluacion }}" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
           </div>
 
           <div style="flex:1;">
@@ -141,11 +126,11 @@
         <div style="display:flex;gap:10px;">
           <div style="flex:1;">
             <label>Fecha Inicio</label>
-            <input type="date" name="fecha_inicio" value="{{ e.fecha_inicio or '' }}" style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
+            <input type="datetime-local" name="fecha_inicio" value="{{ e.fecha_inicio or '' }}" style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
           </div>
           <div style="flex:1;">
             <label>Fecha Fin</label>
-            <input type="date" name="fecha_fin" value="{{ e.fecha_fin or '' }}" style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
+            <input type="datetime-local" name="fecha_fin" value="{{ e.fecha_fin or '' }}" style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
           </div>
         </div>
 
@@ -163,47 +148,37 @@
 <!-- FORMULARIO AGREGAR CAPACITACION -->
 <div class="form-container" style="width:520px; margin: 20px auto;">
   <form action="{{ url_for('evaluacion.agregar_capacitacion') }}" method="POST" style="display:flex;flex-direction:column;gap:8px;">
-    <h2 style="text-align:center; margin:0 0 6px 0;">Agregar Capacitación</h2>
+    <h2 style="text-align:center; margin:0 0 12px 0;">Agregar Capacitación</h2>
 
     <label>Empleado:</label>
-    <select name="id_empleado" required>
+    <select name="id_empleado" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
       <option value="">-- Seleccionar Empleado --</option>
       {% for emp in empleados %}
         <option value="{{ emp.id_empleado }}">{{ emp.nombre_completo }}</option>
       {% endfor %}
     </select>
 
-    <label>Curso:</label>
-    <select name="id_capacitacion" required>
+    <label style="margin-top:0;">Curso:</label>
+    <select name="id_capacitacion" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
       <option value="">-- Seleccionar Curso --</option>
       {% for cap in planes_carrera %}
         <option value="{{ cap.id_capacitacion }}">{{ cap.nombre }}</option>
       {% endfor %}
     </select>
 
-    <div style="display:flex;gap:8px;">
-      <div style="flex:1;">
-        <label>Fecha Inicio:</label>
-        <input type="date" name="fecha_inicio" required>
-      </div>
-      <div style="flex:1;">
-        <label>Fecha Fin:</label>
-        <input type="date" name="fecha_fin" required>
-      </div>
-    </div>
+    <label style="margin-top:0;">Fecha Inicio:</label>
+    <input type="datetime-local" name="fecha_inicio" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
 
-    <div style="display:flex;gap:8px;">
-      <div style="flex:1;">
-        <label>Resultado:</label>
-        <input type="number" name="resultado" placeholder="0.00" step="0.01" min="0" max="100">
-      </div>
-      <div style="flex:1;">
-        <label>Comentarios:</label>
-        <input type="text" name="comentarios">
-      </div>
-    </div>
+    <label style="margin-top:0;">Fecha Fin:</label>
+    <input type="datetime-local" name="fecha_fin" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
 
-    <button type="submit" class="btn btn-primary" style="width:100%; margin-top:6px;">Agregar Capacitación</button>
+    <label style="margin-top:0;">Resultado:</label>
+    <input type="number" name="resultado" placeholder="0.00" step="0.01" min="0" max="100" style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
+
+    <label style="margin-top:0;">Comentarios:</label>
+    <input type="text" name="comentarios" style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
+
+    <button type="submit" class="btn btn-primary" style="width:100%; margin-top:12px;">Agregar Capacitación</button>
   </form>
 </div>
 
@@ -280,11 +255,11 @@
         <div style="display:flex;gap:10px;">
           <div style="flex:1;">
             <label>Fecha Inicio</label>
-            <input type="date" name="fecha_inicio" value="{{ c.fecha_inicio }}" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
+            <input type="datetime-local" name="fecha_inicio" value="{{ c.fecha_inicio }}" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
           </div>
           <div style="flex:1;">
             <label>Fecha Fin</label>
-            <input type="date" name="fecha_fin" value="{{ c.fecha_fin }}" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
+            <input type="datetime-local" name="fecha_fin" value="{{ c.fecha_fin }}" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
           </div>
         </div>
 
@@ -313,26 +288,21 @@
 <!-- FORMULARIO AGREGAR PLAN DE CARRERA -->
 <div class="form-container" style="width:520px; margin: 20px auto;">
   <form action="{{ url_for('evaluacion.agregar_plan_carrera') }}" method="POST" style="display:flex;flex-direction:column;gap:8px;">
-    <h2 style="text-align:center; margin:0 0 6px 0;">Agregar Plan de Carrera</h2>
+    <h2 style="text-align:center; margin:0 0 12px 0;">Agregar Plan de Carrera</h2>
 
     <label>Objetivo:</label>
-    <input type="text" name="objetivo" placeholder="Ej: Desarrollador Senior" required>
+    <input type="text" name="objetivo" placeholder="Ej: Desarrollador Senior" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
 
-    <label>Etapas:</label>
-    <input type="text" name="etapas" placeholder="Ej: Junior-Mid-Senior" required>
+    <label style="margin-top:0;">Etapas:</label>
+    <input type="text" name="etapas" placeholder="Ej: Junior-Mid-Senior" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
 
-    <div style="display:flex;gap:8px;">
-      <div style="flex:1;">
-        <label>Fecha Inicio:</label>
-        <input type="date" name="fecha_inicio" required>
-      </div>
-      <div style="flex:1;">
-        <label>Fecha Fin:</label>
-        <input type="date" name="fecha_fin" required>
-      </div>
-    </div>
+    <label style="margin-top:0;">Fecha Inicio:</label>
+    <input type="datetime-local" name="fecha_inicio" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
 
-    <button type="submit" class="btn btn-primary" style="width:100%; margin-top:6px;">Agregar Plan de Carrera</button>
+    <label style="margin-top:0;">Fecha Fin:</label>
+    <input type="datetime-local" name="fecha_fin" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
+
+    <button type="submit" class="btn btn-primary" style="width:100%; margin-top:12px;">Agregar Plan de Carrera</button>
   </form>
 </div>
 
@@ -394,11 +364,11 @@
         <div style="display:flex;gap:10px;">
           <div style="flex:1;">
             <label>Fecha Inicio</label>
-            <input type="date" name="fecha_inicio" value="{{ p.fecha_inicio }}" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
+            <input type="datetime-local" name="fecha_inicio" value="{{ p.fecha_inicio }}" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
           </div>
           <div style="flex:1;">
             <label>Fecha Fin</label>
-            <input type="date" name="fecha_fin" value="{{ p.fecha_fin }}" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
+            <input type="datetime-local" name="fecha_fin" value="{{ p.fecha_fin }}" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
           </div>
         </div>
 
