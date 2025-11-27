@@ -108,7 +108,7 @@ def reportes():
     """)
     rep_proyectos = cursor.fetchall()
 
-    # 6) PRESUPUESTOS POR DEPARTAMENTO
+    # 6) PRESUPUESTOS POR DEPARTAMENTO HOLA
     cursor.execute("""
         SELECT 
             d.nombre AS departamento,
