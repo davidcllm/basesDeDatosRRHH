@@ -3,23 +3,29 @@
 
 <h1>Asistencias</h1>
 
-<div class="form-container">
-  <form action="{{ url_for('asistencias.agregar_ausencia') }}" method="POST">
+<div class="form-container" style="width:520px; margin: 20px auto;">
+  <form action="{{ url_for('asistencias.agregar_ausencia') }}" method="POST" style="display:flex;flex-direction:column;gap:8px;">
+    <h2 style="text-align:center; margin:0 0 12px 0;">Agregar Ausencia</h2>
 
     <label for="id_empleado">Empleado:</label>
-    <select name="id_empleado" required>
+    <select name="id_empleado" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
       <option value="">-- Seleccionar Empleado --</option>
       {% for emp in empleados %}
         <option value="{{ emp.id_empleado }}">{{ emp.nombre_completo }}</option>
       {% endfor %}
     </select>
 
-    <input type="text" name="tipo" placeholder="Tipo (Vacaciones, Permiso...)" required>
+    <label style="margin-top:0;">Tipo:</label>
+    <input type="text" name="tipo" placeholder="Vacaciones, Permiso..." required pattern="[a-zA-Z\s]+" oninput="this.value = this.value.replace(/[0-9]/g, '');" style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
 
-    <input type="date" name="fecha_inicio" id="new_inicio" required onchange="validarNuevaFecha()">
-    <input type="date" name="fecha_fin" id="new_fin" required onchange="validarNuevaFecha()">
+    <label style="margin-top:0;">Fecha Inicio:</label>
+    <input type="datetime-local" name="fecha_inicio" id="new_inicio" required onchange="validarNuevaFecha()" style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
 
-    <input type="text" name="motivo" placeholder="Motivo" required>
+    <label style="margin-top:0;">Fecha Final:</label>
+    <input type="datetime-local" name="fecha_fin" id="new_fin" required onchange="validarNuevaFecha()" style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
+
+    <label style="margin-top:0;">Motivo:</label>
+    <input type="text" name="motivo" placeholder="Motivo" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
 
     <button type="submit" class="btn btn-primary" style="width:100%;margin-top:12px;">Registrar ausencia</button>
   </form>
@@ -69,7 +75,7 @@
           <form action="{{ url_for('asistencias.editar_ausencia', id_ausencia=a.id_ausencia) }}" method="POST">
 
               <label>Empleado:</label>
-              <select name="id_empleado" style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;">
+              <select name="id_empleado" style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;margin-bottom:10px;">
                 {% for emp in empleados %}
                   <option value="{{ emp.id_empleado }}"
                       {% if emp.id_empleado == a.id_empleado %} selected {% endif %}>
@@ -78,19 +84,19 @@
                 {% endfor %}
               </select>
 
-              <label style="margin-top:12px;">Tipo:</label>
-              <input type="text" name="tipo" value="{{ a.tipo }}" style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
+              <label>Tipo:</label>
+              <input type="text" name="tipo" value="{{ a.tipo }}" pattern="[a-zA-Z\s]+" oninput="this.value = this.value.replace(/[0-9]/g, '');" style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;margin-bottom:10px;">
 
-              <label style="margin-top:12px;">Fecha inicio:</label>
-              <input type="date" name="fecha_inicio" id="edit_inicio_{{ a.id_ausencia }}"
-                     value="{{ a.fecha_inicio }}" onchange="validarEditFecha({{ a.id_ausencia }})" style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
+              <label>Fecha Inicio:</label>
+              <input type="datetime-local" name="fecha_inicio" id="edit_inicio_{{ a.id_ausencia }}"
+                     value="{{ a.fecha_inicio }}" onchange="validarEditFecha({{ a.id_ausencia }})" style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;margin-bottom:10px;">
 
-              <label style="margin-top:12px;">Fecha fin:</label>
-              <input type="date" name="fecha_fin" id="edit_fin_{{ a.id_ausencia }}"
-                     value="{{ a.fecha_fin }}" onchange="validarEditFecha({{ a.id_ausencia }})" style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
+              <label>Fecha Final:</label>
+              <input type="datetime-local" name="fecha_fin" id="edit_fin_{{ a.id_ausencia }}"
+                     value="{{ a.fecha_fin }}" onchange="validarEditFecha({{ a.id_ausencia }})" style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;margin-bottom:10px;">
 
-              <label style="margin-top:12px;">Motivo:</label>
-              <input type="text" name="motivo" value="{{ a.motivo }}" style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
+              <label>Motivo:</label>
+              <input type="text" name="motivo" value="{{ a.motivo }}" style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;margin-bottom:10px;">
 
               <div style="display:flex;gap:10px;margin-top:12px;">
                 <button type="submit" class="btn" style="flex:1;background:#0069ff;color:#fff;padding:10px;border-radius:6px;border:0;">Actualizar</button>
@@ -104,19 +110,23 @@
 </table>
 
 
-<div class="form-container">
-  <form action="{{ url_for('asistencias.agregar_asistencia') }}" method="POST">
+<div class="form-container" style="width:520px; margin: 20px auto;">
+  <form action="{{ url_for('asistencias.agregar_asistencia') }}" method="POST" style="display:flex;flex-direction:column;gap:8px;">
+    <h2 style="text-align:center; margin:0 0 12px 0;">Agregar Asistencia</h2>
 
     <label for="id_empleado_ast">Empleado:</label>
-    <select name="id_empleado" id="id_empleado_ast" required>
+    <select name="id_empleado" id="id_empleado_ast" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
       <option value="">-- Seleccionar Empleado --</option>
       {% for emp in empleados %}
         <option value="{{ emp.id_empleado }}">{{ emp.nombre_completo }}</option>
       {% endfor %}
     </select>
 
-    <input type="datetime-local" name="fecha_inicio" id="new_inicio_ast" required onchange="validarNuevaFechaAsistencia()">
-    <input type="datetime-local" name="fecha_fin" id="new_fin_ast" required onchange="validarNuevaFechaAsistencia()">
+    <label style="margin-top:0;">Fecha Inicio:</label>
+    <input type="datetime-local" name="fecha_inicio" id="new_inicio_ast" required onchange="validarNuevaFechaAsistencia()" style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
+
+    <label style="margin-top:0;">Fecha Fin:</label>
+    <input type="datetime-local" name="fecha_fin" id="new_fin_ast" required onchange="validarNuevaFechaAsistencia()" style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
 
     <button type="submit" class="btn btn-primary" style="width:100%;margin-top:12px;">Registrar asistencia</button>
   </form>
@@ -168,7 +178,7 @@
           <form action="{{ url_for('asistencias.editar_asistencia', id_asistencia=ast.id_asistencia) }}" method="POST">
 
               <label>Empleado:</label>
-              <select name="id_empleado" style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;">
+              <select name="id_empleado" style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;margin-bottom:10px;">
                 {% for emp in empleados %}
                   <option value="{{ emp.id_empleado }}"
                       {% if emp.id_empleado == ast.id_empleado %} selected {% endif %}>
@@ -177,13 +187,13 @@
                 {% endfor %}
               </select>
 
-              <label style="margin-top:12px;">Fecha inicio:</label>
+              <label>Fecha Inicio:</label>
               <input type="datetime-local" name="fecha_inicio" id="edit_inicio_ast_{{ ast.id_asistencia }}"
-                     value="{{ ast.fecha_inicio }}" onchange="validarEditFechaAsistencia({{ ast.id_asistencia }})" style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
+                     value="{{ ast.fecha_inicio }}" onchange="validarEditFechaAsistencia({{ ast.id_asistencia }})" style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;margin-bottom:10px;">
 
-              <label style="margin-top:12px;">Fecha fin:</label>
+              <label>Fecha Fin:</label>
               <input type="datetime-local" name="fecha_fin" id="edit_fin_ast_{{ ast.id_asistencia }}"
-                     value="{{ ast.fecha_fin }}" onchange="validarEditFechaAsistencia({{ ast.id_asistencia }})" style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
+                     value="{{ ast.fecha_fin }}" onchange="validarEditFechaAsistencia({{ ast.id_asistencia }})" style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;margin-bottom:10px;">
 
               <div style="display:flex;gap:10px;margin-top:12px;">
                 <button type="submit" class="btn" style="flex:1;background:#0069ff;color:#fff;padding:10px;border-radius:6px;border:0;">Actualizar</button>

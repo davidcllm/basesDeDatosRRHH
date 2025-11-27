@@ -86,6 +86,7 @@ def agregar_ausencia():
     cursor.close()
     cnx.close()
 
+    flash("Ausencia registrada correctamente.", "success")
     return redirect(url_for("asistencias.asistencias"))
 
 
@@ -127,6 +128,7 @@ def editar_ausencia(id_ausencia):
     cursor.close()
     cnx.close()
 
+    flash("Ausencia actualizada correctamente.", "success")
     return redirect(url_for("asistencias.asistencias"))
 
 
@@ -148,6 +150,7 @@ def eliminar_ausencia(id_ausencia):
     cursor.close()
     cnx.close()
 
+    flash("Ausencia eliminada correctamente.", "success")
     return redirect(url_for("asistencias.asistencias"))
 
 
