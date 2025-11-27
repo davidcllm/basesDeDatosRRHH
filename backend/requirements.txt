@@ -2,3 +2,5 @@ flask
 flask_cors
 pymysql
 cryptography
+Flask-JWT-Extended
+werkzeug

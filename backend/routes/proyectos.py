@@ -1,4 +1,6 @@
 from flask import Blueprint, render_template, request, redirect, url_for
+from flask_jwt_extended import jwt_required
+from routes.auth import roles_required
 from dp import get_connection
 import pymysql 
 
@@ -6,6 +8,8 @@ proyectos_bp = Blueprint("proyectos", __name__)
 
 #Listar proyectos
 @proyectos_bp.route("/proyectos")
+@jwt_required()
+@roles_required('administrador','recursos_humanos')
 def proyectos():
 
     cnx = get_connection()
@@ -49,6 +53,8 @@ def proyectos():
 
 #crear proyectos
 @proyectos_bp.route("/proyectos/crear", methods=["POST"])
+@jwt_required()
+@roles_required('administrador','recursos_humanos')
 def crear_proyecto():
 
     nombre = request.form["nombre"]
@@ -70,6 +76,8 @@ def crear_proyecto():
 
 #eliminar
 @proyectos_bp.route("/proyectos/<int:id>", methods=["POST"])
+@jwt_required()
+@roles_required('administrador','recursos_humanos')
 def eliminar_proyecto(id):
 
     cnx = get_connection()
@@ -85,6 +93,8 @@ def eliminar_proyecto(id):
 
 #Actualizar
 @proyectos_bp.route("/proyectos/actualizar/<int:id>", methods=["POST"])
+@jwt_required()
+@roles_required('administrador','recursos_humanos')
 def actualizar_proyecto(id):
 
     nombre = request.form["nombre"]
@@ -108,6 +118,8 @@ def actualizar_proyecto(id):
 
 #Asignar empleado a proyecto
 @proyectos_bp.route("/proyectos/asignar", methods=["POST"])
+@jwt_required()
+@roles_required('administrador','recursos_humanos')
 def asignar_empleado():
 
     id_empleado = request.form["id_empleado"]

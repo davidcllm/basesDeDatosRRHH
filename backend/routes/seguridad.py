@@ -1,7 +1,69 @@
-from flask import Blueprint, render_template
+from flask import Blueprint, render_template, request, redirect, url_for, flash
+from flask_jwt_extended import jwt_required, get_jwt_identity
+from routes.auth import roles_required
+from dp import get_connection
 
 seguridad_bp = Blueprint("seguridad", __name__)
 
 @seguridad_bp.route("/seguridad")
+@jwt_required()
+@roles_required('administrador')
 def seguridad():
-    return render_template("seguridad.html")
+    cnx = None
+    cursor = None
+    try:
+        cnx = get_connection()
+        cursor = cnx.cursor()  # DictCursor ya configurado en get_connection()
+        current_email = get_jwt_identity()
+        cursor.execute("SELECT id_usuario, email, rol FROM USUARIO WHERE email <> %s ORDER BY email;", (current_email,))
+        usuarios = cursor.fetchall()
+    except Exception as e:
+        usuarios = []
+        flash(f"Error al obtener usuarios: {e}", "error")
+    finally:
+        if cursor:
+            cursor.close()
+        if cnx:
+            cnx.close()
+    return render_template("seguridad.html", usuarios=usuarios)
+
+@seguridad_bp.route("/seguridad/modificar_rol/<int:id_usuario>", methods=["POST"])
+@jwt_required()
+@roles_required('administrador')
+def modificar_rol(id_usuario):
+    new_rol = request.form.get("rol")
+    ALLOWED_ROLES = ['administrador', 'finanzas', 'recursos_humanos']
+    if new_rol not in ALLOWED_ROLES:
+        flash("Rol inválido.", "error")
+        return redirect(url_for("seguridad.seguridad"))
+
+    cnx = None
+    cursor = None
+    try:
+        cnx = get_connection()
+        cursor = cnx.cursor()
+        # Evitar que el admin modifique su propio rol: comprobar email del id recibido
+        current_email = get_jwt_identity()
+        cursor.execute("SELECT email FROM USUARIO WHERE id_usuario = %s;", (id_usuario,))
+        row = cursor.fetchone()
+        if not row:
+            flash("Usuario no encontrado.", "error")
+            return redirect(url_for("seguridad.seguridad"))
+        if row.get("email") == current_email:
+            flash("No puedes modificar tu propio rol.", "error")
+            return redirect(url_for("seguridad.seguridad"))
+
+        cursor.execute("UPDATE USUARIO SET rol = %s WHERE id_usuario = %s;", (new_rol, id_usuario))
+        cnx.commit()
+        flash("Rol actualizado correctamente.", "success")
+    except Exception as e:
+        if cnx:
+            cnx.rollback()
+        flash(f"Error al actualizar rol: {e}", "error")
+    finally:
+        if cursor:
+            cursor.close()
+        if cnx:
+            cnx.close()
+
+    return redirect(url_for("seguridad.seguridad"))

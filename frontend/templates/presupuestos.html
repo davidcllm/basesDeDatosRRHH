@@ -60,14 +60,15 @@
             <td>${{ p.monto_utilizado }}</td>
             <td>{{ p.departamento }}</td>
 
-            <td>
-                <!-- Botón editar abre modal -->
-                <button class="btn-secondary"onclick="abrirEditar({{ p.id_presupuesto }})">Editar</button>
+            <td style="width:220px;">
+                <div style="display:flex;gap:8px;justify-content:flex-end;align-items:center;">
+                    <button class="btn-secondary" onclick="abrirEditar({{ p.id_presupuesto }})" style="padding:0 8px;">Editar</button>
 
-                <form action="{{ url_for('presupuestos.eliminar_presupuesto', id=p.id_presupuesto) }}"
-                      method="POST" style="display:inline;">
-                    <button class="btn-danger" onclick="return confirm('Eliminar presupuesto?')">Eliminar</button>
-                </form>
+                    <form action="{{ url_for('presupuestos.eliminar_presupuesto', id=p.id_presupuesto) }}"
+                        method="POST" style="margin:0;">
+                        <button class="btn-danger" onclick="return confirm('Eliminar presupuesto?')" style="background:#007bff;border-color:#007bff;padding:6px 18px;border-radius:6px;color:#fff;">Eliminar</button>
+                    </form>
+                </div>
             </td>
         </tr>
         {% endfor %}
@@ -183,17 +184,19 @@ function cerrarEditar() {
             <td>{{ c.descipcion }}</td>
             <td>{{ c.departamento }}</td>
 
-            <td>
-                <button class="btn-secondary"onclick="editarCentro({{ c.id_centro_costo }})">
-                    Editar
-                </button>
-
-                <form action="{{ url_for('presupuestos.eliminar_centro_costo', id=c.id_centro_costo) }}"
-                      method="POST" style="display:inline;">
-                    <button class="btn-danger" onclick="return confirm('¿Eliminar centro de costo?')">
-                        Eliminar
+            <td style="width:220px;">
+                    <div style="display:flex;gap:8px;justify-content:flex-end;align-items:center;">
+                    <button class="btn-secondary"onclick="editarCentro({{ c.id_centro_costo }})" style="padding:0 8px;">
+                        Editar
                     </button>
-                </form>
+
+                    <form action="{{ url_for('presupuestos.eliminar_centro_costo', id=c.id_centro_costo) }}"
+                        method="POST" style="margin:0;">
+                        <button class="btn-danger" onclick="return confirm('¿Eliminar centro de costo?')" style="background:#007bff;border-color:#007bff;padding:6px 18px;border-radius:6px;color:#fff;" onclick="return confirm('Eliminar nómina?')">
+                            Eliminar
+                        </button>
+                    </form>
+                </div>
             </td>
         </tr>
         {% endfor %}

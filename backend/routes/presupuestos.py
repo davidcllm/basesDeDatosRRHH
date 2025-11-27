@@ -1,4 +1,6 @@
 from flask import Blueprint, render_template, request, redirect, url_for
+from flask_jwt_extended import jwt_required
+from routes.auth import roles_required
 from dp import get_connection
 import pymysql
 
@@ -7,6 +9,8 @@ presupuestos_bp = Blueprint("presupuestos", __name__)
 
 #Encontrar presupuestos
 @presupuestos_bp.route("/presupuestos")
+@jwt_required()
+@roles_required('administrador','finanzas')
 def presupuestos():
 
     cnx = get_connection()
@@ -63,6 +67,8 @@ def presupuestos():
 
 #Crear presupuestos
 @presupuestos_bp.route("/presupuestos/crear", methods=["POST"])
+@jwt_required()
+@roles_required('administrador','finanzas')
 def crear_presupuesto():
 
     periodo = request.form["periodo"]
@@ -87,6 +93,8 @@ def crear_presupuesto():
 
 #Editar presupuesto
 @presupuestos_bp.route("/presupuestos/actualizar/<int:id>", methods=["POST"])
+@jwt_required()
+@roles_required('administrador','finanzas')
 def actualizar_presupuesto(id):
 
     periodo = request.form["periodo"]
@@ -112,6 +120,8 @@ def actualizar_presupuesto(id):
 
 #Eliminar presupuesto
 @presupuestos_bp.route("/presupuestos/eliminar/<int:id>", methods=["POST"])
+@jwt_required()
+@roles_required('administrador','finanzas')
 def eliminar_presupuesto(id):
 
     cnx = get_connection()
@@ -127,6 +137,8 @@ def eliminar_presupuesto(id):
 
 #centro costo
 @presupuestos_bp.route("/centro_costo/crear", methods=["POST"])
+@jwt_required()
+@roles_required('administrador','finanzas')
 def crear_centro_costo():
 
     nombre = request.form["nombre"]
@@ -149,6 +161,8 @@ def crear_centro_costo():
 
 
 @presupuestos_bp.route("/centro_costo/actualizar/<int:id>", methods=["POST"])
+@jwt_required()
+@roles_required('administrador','finanzas')
 def actualizar_centro_costo(id):
 
     nombre = request.form["nombre"]
@@ -172,6 +186,8 @@ def actualizar_centro_costo(id):
 
 
 @presupuestos_bp.route("/centro_costo/eliminar/<int:id>", methods=["POST"])
+@jwt_required()
+@roles_required('administrador','finanzas')
 def eliminar_centro_costo(id):
 
     cnx = get_connection()

@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% block content %}
+
 <h1>Asistencias</h1>
 
 <div class="form-container">
@@ -13,52 +14,247 @@
       {% endfor %}
     </select>
 
-    <input type="text" name="tipo" placeholder="Tipo (Vacaciones, Permiso, Enfermedad...)" required>
-    <input type="date" name="fecha_inicio" required>
-    <input type="date" name="fecha_fin" required>
+    <input type="text" name="tipo" placeholder="Tipo (Vacaciones, Permiso...)" required>
+
+    <input type="date" name="fecha_inicio" id="new_inicio" required onchange="validarNuevaFecha()">
+    <input type="date" name="fecha_fin" id="new_fin" required onchange="validarNuevaFecha()">
+
     <input type="text" name="motivo" placeholder="Motivo" required>
 
-    <button type="submit">Registrar ausencia</button>
+    <button type="submit" class="btn btn-primary" style="width:100%;margin-top:12px;">Registrar ausencia</button>
   </form>
 </div>
 
+
 <h2>Ausencias registradas</h2>
-<table>
-    <tr>
-        <th>ID</th>
-        <th>ID Empleado</th>
-        <th>Tipo</th>
-        <th>Fecha Inicio</th>
-        <th>Fecha Fin</th>
-        <th>Motivo</th>
-    </tr>
-    {% for a in ausencias %}
-    <tr>
-        <td>{{ a.id_ausencia }}</td>
-        <td>{{ a.id_empleado }}</td>
-        <td>{{ a.tipo }}</td>
-        <td>{{ a.fecha_inicio }}</td>
-        <td>{{ a.fecha_fin }}</td>
-        <td>{{ a.motivo }}</td>
-    </tr>
-    {% endfor %}
+<table class="table" style="width:95%;margin:20px auto;">
+    <thead>
+      <tr>
+          <th>ID</th>
+          <th>Empleado</th>
+          <th>Tipo</th>
+          <th>Inicio</th>
+          <th>Fin</th>
+          <th>Motivo</th>
+          <th>Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for a in ausencias %}
+      <tr id="row-{{ a.id_ausencia }}">
+          <td>{{ a.id_ausencia }}</td>
+          <td>{{ a.nombre_completo }}</td>
+          <td>{{ a.tipo }}</td>
+          <td>{{ a.fecha_inicio }}</td>
+          <td>{{ a.fecha_fin }}</td>
+          <td>{{ a.motivo }}</td>
+
+          <td style="width:220px;">
+              <div style="display:flex;gap:8px;justify-content:flex-end;align-items:center;">
+                  <button type="button" class="btn btn-link" onclick="openModal({{ a.id_ausencia }})" style="padding:0 8px;">Editar</button>
+
+                  <form action="{{ url_for('asistencias.eliminar_ausencia', id_ausencia=a.id_ausencia) }}"
+                        method="POST" style="margin:0;">
+                      <button type="submit" class="btn btn-primary" style="background:#007bff;border-color:#007bff;padding:6px 18px;border-radius:6px;color:#fff;" onclick="return confirm('¿Eliminar ausencia?')">Eliminar</button>
+                  </form>
+              </div>
+          </td>
+      </tr>
+
+      <!-- MODAL AUSENCIA -->
+      <div id="overlay-{{ a.id_ausencia }}" class="modal-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.35);z-index:999;" onclick="closeModal({{ a.id_ausencia }})"></div>
+
+      <div id="modal-{{ a.id_ausencia }}" class="edit-modal" style="display:none;position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);width:380px;background:#fff;border-radius:8px;padding:22px;z-index:1000;">
+          <h3>Editar Ausencia</h3>
+          <form action="{{ url_for('asistencias.editar_ausencia', id_ausencia=a.id_ausencia) }}" method="POST">
+
+              <label>Empleado:</label>
+              <select name="id_empleado" style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;">
+                {% for emp in empleados %}
+                  <option value="{{ emp.id_empleado }}"
+                      {% if emp.id_empleado == a.id_empleado %} selected {% endif %}>
+                    {{ emp.nombre_completo }}
+                  </option>
+                {% endfor %}
+              </select>
+
+              <label style="margin-top:12px;">Tipo:</label>
+              <input type="text" name="tipo" value="{{ a.tipo }}" style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
+
+              <label style="margin-top:12px;">Fecha inicio:</label>
+              <input type="date" name="fecha_inicio" id="edit_inicio_{{ a.id_ausencia }}"
+                     value="{{ a.fecha_inicio }}" onchange="validarEditFecha({{ a.id_ausencia }})" style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
+
+              <label style="margin-top:12px;">Fecha fin:</label>
+              <input type="date" name="fecha_fin" id="edit_fin_{{ a.id_ausencia }}"
+                     value="{{ a.fecha_fin }}" onchange="validarEditFecha({{ a.id_ausencia }})" style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
+
+              <label style="margin-top:12px;">Motivo:</label>
+              <input type="text" name="motivo" value="{{ a.motivo }}" style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
+
+              <div style="display:flex;gap:10px;margin-top:12px;">
+                <button type="submit" class="btn" style="flex:1;background:#0069ff;color:#fff;padding:10px;border-radius:6px;border:0;">Actualizar</button>
+                <button type="button" class="btn" style="flex:1;background:#e9ecef;color:#333;padding:10px;border-radius:6px;border:0;" onclick="closeModal({{ a.id_ausencia }})">Cancelar</button>
+              </div>
+          </form>
+      </div>
+
+      {% endfor %}
+    </tbody>
 </table>
 
-<h2>Empleado - Ausencia</h2>
-<table>
-    <tr>
-        <th>ID Empleado</th>
-        <th>ID Ausencia</th>
-        <th>Fecha Inicio</th>
-        <th>Fecha Final</th>
-    </tr>
-    {% for ea in empleado_ausencias %}
-    <tr>
-        <td>{{ ea.id_empleado }}</td>
-        <td>{{ ea.id_ausencia }}</td>
-        <td>{{ ea.fecha_inicio }}</td>
-        <td>{{ ea.fecha_final }}</td>
-    </tr>
-    {% endfor %}
+
+<div class="form-container">
+  <form action="{{ url_for('asistencias.agregar_asistencia') }}" method="POST">
+
+    <label for="id_empleado_ast">Empleado:</label>
+    <select name="id_empleado" id="id_empleado_ast" required>
+      <option value="">-- Seleccionar Empleado --</option>
+      {% for emp in empleados %}
+        <option value="{{ emp.id_empleado }}">{{ emp.nombre_completo }}</option>
+      {% endfor %}
+    </select>
+
+    <input type="datetime-local" name="fecha_inicio" id="new_inicio_ast" required onchange="validarNuevaFechaAsistencia()">
+    <input type="datetime-local" name="fecha_fin" id="new_fin_ast" required onchange="validarNuevaFechaAsistencia()">
+
+    <button type="submit" class="btn btn-primary" style="width:100%;margin-top:12px;">Registrar asistencia</button>
+  </form>
+</div>
+
+
+<h2>Asistencias registradas</h2>
+<table class="table" style="width:95%;margin:20px auto;">
+    <thead>
+      <tr>
+          <th>ID</th>
+          <th>Empleado</th>
+          <th>Fecha Inicio</th>
+          <th>Fecha Fin</th>
+          <th>Duración (horas)</th>
+          <th>Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for ast in asistencias_registros %}
+      <tr id="row-ast-{{ ast.id_asistencia }}">
+          <td>{{ ast.id_asistencia }}</td>
+          <td>{{ ast.nombre_completo }}</td>
+          <td>{{ ast.fecha_inicio }}</td>
+          <td>{{ ast.fecha_fin }}</td>
+          <td>
+            {% if ast.fecha_inicio and ast.fecha_fin %}
+              {{ ((ast.fecha_fin - ast.fecha_inicio).total_seconds() / 3600) | round(2) }}
+            {% endif %}
+          </td>
+
+          <td style="width:220px;">
+              <div style="display:flex;gap:8px;justify-content:flex-end;align-items:center;">
+                  <button type="button" class="btn btn-link" onclick="openModalAsistencia({{ ast.id_asistencia }})" style="padding:0 8px;">Editar</button>
+
+                  <form action="{{ url_for('asistencias.eliminar_asistencia', id_asistencia=ast.id_asistencia) }}"
+                        method="POST" style="margin:0;">
+                      <button type="submit" class="btn btn-primary" style="background:#007bff;border-color:#007bff;padding:6px 18px;border-radius:6px;color:#fff;" onclick="return confirm('¿Eliminar asistencia?')">Eliminar</button>
+                  </form>
+              </div>
+          </td>
+      </tr>
+
+      <!-- MODAL ASISTENCIA -->
+      <div id="overlay-ast-{{ ast.id_asistencia }}" class="modal-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.35);z-index:999;" onclick="closeModalAsistencia({{ ast.id_asistencia }})"></div>
+
+      <div id="modal-ast-{{ ast.id_asistencia }}" class="edit-modal" style="display:none;position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);width:380px;background:#fff;border-radius:8px;padding:22px;z-index:1000;">
+          <h3>Editar Asistencia</h3>
+          <form action="{{ url_for('asistencias.editar_asistencia', id_asistencia=ast.id_asistencia) }}" method="POST">
+
+              <label>Empleado:</label>
+              <select name="id_empleado" style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;">
+                {% for emp in empleados %}
+                  <option value="{{ emp.id_empleado }}"
+                      {% if emp.id_empleado == ast.id_empleado %} selected {% endif %}>
+                    {{ emp.nombre_completo }}
+                  </option>
+                {% endfor %}
+              </select>
+
+              <label style="margin-top:12px;">Fecha inicio:</label>
+              <input type="datetime-local" name="fecha_inicio" id="edit_inicio_ast_{{ ast.id_asistencia }}"
+                     value="{{ ast.fecha_inicio }}" onchange="validarEditFechaAsistencia({{ ast.id_asistencia }})" style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
+
+              <label style="margin-top:12px;">Fecha fin:</label>
+              <input type="datetime-local" name="fecha_fin" id="edit_fin_ast_{{ ast.id_asistencia }}"
+                     value="{{ ast.fecha_fin }}" onchange="validarEditFechaAsistencia({{ ast.id_asistencia }})" style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
+
+              <div style="display:flex;gap:10px;margin-top:12px;">
+                <button type="submit" class="btn" style="flex:1;background:#0069ff;color:#fff;padding:10px;border-radius:6px;border:0;">Actualizar</button>
+                <button type="button" class="btn" style="flex:1;background:#e9ecef;color:#333;padding:10px;border-radius:6px;border:0;" onclick="closeModalAsistencia({{ ast.id_asistencia }})">Cancelar</button>
+              </div>
+          </form>
+      </div>
+
+      {% endfor %}
+    </tbody>
 </table>
+
+
+<script>
+function openModal(id){
+  document.getElementById("overlay-" + id).style.display = "block";
+  document.getElementById("modal-" + id).style.display = "block";
+}
+function closeModal(id){
+  document.getElementById("overlay-" + id).style.display = "none";
+  document.getElementById("modal-" + id).style.display = "none";
+}
+
+function openModalAsistencia(id){
+  document.getElementById("overlay-ast-" + id).style.display = "block";
+  document.getElementById("modal-ast-" + id).style.display = "block";
+}
+function closeModalAsistencia(id){
+  document.getElementById("overlay-ast-" + id).style.display = "none";
+  document.getElementById("modal-ast-" + id).style.display = "none";
+}
+
+function validarNuevaFecha(){
+    let ini = document.getElementById("new_inicio").value;
+    let fin = document.getElementById("new_fin").value;
+
+    if (ini && fin && ini > fin){
+        alert("La fecha de inicio NO puede ser mayor a la fecha final.");
+        document.getElementById("new_fin").value = "";
+    }
+}
+
+function validarNuevaFechaAsistencia(){
+    let ini = document.getElementById("new_inicio_ast").value;
+    let fin = document.getElementById("new_fin_ast").value;
+
+    if (ini && fin && ini > fin){
+        alert("La fecha de inicio NO puede ser mayor a la fecha final.");
+        document.getElementById("new_fin_ast").value = "";
+    }
+}
+
+function validarEditFecha(id){
+    let ini = document.getElementById("edit_inicio_" + id).value;
+    let fin = document.getElementById("edit_fin_" + id).value;
+
+    if (ini && fin && ini > fin){
+        alert("La fecha de inicio NO puede ser mayor a la fecha final.");
+        document.getElementById("edit_fin_" + id).value = "";
+    }
+}
+
+function validarEditFechaAsistencia(id){
+    let ini = document.getElementById("edit_inicio_ast_" + id).value;
+    let fin = document.getElementById("edit_fin_ast_" + id).value;
+
+    if (ini && fin && ini > fin){
+        alert("La fecha de inicio NO puede ser mayor a la fecha final.");
+        document.getElementById("edit_fin_ast_" + id).value = "";
+    }
+}
+</script>
+
 {% endblock %}
