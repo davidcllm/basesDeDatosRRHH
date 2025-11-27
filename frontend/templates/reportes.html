@@ -4,22 +4,9 @@
 <h1>Reportes y Estadísticas</h1>
 <p>Módulo de consulta general de información de Recursos Humanos y Finanzas.</p>
 
-<!-- ====== MENÚ DE DESCARGAS ====== -->
-<div style="display:flex; gap:10px; flex-wrap:wrap; margin: 15px 0;">
-    <a href="{{ url_for('reportes.exportar_csv', tipo='nomina') }}" class="btn-primary">CSV Nómina</a>
-    <a href="{{ url_for('reportes.exportar_csv', tipo='ausencias') }}" class="btn-primary">CSV Ausencias</a>
-    <a href="{{ url_for('reportes.exportar_csv', tipo='evaluaciones') }}" class="btn-primary">CSV Evaluaciones</a>
-    <a href="{{ url_for('reportes.exportar_csv', tipo='capacitaciones') }}" class="btn-primary">CSV Capacitaciones</a>
-    <a href="{{ url_for('reportes.exportar_csv', tipo='proyectos') }}" class="btn-primary">CSV Proyectos</a>
-    <a href="{{ url_for('reportes.exportar_csv', tipo='presupuestos') }}" class="btn-primary">CSV Presupuestos</a>
-    <a href="{{ url_for('reportes.exportar_todo_csv') }}" class="btn-secondary">📦 Descargar Todo</a>
-</div>
-
-<hr>
-
-<!-- ===================== -->
-<!-- 1) RESUMEN DE NÓMINA -->
-<!-- ===================== -->
+<!-- ========================== -->
+<!-- RESUMEN DE NÓMINA -->
+<!-- ========================== -->
 <h2>Resumen de Nómina</h2>
 <table>
     <thead>
@@ -50,8 +37,9 @@
     </tbody>
 </table>
 
-<hr>
-
+<!-- ========================== -->
+<!-- AUSENCIAS -->
+<!-- ========================== -->
 <h2>Ausencias del Personal</h2>
 <table>
     <thead>
@@ -76,8 +64,9 @@
     </tbody>
 </table>
 
-<hr>
-
+<!-- ========================== -->
+<!-- EVALUACIONES -->
+<!-- ========================== -->
 <h2>Evaluaciones de Desempeño</h2>
 <table>
     <thead>
@@ -102,8 +91,9 @@
     </tbody>
 </table>
 
-<hr>
-
+<!-- ========================== -->
+<!-- CAPACITACIONES -->
+<!-- ========================== -->
 <h2>Capacitaciones por Empleado</h2>
 <table>
     <thead>
@@ -111,8 +101,8 @@
             <th>Empleado</th>
             <th>Capacitación</th>
             <th>Proveedor</th>
-            <th>Inicio</th>
-            <th>Fin</th>
+            <th>Fecha inicio</th>
+            <th>Fecha fin</th>
             <th>Resultado</th>
             <th>Comentarios</th>
         </tr>
@@ -132,8 +122,9 @@
     </tbody>
 </table>
 
-<hr>
-
+<!-- ========================== -->
+<!-- PROYECTOS -->
+<!-- ========================== -->
 <h2>Participación en Proyectos</h2>
 <table>
     <thead>
@@ -158,8 +149,9 @@
     </tbody>
 </table>
 
-<hr>
-
+<!-- ========================== -->
+<!-- PRESUPUESTOS -->
+<!-- ========================== -->
 <h2>Presupuestos por Departamento</h2>
 <table>
     <thead>
