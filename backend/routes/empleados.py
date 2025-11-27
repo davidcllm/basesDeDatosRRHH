@@ -8,7 +8,7 @@ empleados_bp = Blueprint("empleados", __name__)
 def empleados():
     cnx = get_connection()
     
-    cursor = cnx.cursor(pymysql.cursors.DictCursor)
+    cursor = cnx.cursor()
     cursor.execute("SELECT * FROM EMPLEADO;")
 
     empleados = cursor.fetchall()
