@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash
+from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
 from flask_jwt_extended import jwt_required
 from routes.auth import roles_required
 from dp import get_connection
@@ -13,13 +13,47 @@ def asistencias():
     cnx = get_connection()
     cursor = cnx.cursor(pymysql.cursors.DictCursor)
 
+    cursor.execute("SELECT id_empleado, nombre_completo FROM EMPLEADO ORDER BY nombre_completo;")
+    empleados = cursor.fetchall()
+
+    cursor.close()
+    cnx.close()
+
+    return render_template(
+        "asistencias.html",
+        empleados=empleados
+    )
+
+
+# ENDPOINTS PARA CARGAR DATOS VÍA AJAX
+@asistencias_bp.route("/asistencias/get_ausencias")
+@jwt_required()
+@roles_required('administrador','recursos_humanos')
+def get_ausencias():
+    cnx = get_connection()
+    cursor = cnx.cursor(pymysql.cursors.DictCursor)
+
     cursor.execute("""
         SELECT a.id_ausencia, a.id_empleado, a.tipo, a.fecha_inicio, a.fecha_fin, a.motivo,
                e.nombre_completo
         FROM AUSENCIA a
-        LEFT JOIN EMPLEADO e ON a.id_empleado = e.id_empleado;
+        LEFT JOIN EMPLEADO e ON a.id_empleado = e.id_empleado
+        ORDER BY a.id_ausencia DESC;
     """)
     ausencias = cursor.fetchall()
+
+    cursor.close()
+    cnx.close()
+
+    return jsonify(ausencias)
+
+
+@asistencias_bp.route("/asistencias/get_asistencias")
+@jwt_required()
+@roles_required('administrador','recursos_humanos')
+def get_asistencias():
+    cnx = get_connection()
+    cursor = cnx.cursor(pymysql.cursors.DictCursor)
 
     cursor.execute("""
         SELECT ast.id_asistencia, ast.id_empleado, ast.fecha_inicio, ast.fecha_fin,
@@ -30,22 +64,10 @@ def asistencias():
     """)
     asistencias_registros = cursor.fetchall()
 
-    cursor.execute("SELECT id_empleado, nombre_completo FROM EMPLEADO ORDER BY nombre_completo;")
-    empleados = cursor.fetchall()
-
-    cursor.execute("SELECT * FROM `EMPLEADO-AUSENCIA`;")
-    empleado_ausencias = cursor.fetchall()
-
     cursor.close()
     cnx.close()
 
-    return render_template(
-        "asistencias.html",
-        ausencias=ausencias,
-        asistencias_registros=asistencias_registros,
-        empleados=empleados,
-        empleado_ausencias=empleado_ausencias
-    )
+    return jsonify(asistencias_registros)
 
 
 # ----------------------------------------------------

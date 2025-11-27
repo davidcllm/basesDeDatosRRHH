@@ -1,10 +1,58 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash 
+from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
 from flask_jwt_extended import jwt_required
 from routes.auth import roles_required
 from dp import get_connection
 import pymysql
+from datetime import datetime
 
 evaluacion_bp = Blueprint("evaluacion", __name__)
+
+
+def validar_fechas(fecha_inicio, fecha_fin):
+    """Valida que fecha_inicio sea menor que fecha_fin"""
+    try:
+        fi = datetime.fromisoformat(fecha_inicio)
+        ff = datetime.fromisoformat(fecha_fin)
+        if fi >= ff:
+            return False, "La fecha de inicio debe ser anterior a la fecha final"
+        return True, ""
+    except:
+        return False, "Formato de fecha inválido"
+
+
+def validar_tipo_evaluacion(tipo):
+    """Valida que tipo no contenga números"""
+    if not tipo or not isinstance(tipo, str):
+        return False, "El tipo es requerido"
+    if any(char.isdigit() for char in tipo):
+        return False, "El tipo no puede contener números"
+    if len(tipo.strip()) == 0:
+        return False, "El tipo no puede estar vacío"
+    return True, ""
+
+
+def validar_resultado_evaluacion(resultado):
+    """Valida que resultado sea un número válido"""
+    if not resultado or not isinstance(resultado, str):
+        return False, "El resultado es requerido"
+    try:
+        float(resultado)
+        return True, ""
+    except ValueError:
+        return False, "El resultado debe ser un número válido"
+
+
+def validar_resultado_capacitacion(resultado):
+    """Valida que resultado sea un número entre 0 y 100"""
+    if resultado == "" or resultado is None:
+        return True, ""  # Es opcional
+    try:
+        val = float(resultado)
+        if val < 0 or val > 100:
+            return False, "El resultado debe estar entre 0 y 100"
+        return True, ""
+    except ValueError:
+        return False, "El resultado debe ser un número válido"
 
 
 @evaluacion_bp.route("/evaluacion")
@@ -14,7 +62,39 @@ def evaluacion():
     cnx = get_connection()
     cursor = cnx.cursor(pymysql.cursors.DictCursor)
 
-    # Evaluaciones + empleado correspondiente
+    cursor.execute("SELECT id_empleado, nombre_completo FROM EMPLEADO ORDER BY nombre_completo;")
+    empleados = cursor.fetchall()
+
+    cursor.execute("SELECT id_capacitacion, nombre FROM CAPACITACION ORDER BY nombre;")
+    capacitaciones_lista = cursor.fetchall()
+
+    cursor.execute("""
+        SELECT id_empleado, nombre_completo 
+        FROM EMPLEADO 
+        WHERE id_plan_carrera IS NULL OR id_plan_carrera = 0
+        ORDER BY nombre_completo;
+    """)
+    empleados_sin_plan = cursor.fetchall()
+
+    cursor.close()
+    cnx.close()
+
+    return render_template(
+        "evaluacion.html",
+        empleados=empleados,
+        capacitaciones_lista=capacitaciones_lista,
+        empleados_sin_plan=empleados_sin_plan
+    )
+
+
+# ENDPOINTS PARA CARGAR DATOS VÍA AJAX
+@evaluacion_bp.route("/evaluacion/get_evaluaciones")
+@jwt_required()
+@roles_required('administrador','recursos_humanos')
+def get_evaluaciones():
+    cnx = get_connection()
+    cursor = cnx.cursor(pymysql.cursors.DictCursor)
+
     cursor.execute("""
         SELECT e.id_evaluacion,
                e.fecha_evaluacion,
@@ -28,15 +108,23 @@ def evaluacion():
         FROM EVALUACION e
         LEFT JOIN `EMPLEADO-EVALUACION` rel ON e.id_evaluacion = rel.id_evaluacion
         LEFT JOIN EMPLEADO emp ON rel.id_empleado = emp.id_empleado
-        ORDER BY e.id_evaluacion;
+        ORDER BY e.id_evaluacion DESC;
     """)
     evaluaciones = cursor.fetchall()
 
-    # Empleados
-    cursor.execute("SELECT id_empleado, nombre_completo FROM EMPLEADO ORDER BY nombre_completo;")
-    empleados = cursor.fetchall()
+    cursor.close()
+    cnx.close()
 
-    # Capacitaciones CON JOIN para obtener empleado, resultado y comentarios
+    return jsonify(evaluaciones)
+
+
+@evaluacion_bp.route("/evaluacion/get_capacitaciones")
+@jwt_required()
+@roles_required('administrador','recursos_humanos')
+def get_capacitaciones():
+    cnx = get_connection()
+    cursor = cnx.cursor(pymysql.cursors.DictCursor)
+
     cursor.execute("""
         SELECT ec.`id_empleado-capacitacion`,
                c.id_capacitacion,
@@ -49,14 +137,26 @@ def evaluacion():
                emp.nombre_completo,
                ec.resultado,
                ec.comentarios
-        FROM CAPACITACION c
-        LEFT JOIN `EMPLEADO-CAPACITACION` ec ON c.id_capacitacion = ec.id_capacitacion
+        FROM `EMPLEADO-CAPACITACION` ec
+        LEFT JOIN CAPACITACION c ON ec.id_capacitacion = c.id_capacitacion
         LEFT JOIN EMPLEADO emp ON ec.id_empleado = emp.id_empleado
-        ORDER BY c.id_capacitacion DESC;
+        ORDER BY ec.`id_empleado-capacitacion` DESC;
     """)
     capacitaciones = cursor.fetchall()
 
-    # Planes de carrera CON JOIN para obtener empleado
+    cursor.close()
+    cnx.close()
+
+    return jsonify(capacitaciones)
+
+
+@evaluacion_bp.route("/evaluacion/get_planes_carrera")
+@jwt_required()
+@roles_required('administrador','recursos_humanos')
+def get_planes_carrera():
+    cnx = get_connection()
+    cursor = cnx.cursor(pymysql.cursors.DictCursor)
+
     cursor.execute("""
         SELECT pc.id_plan_carrera,
                pc.objetivo,
@@ -74,129 +174,174 @@ def evaluacion():
     cursor.close()
     cnx.close()
 
-    return render_template(
-        "evaluacion.html",
-        evaluaciones=evaluaciones,
-        empleados=empleados,
-        capacitaciones=capacitaciones,
-        planes_carrera=planes_carrera
-    )
+    return jsonify(planes_carrera)
 
 
 # ---------------------------
 # AGREGAR EVALUACION
 # ---------------------------
-@evaluacion_bp.route("/evaluacion/agregar", methods=["POST"])
+@evaluacion_bp.route("/evaluacion/agregar_evaluacion", methods=["POST"])
 @jwt_required()
 @roles_required('administrador','recursos_humanos')
 def agregar_evaluacion():
     id_empleado = request.form.get("id_empleado") or None
     fecha_evaluacion = request.form.get("fecha_evaluacion")
-    tipo = request.form.get("tipo")
-    resultado = request.form.get("resultado")
-    observaciones = request.form.get("observaciones") or ""
+    tipo = request.form.get("tipo", "").strip()
+    resultado = request.form.get("resultado", "").strip()
+    observaciones = request.form.get("observaciones", "").strip()
     fecha_inicio = request.form.get("fecha_inicio")
     fecha_fin = request.form.get("fecha_fin")
 
-    if fecha_inicio and fecha_fin and fecha_inicio > fecha_fin:
-        flash("La fecha de inicio no puede ser posterior a la fecha final.", "error")
+    errores = []
+
+    # Validar tipo
+    es_valido, msg = validar_tipo_evaluacion(tipo)
+    if not es_valido:
+        errores.append(f"Tipo: {msg}")
+
+    # Validar resultado
+    es_valido, msg = validar_resultado_evaluacion(resultado)
+    if not es_valido:
+        errores.append(f"Resultado: {msg}")
+
+    # Validar fechas
+    es_valido, msg = validar_fechas(fecha_inicio, fecha_fin)
+    if not es_valido:
+        errores.append(f"Fechas: {msg}")
+
+    if errores:
+        for error in errores:
+            flash(error, "error")
         return redirect(url_for("evaluacion.evaluacion"))
 
     cnx = get_connection()
     cursor = cnx.cursor()
 
-    cursor.execute("""
-        INSERT INTO EVALUACION (fecha_evaluacion, tipo, resultado, observaciones)
-        VALUES (%s, %s, %s, %s);
-    """, (fecha_evaluacion, tipo, resultado, observaciones))
-    id_eval = cursor.lastrowid
-
-    if id_empleado:
+    try:
         cursor.execute("""
-            INSERT INTO `EMPLEADO-EVALUACION` (id_empleado, id_evaluacion, fecha_inicio, fecha_fin)
+            INSERT INTO EVALUACION (fecha_evaluacion, tipo, resultado, observaciones)
             VALUES (%s, %s, %s, %s);
-        """, (id_empleado, id_eval, fecha_inicio, fecha_fin))
+        """, (fecha_evaluacion, tipo, resultado, observaciones))
+        id_eval = cursor.lastrowid
 
-    cnx.commit()
-    cursor.close()
-    cnx.close()
-
-    flash("Evaluación agregada correctamente.", "success")
-    return redirect(url_for("evaluacion.evaluacion"))
-
-
-# ---------------------------
-# EDITAR EVALUACION
-# ---------------------------
-@evaluacion_bp.route("/evaluacion/editar/<int:id_eval>", methods=["POST"])
-@jwt_required()
-@roles_required('administrador','recursos_humanos')
-def editar_evaluacion(id_eval):
-    fecha_evaluacion = request.form.get("fecha_evaluacion")
-    tipo = request.form.get("tipo")
-    resultado = request.form.get("resultado")
-    observaciones = request.form.get("observaciones") or ""
-    id_empleado = request.form.get("id_empleado") or None
-    fecha_inicio = request.form.get("fecha_inicio")
-    fecha_fin = request.form.get("fecha_fin")
-
-    if fecha_inicio and fecha_fin and fecha_inicio > fecha_fin:
-        flash("La fecha de inicio no puede ser posterior a la fecha final.", "error")
-        return redirect(url_for("evaluacion.evaluacion"))
-
-    cnx = get_connection()
-    cursor = cnx.cursor()
-
-    cursor.execute("""
-        UPDATE EVALUACION
-        SET fecha_evaluacion=%s, tipo=%s, resultado=%s, observaciones=%s
-        WHERE id_evaluacion=%s;
-    """, (fecha_evaluacion, tipo, resultado, observaciones, id_eval))
-
-    cursor.execute("SELECT COUNT(*) AS cnt FROM `EMPLEADO-EVALUACION` WHERE id_evaluacion=%s;", (id_eval,))
-    row = cursor.fetchone()
-
-    existe = row["cnt"] if isinstance(row, dict) else row[0]
-
-    if existe:
-        cursor.execute("""
-            UPDATE `EMPLEADO-EVALUACION`
-            SET id_empleado=%s, fecha_inicio=%s, fecha_fin=%s
-            WHERE id_evaluacion=%s;
-        """, (id_empleado, fecha_inicio, fecha_fin, id_eval))
-    else:
         if id_empleado:
             cursor.execute("""
                 INSERT INTO `EMPLEADO-EVALUACION` (id_empleado, id_evaluacion, fecha_inicio, fecha_fin)
                 VALUES (%s, %s, %s, %s);
             """, (id_empleado, id_eval, fecha_inicio, fecha_fin))
 
-    cnx.commit()
-    cursor.close()
-    cnx.close()
+        cnx.commit()
+        flash("Evaluación agregada correctamente.", "success")
+    except Exception as e:
+        cnx.rollback()
+        flash(f"Error al agregar evaluación: {str(e)}", "error")
+    finally:
+        cursor.close()
+        cnx.close()
 
-    flash("Evaluación actualizada correctamente.", "success")
+    return redirect(url_for("evaluacion.evaluacion"))
+
+
+# ---------------------------
+# EDITAR EVALUACION
+# ---------------------------
+@evaluacion_bp.route("/evaluacion/editar_evaluacion/<int:id_eval>", methods=["POST"])
+@jwt_required()
+@roles_required('administrador','recursos_humanos')
+def editar_evaluacion(id_eval):
+    fecha_evaluacion = request.form.get("fecha_evaluacion")
+    tipo = request.form.get("tipo", "").strip()
+    resultado = request.form.get("resultado", "").strip()
+    observaciones = request.form.get("observaciones", "").strip()
+    id_empleado = request.form.get("id_empleado") or None
+    fecha_inicio = request.form.get("fecha_inicio")
+    fecha_fin = request.form.get("fecha_fin")
+
+    errores = []
+
+    # Validar tipo
+    es_valido, msg = validar_tipo_evaluacion(tipo)
+    if not es_valido:
+        errores.append(f"Tipo: {msg}")
+
+    # Validar resultado
+    es_valido, msg = validar_resultado_evaluacion(resultado)
+    if not es_valido:
+        errores.append(f"Resultado: {msg}")
+
+    # Validar fechas
+    es_valido, msg = validar_fechas(fecha_inicio, fecha_fin)
+    if not es_valido:
+        errores.append(f"Fechas: {msg}")
+
+    if errores:
+        for error in errores:
+            flash(error, "error")
+        return redirect(url_for("evaluacion.evaluacion"))
+
+    cnx = get_connection()
+    cursor = cnx.cursor()
+
+    try:
+        cursor.execute("""
+            UPDATE EVALUACION
+            SET fecha_evaluacion=%s, tipo=%s, resultado=%s, observaciones=%s
+            WHERE id_evaluacion=%s;
+        """, (fecha_evaluacion, tipo, resultado, observaciones, id_eval))
+
+        cursor.execute("SELECT COUNT(*) AS cnt FROM `EMPLEADO-EVALUACION` WHERE id_evaluacion=%s;", (id_eval,))
+        row = cursor.fetchone()
+
+        existe = row["cnt"] if isinstance(row, dict) else row[0]
+
+        if existe:
+            cursor.execute("""
+                UPDATE `EMPLEADO-EVALUACION`
+                SET id_empleado=%s, fecha_inicio=%s, fecha_fin=%s
+                WHERE id_evaluacion=%s;
+            """, (id_empleado, fecha_inicio, fecha_fin, id_eval))
+        else:
+            if id_empleado:
+                cursor.execute("""
+                    INSERT INTO `EMPLEADO-EVALUACION` (id_empleado, id_evaluacion, fecha_inicio, fecha_fin)
+                    VALUES (%s, %s, %s, %s);
+                """, (id_empleado, id_eval, fecha_inicio, fecha_fin))
+
+        cnx.commit()
+        flash("Evaluación actualizada correctamente.", "success")
+    except Exception as e:
+        cnx.rollback()
+        flash(f"Error al actualizar evaluación: {str(e)}", "error")
+    finally:
+        cursor.close()
+        cnx.close()
+
     return redirect(url_for("evaluacion.evaluacion"))
 
 
 # ---------------------------
 # ELIMINAR EVALUACION
 # ---------------------------
-@evaluacion_bp.route("/evaluacion/eliminar/<int:id_eval>", methods=["POST"])
+@evaluacion_bp.route("/evaluacion/eliminar_evaluacion/<int:id_eval>", methods=["POST"])
 @jwt_required()
 @roles_required('administrador','recursos_humanos')
 def eliminar_evaluacion(id_eval):
     cnx = get_connection()
     cursor = cnx.cursor()
 
-    cursor.execute("DELETE FROM `EMPLEADO-EVALUACION` WHERE id_evaluacion=%s;", (id_eval,))
-    cursor.execute("DELETE FROM EVALUACION WHERE id_evaluacion=%s;", (id_eval,))
+    try:
+        cursor.execute("DELETE FROM `EMPLEADO-EVALUACION` WHERE id_evaluacion=%s;", (id_eval,))
+        cursor.execute("DELETE FROM EVALUACION WHERE id_evaluacion=%s;", (id_eval,))
 
-    cnx.commit()
-    cursor.close()
-    cnx.close()
+        cnx.commit()
+        flash("Evaluación eliminada correctamente.", "success")
+    except Exception as e:
+        cnx.rollback()
+        flash(f"Error al eliminar evaluación: {str(e)}", "error")
+    finally:
+        cursor.close()
+        cnx.close()
 
-    flash("Evaluación eliminada correctamente.", "success")
     return redirect(url_for("evaluacion.evaluacion"))
 
 
@@ -211,26 +356,45 @@ def agregar_capacitacion():
     id_capacitacion = request.form.get("id_capacitacion")
     fecha_inicio = request.form.get("fecha_inicio")
     fecha_fin = request.form.get("fecha_fin")
-    resultado = request.form.get("resultado") or 0
-    comentarios = request.form.get("comentarios") or ""
+    resultado = request.form.get("resultado", "").strip()
+    comentarios = request.form.get("comentarios", "").strip()
 
-    if fecha_inicio and fecha_fin and fecha_inicio > fecha_fin:
-        flash("La fecha de inicio no puede ser posterior a la fecha final.", "error")
+    errores = []
+
+    # Validar fechas
+    es_valido, msg = validar_fechas(fecha_inicio, fecha_fin)
+    if not es_valido:
+        errores.append(f"Fechas: {msg}")
+
+    # Validar resultado
+    es_valido, msg = validar_resultado_capacitacion(resultado)
+    if not es_valido:
+        errores.append(f"Resultado: {msg}")
+
+    if errores:
+        for error in errores:
+            flash(error, "error")
         return redirect(url_for("evaluacion.evaluacion"))
 
     cnx = get_connection()
     cursor = cnx.cursor()
 
-    cursor.execute("""
-        INSERT INTO `EMPLEADO-CAPACITACION` (id_empleado, id_capacitacion, fecha_inicio, fecha_fin, resultado, comentarios)
-        VALUES (%s, %s, %s, %s, %s, %s);
-    """, (id_empleado, id_capacitacion, fecha_inicio, fecha_fin, resultado, comentarios))
+    try:
+        resultado_val = float(resultado) if resultado else 0
+        cursor.execute("""
+            INSERT INTO `EMPLEADO-CAPACITACION` (id_empleado, id_capacitacion, fecha_inicio, fecha_fin, resultado, comentarios)
+            VALUES (%s, %s, %s, %s, %s, %s);
+        """, (id_empleado, id_capacitacion, fecha_inicio, fecha_fin, resultado_val, comentarios))
 
-    cnx.commit()
-    cursor.close()
-    cnx.close()
+        cnx.commit()
+        flash("Capacitación agregada correctamente.", "success")
+    except Exception as e:
+        cnx.rollback()
+        flash(f"Error al agregar capacitación: {str(e)}", "error")
+    finally:
+        cursor.close()
+        cnx.close()
 
-    flash("Capacitación agregada correctamente.", "success")
     return redirect(url_for("evaluacion.evaluacion"))
 
 
@@ -244,27 +408,46 @@ def editar_capacitacion(id_empleado_capacitacion):
     id_empleado = request.form.get("id_empleado") or None
     fecha_inicio = request.form.get("fecha_inicio")
     fecha_fin = request.form.get("fecha_fin")
-    resultado = request.form.get("resultado") or 0
-    comentarios = request.form.get("comentarios") or ""
+    resultado = request.form.get("resultado", "").strip()
+    comentarios = request.form.get("comentarios", "").strip()
 
-    if fecha_inicio and fecha_fin and fecha_inicio > fecha_fin:
-        flash("La fecha de inicio no puede ser posterior a la fecha final.", "error")
+    errores = []
+
+    # Validar fechas
+    es_valido, msg = validar_fechas(fecha_inicio, fecha_fin)
+    if not es_valido:
+        errores.append(f"Fechas: {msg}")
+
+    # Validar resultado
+    es_valido, msg = validar_resultado_capacitacion(resultado)
+    if not es_valido:
+        errores.append(f"Resultado: {msg}")
+
+    if errores:
+        for error in errores:
+            flash(error, "error")
         return redirect(url_for("evaluacion.evaluacion"))
 
     cnx = get_connection()
     cursor = cnx.cursor()
 
-    cursor.execute("""
-        UPDATE `EMPLEADO-CAPACITACION`
-        SET id_empleado=%s, fecha_inicio=%s, fecha_fin=%s, resultado=%s, comentarios=%s
-        WHERE `id_empleado-capacitacion`=%s;
-    """, (id_empleado, fecha_inicio, fecha_fin, resultado, comentarios, id_empleado_capacitacion))
+    try:
+        resultado_val = float(resultado) if resultado else 0
+        cursor.execute("""
+            UPDATE `EMPLEADO-CAPACITACION`
+            SET id_empleado=%s, fecha_inicio=%s, fecha_fin=%s, resultado=%s, comentarios=%s
+            WHERE `id_empleado-capacitacion`=%s;
+        """, (id_empleado, fecha_inicio, fecha_fin, resultado_val, comentarios, id_empleado_capacitacion))
 
-    cnx.commit()
-    cursor.close()
-    cnx.close()
+        cnx.commit()
+        flash("Capacitación actualizada correctamente.", "success")
+    except Exception as e:
+        cnx.rollback()
+        flash(f"Error al actualizar capacitación: {str(e)}", "error")
+    finally:
+        cursor.close()
+        cnx.close()
 
-    flash("Capacitación actualizada correctamente.", "success")
     return redirect(url_for("evaluacion.evaluacion"))
 
 
@@ -278,13 +461,18 @@ def eliminar_capacitacion(id_empleado_capacitacion):
     cnx = get_connection()
     cursor = cnx.cursor()
 
-    cursor.execute("DELETE FROM `EMPLEADO-CAPACITACION` WHERE `id_empleado-capacitacion`=%s;", (id_empleado_capacitacion,))
+    try:
+        cursor.execute("DELETE FROM `EMPLEADO-CAPACITACION` WHERE `id_empleado-capacitacion`=%s;", (id_empleado_capacitacion,))
 
-    cnx.commit()
-    cursor.close()
-    cnx.close()
+        cnx.commit()
+        flash("Capacitación eliminada correctamente.", "success")
+    except Exception as e:
+        cnx.rollback()
+        flash(f"Error al eliminar capacitación: {str(e)}", "error")
+    finally:
+        cursor.close()
+        cnx.close()
 
-    flash("Capacitación eliminada correctamente.", "success")
     return redirect(url_for("evaluacion.evaluacion"))
 
 
@@ -295,28 +483,71 @@ def eliminar_capacitacion(id_empleado_capacitacion):
 @jwt_required()
 @roles_required('administrador','recursos_humanos')
 def agregar_plan_carrera():
-    objetivo = request.form.get("objetivo")
-    etapas = request.form.get("etapas")
+    id_empleado = request.form.get("id_empleado")
+    objetivo = request.form.get("objetivo", "").strip()
+    etapas = request.form.get("etapas", "").strip()
     fecha_inicio = request.form.get("fecha_inicio")
     fecha_fin = request.form.get("fecha_fin")
 
-    if fecha_inicio and fecha_fin and fecha_inicio > fecha_fin:
-        flash("La fecha de inicio no puede ser posterior a la fecha final.", "error")
+    errores = []
+
+    if not id_empleado:
+        errores.append("Empleado: Debe seleccionar un empleado")
+
+    if not objetivo:
+        errores.append("Objetivo: El objetivo es requerido")
+
+    if not etapas:
+        errores.append("Etapas: Las etapas son requeridas")
+
+    # Validar fechas
+    es_valido, msg = validar_fechas(fecha_inicio, fecha_fin)
+    if not es_valido:
+        errores.append(f"Fechas: {msg}")
+
+    if errores:
+        for error in errores:
+            flash(error, "error")
         return redirect(url_for("evaluacion.evaluacion"))
 
     cnx = get_connection()
     cursor = cnx.cursor()
 
-    cursor.execute("""
-        INSERT INTO PLAN_CARRERA (objetivo, etapas, fecha_inicio, fecha_fin)
-        VALUES (%s, %s, %s, %s);
-    """, (objetivo, etapas, fecha_inicio, fecha_fin))
+    try:
+        # Verificar si el empleado ya tiene un plan de carrera
+        cursor.execute("SELECT id_plan_carrera FROM EMPLEADO WHERE id_empleado=%s;", (id_empleado,))
+        empleado = cursor.fetchone()
 
-    cnx.commit()
-    cursor.close()
-    cnx.close()
+        if empleado and empleado[0]:
+            flash(f"Este empleado ya tiene un plan de carrera asignado (ID: {empleado[0]}).", "error")
+            cursor.close()
+            cnx.close()
+            return redirect(url_for("evaluacion.evaluacion"))
 
-    flash("Plan de Carrera agregado correctamente.", "success")
+        # Crear el plan de carrera
+        cursor.execute("""
+            INSERT INTO PLAN_CARRERA (objetivo, etapas, fecha_inicio, fecha_fin)
+            VALUES (%s, %s, %s, %s);
+        """, (objetivo, etapas, fecha_inicio, fecha_fin))
+        
+        id_plan = cursor.lastrowid
+
+        # Asignar el plan al empleado
+        cursor.execute("""
+            UPDATE EMPLEADO
+            SET id_plan_carrera=%s
+            WHERE id_empleado=%s;
+        """, (id_plan, id_empleado))
+
+        cnx.commit()
+        flash("Plan de Carrera agregado correctamente.", "success")
+    except Exception as e:
+        cnx.rollback()
+        flash(f"Error al agregar plan de carrera: {str(e)}", "error")
+    finally:
+        cursor.close()
+        cnx.close()
+
     return redirect(url_for("evaluacion.evaluacion"))
 
 
@@ -327,29 +558,48 @@ def agregar_plan_carrera():
 @jwt_required()
 @roles_required('administrador','recursos_humanos')
 def editar_plan_carrera(id_plan):
-    objetivo = request.form.get("objetivo")
-    etapas = request.form.get("etapas")
+    objetivo = request.form.get("objetivo", "").strip()
+    etapas = request.form.get("etapas", "").strip()
     fecha_inicio = request.form.get("fecha_inicio")
     fecha_fin = request.form.get("fecha_fin")
 
-    if fecha_inicio and fecha_fin and fecha_inicio > fecha_fin:
-        flash("La fecha de inicio no puede ser posterior a la fecha final.", "error")
+    errores = []
+
+    if not objetivo:
+        errores.append("Objetivo: El objetivo es requerido")
+
+    if not etapas:
+        errores.append("Etapas: Las etapas son requeridas")
+
+    # Validar fechas
+    es_valido, msg = validar_fechas(fecha_inicio, fecha_fin)
+    if not es_valido:
+        errores.append(f"Fechas: {msg}")
+
+    if errores:
+        for error in errores:
+            flash(error, "error")
         return redirect(url_for("evaluacion.evaluacion"))
 
     cnx = get_connection()
     cursor = cnx.cursor()
 
-    cursor.execute("""
-        UPDATE PLAN_CARRERA
-        SET objetivo=%s, etapas=%s, fecha_inicio=%s, fecha_fin=%s
-        WHERE id_plan_carrera=%s;
-    """, (objetivo, etapas, fecha_inicio, fecha_fin, id_plan))
+    try:
+        cursor.execute("""
+            UPDATE PLAN_CARRERA
+            SET objetivo=%s, etapas=%s, fecha_inicio=%s, fecha_fin=%s
+            WHERE id_plan_carrera=%s;
+        """, (objetivo, etapas, fecha_inicio, fecha_fin, id_plan))
 
-    cnx.commit()
-    cursor.close()
-    cnx.close()
+        cnx.commit()
+        flash("Plan de Carrera actualizado correctamente.", "success")
+    except Exception as e:
+        cnx.rollback()
+        flash(f"Error al actualizar plan de carrera: {str(e)}", "error")
+    finally:
+        cursor.close()
+        cnx.close()
 
-    flash("Plan de Carrera actualizado correctamente.", "success")
     return redirect(url_for("evaluacion.evaluacion"))
 
 
@@ -363,11 +613,17 @@ def eliminar_plan_carrera(id_plan):
     cnx = get_connection()
     cursor = cnx.cursor()
 
-    cursor.execute("DELETE FROM PLAN_CARRERA WHERE id_plan_carrera=%s;", (id_plan,))
+    try:
+        cursor.execute("UPDATE EMPLEADO SET id_plan_carrera=NULL WHERE id_plan_carrera=%s;", (id_plan,))
+        cursor.execute("DELETE FROM PLAN_CARRERA WHERE id_plan_carrera=%s;", (id_plan,))
 
-    cnx.commit()
-    cursor.close()
-    cnx.close()
+        cnx.commit()
+        flash("Plan de Carrera eliminado correctamente.", "success")
+    except Exception as e:
+        cnx.rollback()
+        flash(f"Error al eliminar plan de carrera: {str(e)}", "error")
+    finally:
+        cursor.close()
+        cnx.close()
 
-    flash("Plan de Carrera eliminado correctamente.", "success")
     return redirect(url_for("evaluacion.evaluacion"))

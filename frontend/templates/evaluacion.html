@@ -41,108 +41,32 @@
 <!-- TABLA EVALUACIONES -->
 <h2 style="margin-top:12px;">Evaluaciones de Desempeño</h2>
 
-<table class="table" style="width:95%;margin:20px auto;">
-  <thead>
-    <tr>
-      <th>ID</th>
-      <th>ID Empleado</th>
-      <th>Nombre Empleado</th>
-      <th>Fecha</th>
-      <th>Tipo</th>
-      <th>Resultado</th>
-      <th>Observaciones</th>
-      <th>Inicio</th>
-      <th>Fin</th>
-      <th>Acciones</th>
-    </tr>
-  </thead>
+<div style="width:95%;margin:20px auto;display:flex;gap:10px;align-items:center;">
+  <button type="button" id="toggle-evaluaciones" class="btn btn-primary" onclick="toggleEvaluaciones()" style="padding:8px 16px;border-radius:6px;">▼ Cargar Evaluaciones</button>
+  <input type="text" id="search-evaluaciones" placeholder="Buscar en evaluaciones..." onkeyup="filterTable('evaluaciones')" style="flex:1;padding:8px;border-radius:6px;border:1px solid #ddd;display:none;">
+</div>
 
-  <tbody>
-    {% for e in evaluaciones %}
-    <tr id="row-eval-{{ e.id_evaluacion }}">
-      <td>{{ e.id_evaluacion }}</td>
-      <td>{{ e.id_empleado or '—' }}</td>
-      <td>{{ e.nombre_completo or '—' }}</td>
-      <td>{{ e.fecha_evaluacion }}</td>
-      <td>{{ e.tipo }}</td>
-      <td>{{ e.resultado }}</td>
-      <td>{{ e.observaciones or '—' }}</td>
-      <td>{{ e.fecha_inicio or '—' }}</td>
-      <td>{{ e.fecha_fin or '—' }}</td>
-      <td style="width:220px;">
-        <div style="display:flex;gap:8px;justify-content:flex-end;align-items:center;">
-          <button type="button" class="btn btn-link" onclick="openEditModal({{ e.id_evaluacion }})" style="padding:0 8px;">Editar</button>
-
-          <form action="{{ url_for('evaluacion.eliminar_evaluacion', id_eval=e.id_evaluacion) }}" method="POST" style="margin:0;">
-            <button type="submit" class="btn btn-primary" style="background:#007bff;border-color:#007bff;padding:6px 18px;border-radius:6px;color:#fff;" onclick="return confirm('¿Eliminar evaluación?')">Eliminar</button>
-          </form>
-        </div>
-      </td>
-    </tr>
-
-    <!-- MODAL EDITAR EVALUACION -->
-    <div id="overlay-eval-{{ e.id_evaluacion }}" class="modal-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.35);z-index:999;" onclick="closeEditModal({{ e.id_evaluacion }})"></div>
-
-    <div id="modal-eval-{{ e.id_evaluacion }}" class="edit-modal" style="display:none;position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);width:640px;background:#fff;border-radius:8px;padding:18px;z-index:1000;box-shadow:0 8px 24px rgba(0,0,0,0.15);">
-      <h3 style="margin-top:0;">Editar Evaluación #{{ e.id_evaluacion }}</h3>
-
-      <form action="{{ url_for('evaluacion.editar_evaluacion', id_eval=e.id_evaluacion) }}" method="POST" style="display:flex;flex-direction:column;gap:10px;">
-
-        <div style="display:flex;gap:10px;">
-          <div style="flex:1;">
-            <label>ID Empleado</label>
-            <select name="id_empleado" style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
-              <option value="">-- Seleccionar Empleado --</option>
-              {% for emp in empleados %}
-                <option value="{{ emp.id_empleado }}" {% if emp.id_empleado == e.id_empleado %}selected{% endif %}>
-                  {{ emp.nombre_completo }}
-                </option>
-              {% endfor %}
-            </select>
-          </div>
-
-          <div style="flex:1;">
-            <label>Fecha Evaluación</label>
-            <input type="datetime-local" name="fecha_evaluacion" value="{{ e.fecha_evaluacion }}" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
-          </div>
-
-          <div style="flex:1;">
-            <label>Tipo</label>
-            <input type="text" name="tipo" value="{{ e.tipo }}" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
-          </div>
-        </div>
-
-        <div style="display:flex;gap:10px;">
-          <div style="flex:1;">
-            <label>Resultado</label>
-            <input type="text" name="resultado" value="{{ e.resultado }}" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
-          </div>
-          <div style="flex:2;">
-            <label>Observaciones</label>
-            <input type="text" name="observaciones" value="{{ e.observaciones or '' }}" style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
-          </div>
-        </div>
-
-        <div style="display:flex;gap:10px;">
-          <div style="flex:1;">
-            <label>Fecha Inicio</label>
-            <input type="datetime-local" name="fecha_inicio" value="{{ e.fecha_inicio or '' }}" style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
-          </div>
-          <div style="flex:1;">
-            <label>Fecha Fin</label>
-            <input type="datetime-local" name="fecha_fin" value="{{ e.fecha_fin or '' }}" style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
-          </div>
-        </div>
-
-        <div style="display:flex;gap:8px;justify-content:flex-end;">
-          <button type="submit" style="background:#0069ff;color:#fff;padding:8px 14px;border-radius:6px;border:0;">Actualizar</button>
-          <button type="button" onclick="closeEditModal({{ e.id_evaluacion }})" style="background:#e9ecef;padding:8px 14px;border-radius:6px;border:0;">Cancelar</button>
-        </div>
-      </form>
-    </div>
-    {% endfor %}
-  </tbody>
-</table>
+<div id="evaluaciones-container" style="display:none;">
+  <table class="table" style="width:95%;margin:20px auto;">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>ID Empleado</th>
+        <th>Nombre Empleado</th>
+        <th>Fecha</th>
+        <th>Tipo</th>
+        <th>Resultado</th>
+        <th>Observaciones</th>
+        <th>Inicio</th>
+        <th>Fin</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
+    <tbody id="evaluaciones-tbody">
+      <!-- Data cargada vía AJAX -->
+    </tbody>
+  </table>
+</div>
 
 
 <!-- FORMULARIO AGREGAR CAPACITACION -->
@@ -161,7 +85,7 @@
     <label style="margin-top:0;">Curso:</label>
     <select name="id_capacitacion" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
       <option value="">-- Seleccionar Curso --</option>
-      {% for cap in planes_carrera %}
+      {% for cap in capacitaciones_lista %}
         <option value="{{ cap.id_capacitacion }}">{{ cap.nombre }}</option>
       {% endfor %}
     </select>
@@ -186,103 +110,32 @@
 <!-- TABLA CAPACITACIONES -->
 <h2 style="margin-top:12px;">Capacitaciones</h2>
 
-<table class="table" style="width:95%;margin:20px auto;">
-  <thead>
-    <tr>
-      <th>ID</th>
-      <th>Nombre Empleado</th>
-      <th>Curso</th>
-      <th>Descripción</th>
-      <th>Inicio</th>
-      <th>Fin</th>
-      <th>Proveedor</th>
-      <th>Resultado</th>
-      <th>Comentarios</th>
-      <th>Acciones</th>
-    </tr>
-  </thead>
+<div style="width:95%;margin:20px auto;display:flex;gap:10px;align-items:center;">
+  <button type="button" id="toggle-capacitaciones" class="btn btn-primary" onclick="toggleCapacitaciones()" style="padding:8px 16px;border-radius:6px;">▼ Cargar Capacitaciones</button>
+  <input type="text" id="search-capacitaciones" placeholder="Buscar en capacitaciones..." onkeyup="filterTable('capacitaciones')" style="flex:1;padding:8px;border-radius:6px;border:1px solid #ddd;display:none;">
+</div>
 
-  <tbody>
-    {% for c in capacitaciones %}
-    <tr id="row-cap-{{ c['id_empleado-capacitacion'] }}">
-      <td>{{ c['id_empleado-capacitacion'] }}</td>
-      <td>{{ c.nombre_completo or '—' }}</td>
-      <td>{{ c.nombre }}</td>
-      <td>{{ c.descripcion }}</td>
-      <td>{{ c.fecha_inicio }}</td>
-      <td>{{ c.fecha_fin }}</td>
-      <td>{{ c.proveedor }}</td>
-      <td>{{ c.resultado or '—' }}</td>
-      <td>{{ c.comentarios or '—' }}</td>
-      <td style="width:220px;">
-        <div style="display:flex;gap:8px;justify-content:flex-end;align-items:center;">
-          <button type="button" class="btn btn-link" onclick="openCapacitacionModal({{ c['id_empleado-capacitacion'] }})" style="padding:0 8px;">Editar</button>
-
-          <form action="{{ url_for('evaluacion.eliminar_capacitacion', id_empleado_capacitacion=c['id_empleado-capacitacion']) }}" method="POST" style="margin:0;">
-            <button type="submit" class="btn btn-primary" style="background:#007bff;border-color:#007bff;padding:6px 18px;border-radius:6px;color:#fff;" onclick="return confirm('¿Eliminar capacitación?')">Eliminar</button>
-          </form>
-        </div>
-      </td>
-    </tr>
-
-    <!-- MODAL EDITAR CAPACITACION -->
-    <div id="overlay-cap-{{ c['id_empleado-capacitacion'] }}" class="modal-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.35);z-index:999;" onclick="closeCapacitacionModal({{ c['id_empleado-capacitacion'] }})"></div>
-
-    <div id="modal-cap-{{ c['id_empleado-capacitacion'] }}" class="edit-modal" style="display:none;position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);width:640px;background:#fff;border-radius:8px;padding:18px;z-index:1000;box-shadow:0 8px 24px rgba(0,0,0,0.15);">
-      <h3 style="margin-top:0;">Editar Capacitación #{{ c['id_empleado-capacitacion'] }}</h3>
-
-      <form action="{{ url_for('evaluacion.editar_capacitacion', id_empleado_capacitacion=c['id_empleado-capacitacion']) }}" method="POST" style="display:flex;flex-direction:column;gap:10px;">
-
-        <div style="display:flex;gap:10px;">
-          <div style="flex:1;">
-            <label>Empleado</label>
-            <select name="id_empleado" style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
-              <option value="">-- Seleccionar Empleado --</option>
-              {% for emp in empleados %}
-                <option value="{{ emp.id_empleado }}" {% if emp.id_empleado == c.id_empleado %}selected{% endif %}>
-                  {{ emp.nombre_completo }}
-                </option>
-              {% endfor %}
-            </select>
-          </div>
-
-          <div style="flex:1;">
-            <label>Curso</label>
-            <input type="text" name="curso" value="{{ c.nombre }}" disabled style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;background:#f5f5f5;">
-          </div>
-        </div>
-
-        <div style="display:flex;gap:10px;">
-          <div style="flex:1;">
-            <label>Fecha Inicio</label>
-            <input type="datetime-local" name="fecha_inicio" value="{{ c.fecha_inicio }}" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
-          </div>
-          <div style="flex:1;">
-            <label>Fecha Fin</label>
-            <input type="datetime-local" name="fecha_fin" value="{{ c.fecha_fin }}" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
-          </div>
-        </div>
-
-        <div style="display:flex;gap:10px;">
-          <div style="flex:1;">
-            <label>Resultado</label>
-            <input type="number" name="resultado" value="{{ c.resultado or '' }}" placeholder="0.00" step="0.01" min="0" max="100" style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
-          </div>
-          <div style="flex:2;">
-            <label>Comentarios</label>
-            <input type="text" name="comentarios" value="{{ c.comentarios or '' }}" style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
-          </div>
-        </div>
-
-        <div style="display:flex;gap:8px;justify-content:flex-end;">
-          <button type="submit" style="background:#0069ff;color:#fff;padding:8px 14px;border-radius:6px;border:0;">Actualizar</button>
-          <button type="button" onclick="closeCapacitacionModal({{ c['id_empleado-capacitacion'] }})" style="background:#e9ecef;padding:8px 14px;border-radius:6px;border:0;">Cancelar</button>
-        </div>
-      </form>
-    </div>
-    {% endfor %}
-  </tbody>
-</table>
+<div id="capacitaciones-container" style="display:none;">
+  <table class="table" style="width:95%;margin:20px auto;">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Nombre Empleado</th>
+        <th>Curso</th>
+        <th>Descripción</th>
+        <th>Inicio</th>
+        <th>Fin</th>
+        <th>Proveedor</th>
+        <th>Resultado</th>
+        <th>Comentarios</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
+    <tbody id="capacitaciones-tbody">
+      <!-- Data cargada vía AJAX -->
+    </tbody>
+  </table>
+</div>
 
 
 <!-- FORMULARIO AGREGAR PLAN DE CARRERA -->
@@ -290,7 +143,15 @@
   <form action="{{ url_for('evaluacion.agregar_plan_carrera') }}" method="POST" style="display:flex;flex-direction:column;gap:8px;">
     <h2 style="text-align:center; margin:0 0 12px 0;">Agregar Plan de Carrera</h2>
 
-    <label>Objetivo:</label>
+    <label>Empleado:</label>
+    <select name="id_empleado" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
+      <option value="">-- Seleccionar Empleado (Sin plan asignado) --</option>
+      {% for emp in empleados_sin_plan %}
+        <option value="{{ emp.id_empleado }}">{{ emp.nombre_completo }}</option>
+      {% endfor %}
+    </select>
+
+    <label style="margin-top:0;">Objetivo:</label>
     <input type="text" name="objetivo" placeholder="Ej: Desarrollador Senior" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
 
     <label style="margin-top:0;">Etapas:</label>
@@ -309,80 +170,377 @@
 
 <!-- TABLA PLANES DE CARRERA -->
 <h2 style="margin-top:18px;">Planes de Carrera</h2>
-<table class="table" style="width:95%;margin:20px auto;">
-  <thead>
-    <tr>
-      <th>ID</th>
-      <th>Nombre Empleado</th>
-      <th>Objetivo</th>
-      <th>Etapas</th>
-      <th>Inicio</th>
-      <th>Fin</th>
-      <th>Acciones</th>
-    </tr>
-  </thead>
-  <tbody>
-    {% for p in planes_carrera %}
-    <tr id="row-plan-{{ p.id_plan_carrera }}">
-      <td>{{ p.id_plan_carrera }}</td>
-      <td>{{ p.nombre_completo or '—' }}</td>
-      <td>{{ p.objetivo }}</td>
-      <td>{{ p.etapas }}</td>
-      <td>{{ p.fecha_inicio }}</td>
-      <td>{{ p.fecha_fin }}</td>
-      <td style="width:220px;">
-        <div style="display:flex;gap:8px;justify-content:flex-end;align-items:center;">
-          <button type="button" class="btn btn-link" onclick="openPlanModal({{ p.id_plan_carrera }})" style="padding:0 8px;">Editar</button>
 
-          <form action="{{ url_for('evaluacion.eliminar_plan_carrera', id_plan=p.id_plan_carrera) }}" method="POST" style="margin:0;">
-            <button type="submit" class="btn btn-primary" style="background:#007bff;border-color:#007bff;padding:6px 18px;border-radius:6px;color:#fff;" onclick="return confirm('¿Eliminar plan de carrera?')">Eliminar</button>
-          </form>
-        </div>
-      </td>
-    </tr>
+<div style="width:95%;margin:20px auto;display:flex;gap:10px;align-items:center;">
+  <button type="button" id="toggle-planes" class="btn btn-primary" onclick="togglePlanes()" style="padding:8px 16px;border-radius:6px;">▼ Cargar Planes</button>
+  <input type="text" id="search-planes" placeholder="Buscar en planes..." onkeyup="filterTable('planes')" style="flex:1;padding:8px;border-radius:6px;border:1px solid #ddd;display:none;">
+</div>
 
-    <!-- MODAL EDITAR PLAN DE CARRERA -->
-    <div id="overlay-plan-{{ p.id_plan_carrera }}" class="modal-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.35);z-index:999;" onclick="closePlanModal({{ p.id_plan_carrera }})"></div>
+<div id="planes-container" style="display:none;">
+  <table class="table" style="width:95%;margin:20px auto;">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Nombre Empleado</th>
+        <th>Objetivo</th>
+        <th>Etapas</th>
+        <th>Inicio</th>
+        <th>Fin</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
+    <tbody id="planes-tbody">
+      <!-- Data cargada vía AJAX -->
+    </tbody>
+  </table>
+</div>
 
-    <div id="modal-plan-{{ p.id_plan_carrera }}" class="edit-modal" style="display:none;position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);width:640px;background:#fff;border-radius:8px;padding:18px;z-index:1000;box-shadow:0 8px 24px rgba(0,0,0,0.15);">
-      <h3 style="margin-top:0;">Editar Plan de Carrera #{{ p.id_plan_carrera }}</h3>
-
-      <form action="{{ url_for('evaluacion.editar_plan_carrera', id_plan=p.id_plan_carrera) }}" method="POST" style="display:flex;flex-direction:column;gap:10px;">
-
-        <div style="display:flex;gap:10px;">
-          <div style="flex:1;">
-            <label>Objetivo</label>
-            <input type="text" name="objetivo" value="{{ p.objetivo }}" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
-          </div>
-
-          <div style="flex:1;">
-            <label>Etapas</label>
-            <input type="text" name="etapas" value="{{ p.etapas }}" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
-          </div>
-        </div>
-
-        <div style="display:flex;gap:10px;">
-          <div style="flex:1;">
-            <label>Fecha Inicio</label>
-            <input type="datetime-local" name="fecha_inicio" value="{{ p.fecha_inicio }}" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
-          </div>
-          <div style="flex:1;">
-            <label>Fecha Fin</label>
-            <input type="datetime-local" name="fecha_fin" value="{{ p.fecha_fin }}" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
-          </div>
-        </div>
-
-        <div style="display:flex;gap:8px;justify-content:flex-end;">
-          <button type="submit" style="background:#0069ff;color:#fff;padding:8px 14px;border-radius:6px;border:0;">Actualizar</button>
-          <button type="button" onclick="closePlanModal({{ p.id_plan_carrera }})" style="background:#e9ecef;padding:8px 14px;border-radius:6px;border:0;">Cancelar</button>
-        </div>
-      </form>
-    </div>
-    {% endfor %}
-  </tbody>
-</table>
 
 <script>
+let evaluacionesData = [];
+let capacitacionesData = [];
+let planesData = [];
+let evaluacionesLoaded = false;
+let capacitacionesLoaded = false;
+let planesLoaded = false;
+
+// EVALUACIONES
+function toggleEvaluaciones(){
+  const container = document.getElementById('evaluaciones-container');
+  const btn = document.getElementById('toggle-evaluaciones');
+  const search = document.getElementById('search-evaluaciones');
+  
+  if(!evaluacionesLoaded){
+    loadEvaluaciones();
+    evaluacionesLoaded = true;
+  }
+  
+  if(container.style.display === 'none'){
+    container.style.display = 'block';
+    search.style.display = 'block';
+    btn.textContent = '▲ Ocultar Evaluaciones';
+  } else {
+    container.style.display = 'none';
+    search.style.display = 'none';
+    btn.textContent = '▼ Cargar Evaluaciones';
+  }
+}
+
+function loadEvaluaciones(){
+  fetch('{{ url_for("evaluacion.get_evaluaciones") }}')
+    .then(response => response.json())
+    .then(data => {
+      evaluacionesData = data;
+      renderEvaluaciones(data);
+    })
+    .catch(error => console.error('Error:', error));
+}
+
+function renderEvaluaciones(data){
+  const tbody = document.getElementById('evaluaciones-tbody');
+  tbody.innerHTML = '';
+  
+  data.forEach(e => {
+    const deleteUrl = `/evaluacion/eliminar_evaluacion/${e.id_evaluacion}`;
+    const editUrl = `/evaluacion/editar_evaluacion/${e.id_evaluacion}`;
+    
+    const row = `
+      <tr id="row-eval-${e.id_evaluacion}">
+        <td>${e.id_evaluacion}</td>
+        <td>${e.id_empleado || '—'}</td>
+        <td>${e.nombre_completo || '—'}</td>
+        <td>${e.fecha_evaluacion}</td>
+        <td>${e.tipo}</td>
+        <td>${e.resultado}</td>
+        <td>${e.observaciones || '—'}</td>
+        <td>${e.fecha_inicio || '—'}</td>
+        <td>${e.fecha_fin || '—'}</td>
+        <td style="width:220px;">
+          <div style="display:flex;gap:8px;justify-content:flex-end;align-items:center;">
+            <button type="button" class="btn btn-link" onclick="openEditModal(${e.id_evaluacion})" style="padding:0 8px;">Editar</button>
+            <form action="${deleteUrl}" method="POST" style="margin:0;">
+              <button type="submit" class="btn btn-primary" style="background:#007bff;border-color:#007bff;padding:6px 18px;border-radius:6px;color:#fff;" onclick="return confirm('¿Eliminar evaluación?')">Eliminar</button>
+            </form>
+          </div>
+        </td>
+      </tr>
+
+      <div id="overlay-eval-${e.id_evaluacion}" class="modal-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.35);z-index:999;" onclick="closeEditModal(${e.id_evaluacion})"></div>
+
+      <div id="modal-eval-${e.id_evaluacion}" class="edit-modal" style="display:none;position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);width:640px;background:#fff;border-radius:8px;padding:18px;z-index:1000;box-shadow:0 8px 24px rgba(0,0,0,0.15);">
+        <h3 style="margin-top:0;">Editar Evaluación #${e.id_evaluacion}</h3>
+        <form action="${editUrl}" method="POST" style="display:flex;flex-direction:column;gap:10px;">
+          <div style="display:flex;gap:10px;">
+            <div style="flex:1;">
+              <label>Empleado</label>
+              <select name="id_empleado" style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
+                <option value="">-- Seleccionar Empleado --</option>
+                {% for emp in empleados %}
+                  <option value="{{ emp.id_empleado }}" ${e.id_empleado == {{ emp.id_empleado }} ? 'selected' : ''}>
+                    {{ emp.nombre_completo }}
+                  </option>
+                {% endfor %}
+              </select>
+            </div>
+            <div style="flex:1;">
+              <label>Fecha Evaluación</label>
+              <input type="datetime-local" name="fecha_evaluacion" value="${e.fecha_evaluacion}" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
+            </div>
+            <div style="flex:1;">
+              <label>Tipo</label>
+              <input type="text" name="tipo" value="${e.tipo}" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
+            </div>
+          </div>
+          <div style="display:flex;gap:10px;">
+            <div style="flex:1;">
+              <label>Resultado</label>
+              <input type="text" name="resultado" value="${e.resultado}" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
+            </div>
+            <div style="flex:2;">
+              <label>Observaciones</label>
+              <input type="text" name="observaciones" value="${e.observaciones || ''}" style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
+            </div>
+          </div>
+          <div style="display:flex;gap:10px;">
+            <div style="flex:1;">
+              <label>Fecha Inicio</label>
+              <input type="datetime-local" name="fecha_inicio" value="${e.fecha_inicio || ''}" style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
+            </div>
+            <div style="flex:1;">
+              <label>Fecha Fin</label>
+              <input type="datetime-local" name="fecha_fin" value="${e.fecha_fin || ''}" style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
+            </div>
+          </div>
+          <div style="display:flex;gap:8px;justify-content:flex-end;">
+            <button type="submit" style="background:#0069ff;color:#fff;padding:8px 14px;border-radius:6px;border:0;">Actualizar</button>
+            <button type="button" onclick="closeEditModal(${e.id_evaluacion})" style="background:#e9ecef;padding:8px 14px;border-radius:6px;border:0;">Cancelar</button>
+          </div>
+        </form>
+      </div>
+    `;
+    tbody.insertAdjacentHTML('beforeend', row);
+  });
+}
+
+// CAPACITACIONES
+function toggleCapacitaciones(){
+  const container = document.getElementById('capacitaciones-container');
+  const btn = document.getElementById('toggle-capacitaciones');
+  const search = document.getElementById('search-capacitaciones');
+  
+  if(!capacitacionesLoaded){
+    loadCapacitaciones();
+    capacitacionesLoaded = true;
+  }
+  
+  if(container.style.display === 'none'){
+    container.style.display = 'block';
+    search.style.display = 'block';
+    btn.textContent = '▲ Ocultar Capacitaciones';
+  } else {
+    container.style.display = 'none';
+    search.style.display = 'none';
+    btn.textContent = '▼ Cargar Capacitaciones';
+  }
+}
+
+function loadCapacitaciones(){
+  fetch('{{ url_for("evaluacion.get_capacitaciones") }}')
+    .then(response => response.json())
+    .then(data => {
+      capacitacionesData = data;
+      renderCapacitaciones(data);
+    })
+    .catch(error => console.error('Error:', error));
+}
+
+function renderCapacitaciones(data){
+  const tbody = document.getElementById('capacitaciones-tbody');
+  tbody.innerHTML = '';
+  
+  data.forEach(c => {
+    const deleteUrl = `/evaluacion/eliminar_capacitacion/${c['id_empleado-capacitacion']}`;
+    const editUrl = `/evaluacion/editar_capacitacion/${c['id_empleado-capacitacion']}`;
+    
+    const row = `
+      <tr id="row-cap-${c['id_empleado-capacitacion']}">
+        <td>${c['id_empleado-capacitacion']}</td>
+        <td>${c.nombre_completo || '—'}</td>
+        <td>${c.nombre}</td>
+        <td>${c.descripcion}</td>
+        <td>${c.fecha_inicio}</td>
+        <td>${c.fecha_fin}</td>
+        <td>${c.proveedor}</td>
+        <td>${c.resultado || '—'}</td>
+        <td>${c.comentarios || '—'}</td>
+        <td style="width:220px;">
+          <div style="display:flex;gap:8px;justify-content:flex-end;align-items:center;">
+            <button type="button" class="btn btn-link" onclick="openCapacitacionModal(${c['id_empleado-capacitacion']})" style="padding:0 8px;">Editar</button>
+            <form action="${deleteUrl}" method="POST" style="margin:0;">
+              <button type="submit" class="btn btn-primary" style="background:#007bff;border-color:#007bff;padding:6px 18px;border-radius:6px;color:#fff;" onclick="return confirm('¿Eliminar capacitación?')">Eliminar</button>
+            </form>
+          </div>
+        </td>
+      </tr>
+
+      <div id="overlay-cap-${c['id_empleado-capacitacion']}" class="modal-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.35);z-index:999;" onclick="closeCapacitacionModal(${c['id_empleado-capacitacion']})"></div>
+
+      <div id="modal-cap-${c['id_empleado-capacitacion']}" class="edit-modal" style="display:none;position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);width:640px;background:#fff;border-radius:8px;padding:18px;z-index:1000;box-shadow:0 8px 24px rgba(0,0,0,0.15);">
+        <h3 style="margin-top:0;">Editar Capacitación #${c['id_empleado-capacitacion']}</h3>
+        <form action="${editUrl}" method="POST" style="display:flex;flex-direction:column;gap:10px;">
+          <div style="display:flex;gap:10px;">
+            <div style="flex:1;">
+              <label>Empleado</label>
+              <select name="id_empleado" style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
+                <option value="">-- Seleccionar Empleado --</option>
+                {% for emp in empleados %}
+                  <option value="{{ emp.id_empleado }}" ${c.id_empleado == {{ emp.id_empleado }} ? 'selected' : ''}>
+                    {{ emp.nombre_completo }}
+                  </option>
+                {% endfor %}
+              </select>
+            </div>
+            <div style="flex:1;">
+              <label>Curso</label>
+              <input type="text" name="curso" value="${c.nombre}" disabled style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;background:#f5f5f5;">
+            </div>
+          </div>
+          <div style="display:flex;gap:10px;">
+            <div style="flex:1;">
+              <label>Fecha Inicio</label>
+              <input type="datetime-local" name="fecha_inicio" value="${c.fecha_inicio}" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
+            </div>
+            <div style="flex:1;">
+              <label>Fecha Fin</label>
+              <input type="datetime-local" name="fecha_fin" value="${c.fecha_fin}" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
+            </div>
+          </div>
+          <div style="display:flex;gap:10px;">
+            <div style="flex:1;">
+              <label>Resultado</label>
+              <input type="number" name="resultado" value="${c.resultado || ''}" placeholder="0.00" step="0.01" min="0" max="100" style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
+            </div>
+            <div style="flex:2;">
+              <label>Comentarios</label>
+              <input type="text" name="comentarios" value="${c.comentarios || ''}" style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
+            </div>
+          </div>
+          <div style="display:flex;gap:8px;justify-content:flex-end;">
+            <button type="submit" style="background:#0069ff;color:#fff;padding:8px 14px;border-radius:6px;border:0;">Actualizar</button>
+            <button type="button" onclick="closeCapacitacionModal(${c['id_empleado-capacitacion']})" style="background:#e9ecef;padding:8px 14px;border-radius:6px;border:0;">Cancelar</button>
+          </div>
+        </form>
+      </div>
+    `;
+    tbody.insertAdjacentHTML('beforeend', row);
+  });
+}
+
+// PLANES DE CARRERA
+function togglePlanes(){
+  const container = document.getElementById('planes-container');
+  const btn = document.getElementById('toggle-planes');
+  const search = document.getElementById('search-planes');
+  
+  if(!planesLoaded){
+    loadPlanes();
+    planesLoaded = true;
+  }
+  
+  if(container.style.display === 'none'){
+    container.style.display = 'block';
+    search.style.display = 'block';
+    btn.textContent = '▲ Ocultar Planes';
+  } else {
+    container.style.display = 'none';
+    search.style.display = 'none';
+    btn.textContent = '▼ Cargar Planes';
+  }
+}
+
+function loadPlanes(){
+  fetch('{{ url_for("evaluacion.get_planes_carrera") }}')
+    .then(response => response.json())
+    .then(data => {
+      planesData = data;
+      renderPlanes(data);
+    })
+    .catch(error => console.error('Error:', error));
+}
+
+function renderPlanes(data){
+  const tbody = document.getElementById('planes-tbody');
+  tbody.innerHTML = '';
+  
+  data.forEach(p => {
+    const deleteUrl = `/evaluacion/eliminar_plan_carrera/${p.id_plan_carrera}`;
+    const editUrl = `/evaluacion/editar_plan_carrera/${p.id_plan_carrera}`;
+    
+    const row = `
+      <tr id="row-plan-${p.id_plan_carrera}">
+        <td>${p.id_plan_carrera}</td>
+        <td>${p.nombre_completo || '—'}</td>
+        <td>${p.objetivo}</td>
+        <td>${p.etapas}</td>
+        <td>${p.fecha_inicio}</td>
+        <td>${p.fecha_fin}</td>
+        <td style="width:220px;">
+          <div style="display:flex;gap:8px;justify-content:flex-end;align-items:center;">
+            <button type="button" class="btn btn-link" onclick="openPlanModal(${p.id_plan_carrera})" style="padding:0 8px;">Editar</button>
+            <form action="${deleteUrl}" method="POST" style="margin:0;">
+              <button type="submit" class="btn btn-primary" style="background:#007bff;border-color:#007bff;padding:6px 18px;border-radius:6px;color:#fff;" onclick="return confirm('¿Eliminar plan de carrera?')">Eliminar</button>
+            </form>
+          </div>
+        </td>
+      </tr>
+
+      <div id="overlay-plan-${p.id_plan_carrera}" class="modal-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.35);z-index:999;" onclick="closePlanModal(${p.id_plan_carrera})"></div>
+
+      <div id="modal-plan-${p.id_plan_carrera}" class="edit-modal" style="display:none;position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);width:640px;background:#fff;border-radius:8px;padding:18px;z-index:1000;box-shadow:0 8px 24px rgba(0,0,0,0.15);">
+        <h3 style="margin-top:0;">Editar Plan de Carrera #${p.id_plan_carrera}</h3>
+        <form action="${editUrl}" method="POST" style="display:flex;flex-direction:column;gap:10px;">
+          <div style="display:flex;gap:10px;">
+            <div style="flex:1;">
+              <label>Objetivo</label>
+              <input type="text" name="objetivo" value="${p.objetivo}" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
+            </div>
+            <div style="flex:1;">
+              <label>Etapas</label>
+              <input type="text" name="etapas" value="${p.etapas}" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
+            </div>
+          </div>
+          <div style="display:flex;gap:10px;">
+            <div style="flex:1;">
+              <label>Fecha Inicio</label>
+              <input type="datetime-local" name="fecha_inicio" value="${p.fecha_inicio}" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
+            </div>
+            <div style="flex:1;">
+              <label>Fecha Fin</label>
+              <input type="datetime-local" name="fecha_fin" value="${p.fecha_fin}" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
+            </div>
+          </div>
+          <div style="display:flex;gap:8px;justify-content:flex-end;">
+            <button type="submit" style="background:#0069ff;color:#fff;padding:8px 14px;border-radius:6px;border:0;">Actualizar</button>
+            <button type="button" onclick="closePlanModal(${p.id_plan_carrera})" style="background:#e9ecef;padding:8px 14px;border-radius:6px;border:0;">Cancelar</button>
+          </div>
+        </form>
+      </div>
+    `;
+    tbody.insertAdjacentHTML('beforeend', row);
+  });
+}
+
+// FUNCIONES COMPARTIDAS
+function filterTable(type){
+  const searchInput = document.getElementById(`search-${type}`).value.toLowerCase();
+  const rows = document.querySelectorAll(`#${type}-tbody tr`);
+  
+  rows.forEach(row => {
+    const text = row.textContent.toLowerCase();
+    row.style.display = text.includes(searchInput) ? '' : 'none';
+  });
+}
+
 function openEditModal(id){
   document.getElementById('overlay-eval-' + id).style.display = 'block';
   document.getElementById('modal-eval-' + id).style.display = 'block';

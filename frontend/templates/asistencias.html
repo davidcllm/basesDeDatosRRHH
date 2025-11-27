@@ -33,81 +33,30 @@
 
 
 <h2>Ausencias registradas</h2>
-<table class="table" style="width:95%;margin:20px auto;">
-    <thead>
-      <tr>
-          <th>ID</th>
-          <th>Empleado</th>
-          <th>Tipo</th>
-          <th>Inicio</th>
-          <th>Fin</th>
-          <th>Motivo</th>
-          <th>Acciones</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for a in ausencias %}
-      <tr id="row-{{ a.id_ausencia }}">
-          <td>{{ a.id_ausencia }}</td>
-          <td>{{ a.nombre_completo }}</td>
-          <td>{{ a.tipo }}</td>
-          <td>{{ a.fecha_inicio }}</td>
-          <td>{{ a.fecha_fin }}</td>
-          <td>{{ a.motivo }}</td>
 
-          <td style="width:220px;">
-              <div style="display:flex;gap:8px;justify-content:flex-end;align-items:center;">
-                  <button type="button" class="btn btn-link" onclick="openModal({{ a.id_ausencia }})" style="padding:0 8px;">Editar</button>
+<div style="width:95%;margin:20px auto;display:flex;gap:10px;align-items:center;">
+  <button type="button" id="toggle-ausencias" class="btn btn-primary" onclick="toggleAusencias()" style="padding:8px 16px;border-radius:6px;">▼ Cargar Ausencias</button>
+  <input type="text" id="search-ausencias" placeholder="Buscar en ausencias..." onkeyup="filterTable('ausencias')" style="flex:1;padding:8px;border-radius:6px;border:1px solid #ddd;display:none;">
+</div>
 
-                  <form action="{{ url_for('asistencias.eliminar_ausencia', id_ausencia=a.id_ausencia) }}"
-                        method="POST" style="margin:0;">
-                      <button type="submit" class="btn btn-primary" style="background:#007bff;border-color:#007bff;padding:6px 18px;border-radius:6px;color:#fff;" onclick="return confirm('¿Eliminar ausencia?')">Eliminar</button>
-                  </form>
-              </div>
-          </td>
-      </tr>
-
-      <!-- MODAL AUSENCIA -->
-      <div id="overlay-{{ a.id_ausencia }}" class="modal-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.35);z-index:999;" onclick="closeModal({{ a.id_ausencia }})"></div>
-
-      <div id="modal-{{ a.id_ausencia }}" class="edit-modal" style="display:none;position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);width:380px;background:#fff;border-radius:8px;padding:22px;z-index:1000;">
-          <h3>Editar Ausencia</h3>
-          <form action="{{ url_for('asistencias.editar_ausencia', id_ausencia=a.id_ausencia) }}" method="POST">
-
-              <label>Empleado:</label>
-              <select name="id_empleado" style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;margin-bottom:10px;">
-                {% for emp in empleados %}
-                  <option value="{{ emp.id_empleado }}"
-                      {% if emp.id_empleado == a.id_empleado %} selected {% endif %}>
-                    {{ emp.nombre_completo }}
-                  </option>
-                {% endfor %}
-              </select>
-
-              <label>Tipo:</label>
-              <input type="text" name="tipo" value="{{ a.tipo }}" pattern="[a-zA-Z\s]+" oninput="this.value = this.value.replace(/[0-9]/g, '');" style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;margin-bottom:10px;">
-
-              <label>Fecha Inicio:</label>
-              <input type="datetime-local" name="fecha_inicio" id="edit_inicio_{{ a.id_ausencia }}"
-                     value="{{ a.fecha_inicio }}" onchange="validarEditFecha({{ a.id_ausencia }})" style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;margin-bottom:10px;">
-
-              <label>Fecha Final:</label>
-              <input type="datetime-local" name="fecha_fin" id="edit_fin_{{ a.id_ausencia }}"
-                     value="{{ a.fecha_fin }}" onchange="validarEditFecha({{ a.id_ausencia }})" style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;margin-bottom:10px;">
-
-              <label>Motivo:</label>
-              <input type="text" name="motivo" value="{{ a.motivo }}" style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;margin-bottom:10px;">
-
-              <div style="display:flex;gap:10px;margin-top:12px;">
-                <button type="submit" class="btn" style="flex:1;background:#0069ff;color:#fff;padding:10px;border-radius:6px;border:0;">Actualizar</button>
-                <button type="button" class="btn" style="flex:1;background:#e9ecef;color:#333;padding:10px;border-radius:6px;border:0;" onclick="closeModal({{ a.id_ausencia }})">Cancelar</button>
-              </div>
-          </form>
-      </div>
-
-      {% endfor %}
-    </tbody>
-</table>
+<div id="ausencias-container" style="display:none;">
+  <table class="table" style="width:95%;margin:20px auto;">
+      <thead>
+        <tr>
+            <th>ID</th>
+            <th>Empleado</th>
+            <th>Tipo</th>
+            <th>Inicio</th>
+            <th>Fin</th>
+            <th>Motivo</th>
+            <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody id="ausencias-tbody">
+        <!-- Data cargada vía AJAX -->
+      </tbody>
+  </table>
+</div>
 
 
 <div class="form-container" style="width:520px; margin: 20px auto;">
@@ -134,80 +83,232 @@
 
 
 <h2>Asistencias registradas</h2>
-<table class="table" style="width:95%;margin:20px auto;">
-    <thead>
-      <tr>
-          <th>ID</th>
-          <th>Empleado</th>
-          <th>Fecha Inicio</th>
-          <th>Fecha Fin</th>
-          <th>Duración (horas)</th>
-          <th>Acciones</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for ast in asistencias_registros %}
-      <tr id="row-ast-{{ ast.id_asistencia }}">
-          <td>{{ ast.id_asistencia }}</td>
-          <td>{{ ast.nombre_completo }}</td>
-          <td>{{ ast.fecha_inicio }}</td>
-          <td>{{ ast.fecha_fin }}</td>
-          <td>
-            {% if ast.fecha_inicio and ast.fecha_fin %}
-              {{ ((ast.fecha_fin - ast.fecha_inicio).total_seconds() / 3600) | round(2) }}
-            {% endif %}
-          </td>
 
-          <td style="width:220px;">
-              <div style="display:flex;gap:8px;justify-content:flex-end;align-items:center;">
-                  <button type="button" class="btn btn-link" onclick="openModalAsistencia({{ ast.id_asistencia }})" style="padding:0 8px;">Editar</button>
+<div style="width:95%;margin:20px auto;display:flex;gap:10px;align-items:center;">
+  <button type="button" id="toggle-asistencias" class="btn btn-primary" onclick="toggleAsistencias()" style="padding:8px 16px;border-radius:6px;">▼ Cargar Asistencias</button>
+  <input type="text" id="search-asistencias" placeholder="Buscar en asistencias..." onkeyup="filterTable('asistencias')" style="flex:1;padding:8px;border-radius:6px;border:1px solid #ddd;display:none;">
+</div>
 
-                  <form action="{{ url_for('asistencias.eliminar_asistencia', id_asistencia=ast.id_asistencia) }}"
-                        method="POST" style="margin:0;">
-                      <button type="submit" class="btn btn-primary" style="background:#007bff;border-color:#007bff;padding:6px 18px;border-radius:6px;color:#fff;" onclick="return confirm('¿Eliminar asistencia?')">Eliminar</button>
-                  </form>
-              </div>
-          </td>
-      </tr>
-
-      <!-- MODAL ASISTENCIA -->
-      <div id="overlay-ast-{{ ast.id_asistencia }}" class="modal-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.35);z-index:999;" onclick="closeModalAsistencia({{ ast.id_asistencia }})"></div>
-
-      <div id="modal-ast-{{ ast.id_asistencia }}" class="edit-modal" style="display:none;position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);width:380px;background:#fff;border-radius:8px;padding:22px;z-index:1000;">
-          <h3>Editar Asistencia</h3>
-          <form action="{{ url_for('asistencias.editar_asistencia', id_asistencia=ast.id_asistencia) }}" method="POST">
-
-              <label>Empleado:</label>
-              <select name="id_empleado" style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;margin-bottom:10px;">
-                {% for emp in empleados %}
-                  <option value="{{ emp.id_empleado }}"
-                      {% if emp.id_empleado == ast.id_empleado %} selected {% endif %}>
-                    {{ emp.nombre_completo }}
-                  </option>
-                {% endfor %}
-              </select>
-
-              <label>Fecha Inicio:</label>
-              <input type="datetime-local" name="fecha_inicio" id="edit_inicio_ast_{{ ast.id_asistencia }}"
-                     value="{{ ast.fecha_inicio }}" onchange="validarEditFechaAsistencia({{ ast.id_asistencia }})" style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;margin-bottom:10px;">
-
-              <label>Fecha Fin:</label>
-              <input type="datetime-local" name="fecha_fin" id="edit_fin_ast_{{ ast.id_asistencia }}"
-                     value="{{ ast.fecha_fin }}" onchange="validarEditFechaAsistencia({{ ast.id_asistencia }})" style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;margin-bottom:10px;">
-
-              <div style="display:flex;gap:10px;margin-top:12px;">
-                <button type="submit" class="btn" style="flex:1;background:#0069ff;color:#fff;padding:10px;border-radius:6px;border:0;">Actualizar</button>
-                <button type="button" class="btn" style="flex:1;background:#e9ecef;color:#333;padding:10px;border-radius:6px;border:0;" onclick="closeModalAsistencia({{ ast.id_asistencia }})">Cancelar</button>
-              </div>
-          </form>
-      </div>
-
-      {% endfor %}
-    </tbody>
-</table>
+<div id="asistencias-container" style="display:none;">
+  <table class="table" style="width:95%;margin:20px auto;">
+      <thead>
+        <tr>
+            <th>ID</th>
+            <th>Empleado</th>
+            <th>Fecha Inicio</th>
+            <th>Fecha Fin</th>
+            <th>Duración (horas)</th>
+            <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody id="asistencias-tbody">
+        <!-- Data cargada vía AJAX -->
+      </tbody>
+  </table>
+</div>
 
 
 <script>
+let ausenciasData = [];
+let asistenciasData = [];
+let ausenciasLoaded = false;
+let asistenciasLoaded = false;
+
+function toggleAusencias(){
+  const container = document.getElementById('ausencias-container');
+  const btn = document.getElementById('toggle-ausencias');
+  const search = document.getElementById('search-ausencias');
+  
+  if(!ausenciasLoaded){
+    loadAusencias();
+    ausenciasLoaded = true;
+  }
+  
+  if(container.style.display === 'none'){
+    container.style.display = 'block';
+    search.style.display = 'block';
+    btn.textContent = '▲ Ocultar Ausencias';
+  } else {
+    container.style.display = 'none';
+    search.style.display = 'none';
+    btn.textContent = '▼ Cargar Ausencias';
+  }
+}
+
+function toggleAsistencias(){
+  const container = document.getElementById('asistencias-container');
+  const btn = document.getElementById('toggle-asistencias');
+  const search = document.getElementById('search-asistencias');
+  
+  if(!asistenciasLoaded){
+    loadAsistencias();
+    asistenciasLoaded = true;
+  }
+  
+  if(container.style.display === 'none'){
+    container.style.display = 'block';
+    search.style.display = 'block';
+    btn.textContent = '▲ Ocultar Asistencias';
+  } else {
+    container.style.display = 'none';
+    search.style.display = 'none';
+    btn.textContent = '▼ Cargar Asistencias';
+  }
+}
+
+function loadAusencias(){
+  fetch('{{ url_for("asistencias.get_ausencias") }}')
+    .then(response => response.json())
+    .then(data => {
+      ausenciasData = data;
+      renderAusencias(data);
+    })
+    .catch(error => console.error('Error:', error));
+}
+
+function loadAsistencias(){
+  fetch('{{ url_for("asistencias.get_asistencias") }}')
+    .then(response => response.json())
+    .then(data => {
+      asistenciasData = data;
+      renderAsistencias(data);
+    })
+    .catch(error => console.error('Error:', error));
+}
+
+function renderAusencias(data){
+  const tbody = document.getElementById('ausencias-tbody');
+  tbody.innerHTML = '';
+  
+  data.forEach(a => {
+    const deleteUrl = `/asistencias/eliminar/${a.id_ausencia}`;
+    const editUrl = `/asistencias/editar/${a.id_ausencia}`;
+    
+    const row = `
+      <tr id="row-${a.id_ausencia}">
+        <td>${a.id_ausencia}</td>
+        <td>${a.nombre_completo || '—'}</td>
+        <td>${a.tipo}</td>
+        <td>${a.fecha_inicio}</td>
+        <td>${a.fecha_fin}</td>
+        <td>${a.motivo}</td>
+        <td style="width:220px;">
+          <div style="display:flex;gap:8px;justify-content:flex-end;align-items:center;">
+            <button type="button" class="btn btn-link" onclick="openModal(${a.id_ausencia})" style="padding:0 8px;">Editar</button>
+            <form action="${deleteUrl}" method="POST" style="margin:0;">
+              <button type="submit" class="btn btn-primary" style="background:#007bff;border-color:#007bff;padding:6px 18px;border-radius:6px;color:#fff;" onclick="return confirm('¿Eliminar ausencia?')">Eliminar</button>
+            </form>
+          </div>
+        </td>
+      </tr>
+      
+      <div id="overlay-${a.id_ausencia}" class="modal-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.35);z-index:999;" onclick="closeModal(${a.id_ausencia})"></div>
+
+      <div id="modal-${a.id_ausencia}" class="edit-modal" style="display:none;position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);width:380px;background:#fff;border-radius:8px;padding:22px;z-index:1000;">
+        <h3>Editar Ausencia</h3>
+        <form action="${editUrl}" method="POST">
+          <label>Empleado:</label>
+          <select name="id_empleado" style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;margin-bottom:10px;">
+            {% for emp in empleados %}
+              <option value="{{ emp.id_empleado }}" ${a.id_empleado == {{ emp.id_empleado }} ? 'selected' : ''}>
+                {{ emp.nombre_completo }}
+              </option>
+            {% endfor %}
+          </select>
+
+          <label>Tipo:</label>
+          <input type="text" name="tipo" value="${a.tipo}" pattern="[a-zA-Z\s]+" oninput="this.value = this.value.replace(/[0-9]/g, '');" style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;margin-bottom:10px;">
+
+          <label>Fecha Inicio:</label>
+          <input type="datetime-local" name="fecha_inicio" value="${a.fecha_inicio}" onchange="validarEditFecha(${a.id_ausencia})" style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;margin-bottom:10px;" id="edit_inicio_${a.id_ausencia}">
+
+          <label>Fecha Final:</label>
+          <input type="datetime-local" name="fecha_fin" value="${a.fecha_fin}" onchange="validarEditFecha(${a.id_ausencia})" style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;margin-bottom:10px;" id="edit_fin_${a.id_ausencia}">
+
+          <label>Motivo:</label>
+          <input type="text" name="motivo" value="${a.motivo}" style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;margin-bottom:10px;">
+
+          <div style="display:flex;gap:10px;margin-top:12px;">
+            <button type="submit" class="btn" style="flex:1;background:#0069ff;color:#fff;padding:10px;border-radius:6px;border:0;">Actualizar</button>
+            <button type="button" class="btn" style="flex:1;background:#e9ecef;color:#333;padding:10px;border-radius:6px;border:0;" onclick="closeModal(${a.id_ausencia})">Cancelar</button>
+          </div>
+        </form>
+      </div>
+    `;
+    tbody.insertAdjacentHTML('beforeend', row);
+  });
+}
+
+function renderAsistencias(data){
+  const tbody = document.getElementById('asistencias-tbody');
+  tbody.innerHTML = '';
+  
+  data.forEach(ast => {
+    const fechaInicio = new Date(ast.fecha_inicio);
+    const fechaFin = new Date(ast.fecha_fin);
+    const duracion = ((fechaFin - fechaInicio) / 3600000).toFixed(2);
+    
+    const deleteUrl = `/asistencias/eliminar_asistencia/${ast.id_asistencia}`;
+    const editUrl = `/asistencias/editar_asistencia/${ast.id_asistencia}`;
+    
+    const row = `
+      <tr id="row-ast-${ast.id_asistencia}">
+        <td>${ast.id_asistencia}</td>
+        <td>${ast.nombre_completo || '—'}</td>
+        <td>${ast.fecha_inicio}</td>
+        <td>${ast.fecha_fin}</td>
+        <td>${duracion}</td>
+        <td style="width:220px;">
+          <div style="display:flex;gap:8px;justify-content:flex-end;align-items:center;">
+            <button type="button" class="btn btn-link" onclick="openModalAsistencia(${ast.id_asistencia})" style="padding:0 8px;">Editar</button>
+            <form action="${deleteUrl}" method="POST" style="margin:0;">
+              <button type="submit" class="btn btn-primary" style="background:#007bff;border-color:#007bff;padding:6px 18px;border-radius:6px;color:#fff;" onclick="return confirm('¿Eliminar asistencia?')">Eliminar</button>
+            </form>
+          </div>
+        </td>
+      </tr>
+
+      <div id="overlay-ast-${ast.id_asistencia}" class="modal-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.35);z-index:999;" onclick="closeModalAsistencia(${ast.id_asistencia})"></div>
+
+      <div id="modal-ast-${ast.id_asistencia}" class="edit-modal" style="display:none;position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);width:380px;background:#fff;border-radius:8px;padding:22px;z-index:1000;">
+        <h3>Editar Asistencia</h3>
+        <form action="${editUrl}" method="POST">
+          <label>Empleado:</label>
+          <select name="id_empleado" style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;margin-bottom:10px;">
+            {% for emp in empleados %}
+              <option value="{{ emp.id_empleado }}" ${ast.id_empleado == {{ emp.id_empleado }} ? 'selected' : ''}>
+                {{ emp.nombre_completo }}
+              </option>
+            {% endfor %}
+          </select>
+
+          <label>Fecha Inicio:</label>
+          <input type="datetime-local" name="fecha_inicio" value="${ast.fecha_inicio}" onchange="validarEditFechaAsistencia(${ast.id_asistencia})" style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;margin-bottom:10px;" id="edit_inicio_ast_${ast.id_asistencia}">
+
+          <label>Fecha Fin:</label>
+          <input type="datetime-local" name="fecha_fin" value="${ast.fecha_fin}" onchange="validarEditFechaAsistencia(${ast.id_asistencia})" style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;margin-bottom:10px;" id="edit_fin_ast_${ast.id_asistencia}">
+
+          <div style="display:flex;gap:10px;margin-top:12px;">
+            <button type="submit" class="btn" style="flex:1;background:#0069ff;color:#fff;padding:10px;border-radius:6px;border:0;">Actualizar</button>
+            <button type="button" class="btn" style="flex:1;background:#e9ecef;color:#333;padding:10px;border-radius:6px;border:0;" onclick="closeModalAsistencia(${ast.id_asistencia})">Cancelar</button>
+          </div>
+        </form>
+      </div>
+    `;
+    tbody.insertAdjacentHTML('beforeend', row);
+  });
+}
+
+function filterTable(type){
+  const searchInput = document.getElementById(`search-${type}`).value.toLowerCase();
+  const rows = document.querySelectorAll(`#${type}-tbody tr`);
+  
+  rows.forEach(row => {
+    const text = row.textContent.toLowerCase();
+    row.style.display = text.includes(searchInput) ? '' : 'none';
+  });
+}
+
 function openModal(id){
   document.getElementById("overlay-" + id).style.display = "block";
   document.getElementById("modal-" + id).style.display = "block";
