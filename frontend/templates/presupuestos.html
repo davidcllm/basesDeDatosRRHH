@@ -291,10 +291,12 @@ function renderPresupuestos(data){
     `;
     modalsRoot.insertAdjacentHTML('beforeend', modal);
 
-    // opcional: establecer el departamento seleccionado si la API devuelve id_departamento
+    // opcional: establecer el departamento seleccionado
     if (p.id_departamento) {
-      const sel = document.getElementById(`edit_departamento_${p.id_presupuesto}`);
-      if (sel) sel.value = p.id_departamento;
+      setTimeout(() => {
+        const sel = document.getElementById(`edit_departamento_${p.id_presupuesto}`);
+        if (sel) sel.value = p.id_departamento;
+      }, 0);
     }
   });
 }

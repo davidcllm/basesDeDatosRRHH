@@ -3,16 +3,6 @@
 <h1>Control de Accesos y Seguridad</h1>
 
 <div class="form-container" style="width:1100px;margin:10px auto;">
-  {% with messages = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
-      <ul style="list-style:none;padding:0;margin-bottom:16px;">
-        {% for category, message in messages %}
-          {% set color = 'red' if 'error' in category else 'green' if 'success' in category else 'blue' %}
-          <li style="color: {{ color }}; padding:8px 12px; border-radius:6px; background:rgba(0,0,0,0.03); margin-bottom:8px;">{{ message }}</li>
-        {% endfor %}
-      </ul>
-    {% endif %}
-  {% endwith %}
 
   <table class="table" style="width:95%;margin:10px auto;">
     <thead>

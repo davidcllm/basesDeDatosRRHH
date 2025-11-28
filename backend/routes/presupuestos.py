@@ -36,8 +36,9 @@ def get_presupuestos():
     cursor = cnx.cursor(pymysql.cursors.DictCursor)
 
     cursor.execute("""
-        SELECT P.id_presupuesto, P.periodo, P.monto_asignado, 
-               P.monto_utilizado, D.nombre AS departamento
+        SELECT P.id_presupuesto, DATE_FORMAT(P.periodo, '%Y-%m-%d') AS periodo, 
+               P.monto_asignado, P.monto_utilizado, D.nombre AS departamento, 
+               D.id_departamento
         FROM PRESUPUESTO P
         JOIN DEPARTAMENTO D ON P.id_departamento = D.id_departamento
         ORDER BY P.id_presupuesto DESC;
