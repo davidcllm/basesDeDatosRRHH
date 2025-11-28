@@ -3,22 +3,34 @@
 
 <h1>Presupuestos y Centros Costo</h1>
 
+<!-- MENSAJES FLASH -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <ul style="list-style:none;padding:0;margin:20px auto;max-width:520px;width:100%;">
+      {% for category, message in messages %}
+        {% set color = 'red' if 'error' in category else 'green' if 'success' in category else 'blue' %}
+        <li style="color: {{ color }}; padding:8px 12px; border-radius:6px; background:rgba(0,0,0,0.03); margin-bottom:8px;">{{ message }}</li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+{% endwith %}
+
 <!-- FORMULARIO CREAR PRESUPUESTO (siempre visible) -->
 <div class="form-container" style="width:520px; margin: 20px auto;">
-  <form action="{{ url_for('presupuestos.crear_presupuesto') }}" method="POST" style="display:flex;flex-direction:column;gap:8px;">
+  <form action="{{ url_for('presupuestos.crear_presupuesto') }}" method="POST" style="display:flex;flex-direction:column;gap:8px;" onsubmit="return validarPresupuesto()">
     <h2 style="text-align:center; margin:0 0 12px 0;">Crear Presupuesto</h2>
 
-    <label for="periodo">Periodo (AAAA-MM):</label>
-    <input type="text" name="periodo" id="periodo" placeholder="2025-01" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
+    <label for="periodo">Periodo (AAAA-MM-DD):</label>
+    <input type="date" name="periodo" id="periodo" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
 
     <label style="margin-top:0;">Monto asignado:</label>
-    <input type="number" name="monto_asignado" step="0.01" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
+    <input type="number" name="monto_asignado" id="monto_asignado" min="0.01" step="0.01" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
 
     <label style="margin-top:0;">Monto utilizado:</label>
-    <input type="number" name="monto_utilizado" step="0.01" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
+    <input type="number" name="monto_utilizado" id="monto_utilizado" min="0" step="0.01" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
 
     <label style="margin-top:0;">Departamento:</label>
-    <select name="id_departamento" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
+    <select name="id_departamento" id="id_departamento" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
       <option value="">-- Seleccionar Departamento --</option>
       {% for d in departamentos %}
         <option value="{{ d.id_departamento }}">{{ d.nombre }}</option>
@@ -56,17 +68,17 @@
 
 <!-- FORMULARIO CREAR CENTRO COSTO (siempre visible) -->
 <div class="form-container" style="width:520px; margin: 20px auto;">
-  <form action="{{ url_for('presupuestos.crear_centro_costo') }}" method="POST" style="display:flex;flex-direction:column;gap:8px;">
+  <form action="{{ url_for('presupuestos.crear_centro_costo') }}" method="POST" style="display:flex;flex-direction:column;gap:8px;" onsubmit="return validarCentroCosto()">
     <h2 style="text-align:center; margin:0 0 12px 0;">Crear Centro de Costo</h2>
 
     <label for="nombre">Nombre:</label>
-    <input type="text" name="nombre" id="nombre" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
+    <input type="text" name="nombre" id="nombre" maxlength="45" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
 
-    <label style="margin-top:0;">Descripción:</label>
-    <input type="text" name="descripcion" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
+    <label style="margin-top:0;">Descripción (máx 100 caracteres):</label>
+    <input type="text" name="descripcion" id="descripcion" maxlength="100" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
 
     <label style="margin-top:0;">Departamento:</label>
-    <select name="id_departamento" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
+    <select name="id_departamento" id="id_departamento_centro" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
       <option value="">-- Seleccionar Departamento --</option>
       {% for d in departamentos %}
         <option value="{{ d.id_departamento }}">{{ d.nombre }}</option>
@@ -106,6 +118,63 @@ let presupuestosData = [];
 let centrosData = [];
 let presupuestosLoaded = false;
 let centrosLoaded = false;
+
+function validarPresupuesto(){
+  const periodo = document.getElementById("periodo").value;
+  const asignado = parseFloat(document.getElementById("monto_asignado").value);
+  const utilizado = parseFloat(document.getElementById("monto_utilizado").value);
+  const departamento = document.getElementById("id_departamento").value;
+
+  if(!periodo){
+    alert("Debe ingresar un periodo válido.");
+    return false;
+  }
+
+  if(!asignado || asignado <= 0){
+    alert("El monto asignado debe ser un número positivo.");
+    return false;
+  }
+
+  if(utilizado < 0){
+    alert("El monto utilizado no puede ser negativo.");
+    return false;
+  }
+
+  if(utilizado > asignado){
+    alert("El monto utilizado no puede ser mayor al monto asignado.");
+    return false;
+  }
+
+  if(!departamento){
+    alert("Debe seleccionar un departamento.");
+    return false;
+  }
+
+  return true;
+}
+
+function validarCentroCosto(){
+  const nombre = document.getElementById("nombre").value.trim();
+  const descripcion = document.getElementById("descripcion").value.trim();
+  const departamento = document.getElementById("id_departamento_centro").value;
+
+  if(nombre.length === 0 || nombre.length > 45){
+    alert("El nombre debe tener entre 1 y 45 caracteres.");
+    return false;
+  }
+
+  if(descripcion.length === 0 || descripcion.length > 100){
+    alert("La descripción debe tener entre 1 y 100 caracteres.");
+    return false;
+  }
+
+  if(!departamento){
+    alert("Debe seleccionar un departamento.");
+    return false;
+  }
+
+  return true;
+}
 
 function togglePresupuestos(){
   const container = document.getElementById('presupuestos-container');
@@ -198,15 +267,15 @@ function renderPresupuestos(data){
 
       <div id="modal-presupuesto-${p.id_presupuesto}" class="edit-modal" style="display:none;position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);width:380px;background:#fff;border-radius:8px;padding:22px;z-index:1000;">
         <h3>Editar Presupuesto</h3>
-        <form action="${editUrl}" method="POST">
-          <label>Periodo:</label>
-          <input type="text" name="periodo" value="${p.periodo}" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;margin-bottom:10px;">
+        <form action="${editUrl}" method="POST" onsubmit="return validarPresupuestoModal(${p.id_presupuesto})">
+          <label>Periodo (AAAA-MM-DD):</label>
+          <input type="date" name="periodo" value="${p.periodo}" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;margin-bottom:10px;" id="edit_periodo_${p.id_presupuesto}">
 
           <label>Monto asignado:</label>
-          <input type="number" name="monto_asignado" value="${p.monto_asignado}" step="0.01" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;margin-bottom:10px;">
+          <input type="number" name="monto_asignado" value="${p.monto_asignado}" min="0.01" step="0.01" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;margin-bottom:10px;" id="edit_asignado_${p.id_presupuesto}">
 
           <label>Monto utilizado:</label>
-          <input type="number" name="monto_utilizado" value="${p.monto_utilizado}" step="0.01" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;margin-bottom:10px;">
+          <input type="number" name="monto_utilizado" value="${p.monto_utilizado}" min="0" step="0.01" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;margin-bottom:10px;" id="edit_utilizado_${p.id_presupuesto}">
 
           <label>Departamento:</label>
           <select name="id_departamento" style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;margin-bottom:10px;">
@@ -254,12 +323,12 @@ function renderCentros(data){
 
       <div id="modal-centro-${c.id_centro_costo}" class="edit-modal" style="display:none;position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);width:380px;background:#fff;border-radius:8px;padding:22px;z-index:1000;">
         <h3>Editar Centro de Costo</h3>
-        <form action="${editUrl}" method="POST">
-          <label>Nombre:</label>
-          <input type="text" name="nombre" value="${c.nombre}" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;margin-bottom:10px;">
+        <form action="${editUrl}" method="POST" onsubmit="return validarCentroCostoModal(${c.id_centro_costo})">
+          <label>Nombre (máx 45 caracteres):</label>
+          <input type="text" name="nombre" value="${c.nombre}" maxlength="45" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;margin-bottom:10px;" id="edit_nombre_${c.id_centro_costo}">
 
-          <label>Descripción:</label>
-          <input type="text" name="descripcion" value="${c.descipcion}" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;margin-bottom:10px;">
+          <label>Descripción (máx 100 caracteres):</label>
+          <input type="text" name="descripcion" value="${c.descipcion}" maxlength="100" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;margin-bottom:10px;" id="edit_descripcion_${c.id_centro_costo}">
 
           <label>Departamento:</label>
           <select name="id_departamento" style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;margin-bottom:10px;">
@@ -277,6 +346,45 @@ function renderCentros(data){
     `;
     tbody.insertAdjacentHTML('beforeend', row);
   });
+}
+
+function validarPresupuestoModal(id){
+  const asignado = parseFloat(document.getElementById(`edit_asignado_${id}`).value);
+  const utilizado = parseFloat(document.getElementById(`edit_utilizado_${id}`).value);
+
+  if(!asignado || asignado <= 0){
+    alert("El monto asignado debe ser un número positivo.");
+    return false;
+  }
+
+  if(utilizado < 0){
+    alert("El monto utilizado no puede ser negativo.");
+    return false;
+  }
+
+  if(utilizado > asignado){
+    alert("El monto utilizado no puede ser mayor al monto asignado.");
+    return false;
+  }
+
+  return true;
+}
+
+function validarCentroCostoModal(id){
+  const nombre = document.getElementById(`edit_nombre_${id}`).value.trim();
+  const descripcion = document.getElementById(`edit_descripcion_${id}`).value.trim();
+
+  if(nombre.length === 0 || nombre.length > 45){
+    alert("El nombre debe tener entre 1 y 45 caracteres.");
+    return false;
+  }
+
+  if(descripcion.length === 0 || descripcion.length > 100){
+    alert("La descripción debe tener entre 1 y 100 caracteres.");
+    return false;
+  }
+
+  return true;
 }
 
 function filterTable(type){

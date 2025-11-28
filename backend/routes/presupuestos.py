@@ -3,6 +3,7 @@ from flask_jwt_extended import jwt_required
 from routes.auth import roles_required
 from dp import get_connection
 import pymysql
+from datetime import datetime
 
 presupuestos_bp = Blueprint("presupuestos", __name__)
 
@@ -71,15 +72,57 @@ def get_centros():
 
     return jsonify(centros)
 
+# Validar departamento existe
+def validate_departamento(id_departamento):
+    cnx = get_connection()
+    cursor = cnx.cursor()
+    cursor.execute("SELECT id_departamento FROM DEPARTAMENTO WHERE id_departamento = %s", (id_departamento,))
+    exists = cursor.fetchone()
+    cursor.close()
+    cnx.close()
+    return exists is not None
+
 # Crear presupuestos
 @presupuestos_bp.route("/presupuestos/crear", methods=["POST"])
 @jwt_required()
 @roles_required('administrador','finanzas')
 def crear_presupuesto():
-    periodo = request.form["periodo"]
-    asignado = request.form["monto_asignado"]
-    utilizado = request.form["monto_utilizado"]
-    departamento = request.form["id_departamento"]
+    periodo = request.form.get("periodo", "").strip()
+    asignado = request.form.get("monto_asignado", "").strip()
+    utilizado = request.form.get("monto_utilizado", "").strip()
+    id_departamento = request.form.get("id_departamento", "").strip()
+
+    # Validar periodo (debe ser fecha válida YYYY-MM-DD)
+    try:
+        datetime.strptime(periodo, "%Y-%m-%d")
+    except ValueError:
+        flash("Periodo debe ser una fecha válida (YYYY-MM-DD).", "error")
+        return redirect(url_for("presupuestos.presupuestos"))
+
+    # Validar montos son números positivos
+    try:
+        asignado_float = float(asignado)
+        utilizado_float = float(utilizado)
+        if asignado_float <= 0 or utilizado_float < 0:
+            flash("Los montos deben ser números positivos.", "error")
+            return redirect(url_for("presupuestos.presupuestos"))
+    except ValueError:
+        flash("Los montos deben ser números válidos.", "error")
+        return redirect(url_for("presupuestos.presupuestos"))
+
+    # Validar monto utilizado <= monto asignado
+    if utilizado_float > asignado_float:
+        flash("El monto utilizado no puede ser mayor al monto asignado.", "error")
+        return redirect(url_for("presupuestos.presupuestos"))
+
+    # Validar departamento existe
+    if not id_departamento or not id_departamento.isdigit():
+        flash("Debe seleccionar un departamento válido.", "error")
+        return redirect(url_for("presupuestos.presupuestos"))
+
+    if not validate_departamento(id_departamento):
+        flash("El departamento seleccionado no existe.", "error")
+        return redirect(url_for("presupuestos.presupuestos"))
 
     cnx = get_connection()
     cursor = cnx.cursor()
@@ -88,7 +131,7 @@ def crear_presupuesto():
         cursor.execute("""
             INSERT INTO PRESUPUESTO (periodo, monto_asignado, monto_utilizado, id_departamento)
             VALUES (%s, %s, %s, %s)
-        """, (periodo, asignado, utilizado, departamento))
+        """, (periodo, asignado_float, utilizado_float, id_departamento))
         cnx.commit()
         flash("Presupuesto creado correctamente.", "success")
     except Exception as e:
@@ -105,10 +148,42 @@ def crear_presupuesto():
 @jwt_required()
 @roles_required('administrador','finanzas')
 def actualizar_presupuesto(id):
-    periodo = request.form["periodo"]
-    asignado = request.form["monto_asignado"]
-    utilizado = request.form["monto_utilizado"]
-    departamento = request.form["id_departamento"]
+    periodo = request.form.get("periodo", "").strip()
+    asignado = request.form.get("monto_asignado", "").strip()
+    utilizado = request.form.get("monto_utilizado", "").strip()
+    id_departamento = request.form.get("id_departamento", "").strip()
+
+    # Validar periodo (debe ser fecha válida YYYY-MM-DD)
+    try:
+        datetime.strptime(periodo, "%Y-%m-%d")
+    except ValueError:
+        flash("Periodo debe ser una fecha válida (YYYY-MM-DD).", "error")
+        return redirect(url_for("presupuestos.presupuestos"))
+
+    # Validar montos son números positivos
+    try:
+        asignado_float = float(asignado)
+        utilizado_float = float(utilizado)
+        if asignado_float <= 0 or utilizado_float < 0:
+            flash("Los montos deben ser números positivos.", "error")
+            return redirect(url_for("presupuestos.presupuestos"))
+    except ValueError:
+        flash("Los montos deben ser números válidos.", "error")
+        return redirect(url_for("presupuestos.presupuestos"))
+
+    # Validar monto utilizado <= monto asignado
+    if utilizado_float > asignado_float:
+        flash("El monto utilizado no puede ser mayor al monto asignado.", "error")
+        return redirect(url_for("presupuestos.presupuestos"))
+
+    # Validar departamento existe
+    if not id_departamento or not id_departamento.isdigit():
+        flash("Debe seleccionar un departamento válido.", "error")
+        return redirect(url_for("presupuestos.presupuestos"))
+
+    if not validate_departamento(id_departamento):
+        flash("El departamento seleccionado no existe.", "error")
+        return redirect(url_for("presupuestos.presupuestos"))
 
     cnx = get_connection()
     cursor = cnx.cursor()
@@ -118,7 +193,7 @@ def actualizar_presupuesto(id):
             UPDATE PRESUPUESTO
             SET periodo=%s, monto_asignado=%s, monto_utilizado=%s, id_departamento=%s
             WHERE id_presupuesto=%s
-        """, (periodo, asignado, utilizado, departamento, id))
+        """, (periodo, asignado_float, utilizado_float, id_departamento, id))
         cnx.commit()
         flash("Presupuesto actualizado correctamente.", "success")
     except Exception as e:
@@ -151,14 +226,42 @@ def eliminar_presupuesto(id):
 
     return redirect(url_for("presupuestos.presupuestos"))
 
-# Centro costo
+# Centro costo - validaciones
+def validate_centro_costo_lengths(nombre, descripcion):
+    if len(nombre) > 45:
+        return False, "El nombre no puede exceder 45 caracteres."
+    if len(descripcion) > 100:
+        return False, "La descripción no puede exceder 100 caracteres."
+    return True, ""
+
+# Crear centro costo
 @presupuestos_bp.route("/centro_costo/crear", methods=["POST"])
 @jwt_required()
 @roles_required('administrador','finanzas')
 def crear_centro_costo():
-    nombre = request.form["nombre"]
-    descripcion = request.form["descripcion"]
-    id_departamento = request.form["id_departamento"]
+    nombre = request.form.get("nombre", "").strip()
+    descripcion = request.form.get("descripcion", "").strip()
+    id_departamento = request.form.get("id_departamento", "").strip()
+
+    # Validar longitudes
+    valid, msg = validate_centro_costo_lengths(nombre, descripcion)
+    if not valid:
+        flash(msg, "error")
+        return redirect(url_for("presupuestos.presupuestos"))
+
+    # Validar que no estén vacíos
+    if not nombre or not descripcion:
+        flash("El nombre y descripción no pueden estar vacíos.", "error")
+        return redirect(url_for("presupuestos.presupuestos"))
+
+    # Validar departamento existe
+    if not id_departamento or not id_departamento.isdigit():
+        flash("Debe seleccionar un departamento válido.", "error")
+        return redirect(url_for("presupuestos.presupuestos"))
+
+    if not validate_departamento(id_departamento):
+        flash("El departamento seleccionado no existe.", "error")
+        return redirect(url_for("presupuestos.presupuestos"))
 
     cnx = get_connection()
     cursor = cnx.cursor()
@@ -179,13 +282,34 @@ def crear_centro_costo():
 
     return redirect(url_for("presupuestos.presupuestos"))
 
+# Actualizar centro costo
 @presupuestos_bp.route("/centro_costo/actualizar/<int:id>", methods=["POST"])
 @jwt_required()
 @roles_required('administrador','finanzas')
 def actualizar_centro_costo(id):
-    nombre = request.form["nombre"]
-    descripcion = request.form["descripcion"]
-    id_departamento = request.form["id_departamento"]
+    nombre = request.form.get("nombre", "").strip()
+    descripcion = request.form.get("descripcion", "").strip()
+    id_departamento = request.form.get("id_departamento", "").strip()
+
+    # Validar longitudes
+    valid, msg = validate_centro_costo_lengths(nombre, descripcion)
+    if not valid:
+        flash(msg, "error")
+        return redirect(url_for("presupuestos.presupuestos"))
+
+    # Validar que no estén vacíos
+    if not nombre or not descripcion:
+        flash("El nombre y descripción no pueden estar vacíos.", "error")
+        return redirect(url_for("presupuestos.presupuestos"))
+
+    # Validar departamento existe
+    if not id_departamento or not id_departamento.isdigit():
+        flash("Debe seleccionar un departamento válido.", "error")
+        return redirect(url_for("presupuestos.presupuestos"))
+
+    if not validate_departamento(id_departamento):
+        flash("El departamento seleccionado no existe.", "error")
+        return redirect(url_for("presupuestos.presupuestos"))
 
     cnx = get_connection()
     cursor = cnx.cursor()
@@ -207,6 +331,7 @@ def actualizar_centro_costo(id):
 
     return redirect(url_for("presupuestos.presupuestos"))
 
+# Eliminar centro costo
 @presupuestos_bp.route("/centro_costo/eliminar/<int:id>", methods=["POST"])
 @jwt_required()
 @roles_required('administrador','finanzas')
