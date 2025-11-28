@@ -1,8 +1,9 @@
-from flask import Blueprint, render_template, request, redirect, url_for
+from flask import Blueprint, render_template, request, redirect, url_for, jsonify
 from flask_jwt_extended import jwt_required
 from routes.auth import roles_required
 from dp import get_connection
 import pymysql
+import re
 
 nomina_bp = Blueprint("nomina", __name__)
 
@@ -37,12 +38,33 @@ def nomina():
 @roles_required('administrador','finanzas')
 def agregar_nomina():
     # leer formulario
-    id_empleado = int(request.form["id_empleado"])
-    salario_base = float(request.form["salario_base"] or 0)
-    deducciones = float(request.form["deducciones"] or 0)
-    percepciones = float(request.form["percepciones"] or 0)
+    id_empleado = request.form.get("id_empleado")
+    salario_base_str = request.form.get("salario_base", "")
+    deducciones_str = request.form.get("deducciones", "")
+    percepciones_str = request.form.get("percepciones", "")
+
+    if not id_empleado:
+        return jsonify({"error": "Debe seleccionar un empleado."}), 400
+
+    if not salario_base_str or re.match(r"^\s*$", salario_base_str):
+        return jsonify({"error": "El salario base no puede estar vacío."}), 400
+    if not deducciones_str or re.match(r"^\s*$", deducciones_str):
+        return jsonify({"error": "Las deducciones no pueden estar vacías."}), 400
+    if not percepciones_str or re.match(r"^\s*$", percepciones_str):
+        return jsonify({"error": "Las percepciones no pueden estar vacías."}), 400
+
+    try:
+        salario_base = float(salario_base_str)
+        deducciones = float(deducciones_str)
+        percepciones = float(percepciones_str)
+    except ValueError:
+        return jsonify({"error": "Los valores deben ser numéricos."}), 400
+
     # calcular total en servidor
     total_pagar = salario_base + percepciones - deducciones
+
+    if total_pagar < 0:
+        return jsonify({"error": "El total a pagar no puede ser negativo."}), 400
 
     cnx = get_connection()
     cursor = cnx.cursor()
@@ -58,7 +80,7 @@ def agregar_nomina():
     cnx.commit()
     cursor.close()
     cnx.close()
-    return redirect(url_for("nomina.nomina"))
+    return jsonify({"success": True}), 200
 
 
 @nomina_bp.route("/nomina/eliminar_nomina/<int:id_nomina>", methods=["POST"])
@@ -80,10 +102,28 @@ def eliminar_nomina(id_nomina):
 @roles_required('administrador','finanzas')
 def editar_nomina(id_nomina):
     # sólo permitir editar salario_base, deducciones y percepciones
-    salario_base = float(request.form.get("salario_base", 0) or 0)
-    deducciones = float(request.form.get("deducciones", 0) or 0)
-    percepciones = float(request.form.get("percepciones", 0) or 0)
+    salario_base = request.form.get("salario_base", "")
+    deducciones = request.form.get("deducciones", "")
+    percepciones = request.form.get("percepciones", "")
+
+    if not salario_base or re.match(r"^\s*$", salario_base):
+        return jsonify({"error": "El salario base no puede estar vacío."}), 400
+    if not deducciones or re.match(r"^\s*$", deducciones):
+        return jsonify({"error": "Las deducciones no pueden estar vacías."}), 400
+    if not percepciones or re.match(r"^\s*$", percepciones):
+        return jsonify({"error": "Las percepciones no pueden estar vacías."}), 400
+    
+    try:
+        salario_base = float(salario_base)
+        deducciones = float(deducciones)
+        percepciones = float(percepciones)
+    except ValueError:
+        return jsonify({"error": "Los valores deben ser numéricos."}), 400
+    
     total_pagar = salario_base + percepciones - deducciones
+
+    if total_pagar < 0:
+        return jsonify({"error": "El total a pagar no puede ser negativo."}), 400
 
     cnx = get_connection()
     cursor = cnx.cursor()
@@ -97,5 +137,5 @@ def editar_nomina(id_nomina):
     cnx.commit()
     cursor.close()
     cnx.close()
-    return redirect(url_for("nomina.nomina"))
+    return jsonify({"success": True}), 200
 

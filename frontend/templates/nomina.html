@@ -3,7 +3,7 @@
 <h1>Módulo de Nómina y Compensaciones</h1>
 
 <div class="form-container">
-  <form action="{{ url_for('nomina.agregar_nomina') }}" method="POST">
+  <form id="form-agregar-nomina" action="{{ url_for('nomina.agregar_nomina') }}" method="POST">
     <label for="id_empleado">Empleado:</label>
     <select id="id_empleado" name="id_empleado" required>
       <option value="">-- Seleccionar Empleado --</option>
@@ -13,7 +13,7 @@
     </select>
 
     <input type="number" name="salario_base" placeholder="Salario base" required step="0.01">
-    <input type="number" name="deducciones" placeholder="Deducciones" required step="0.01">
+    <input type="number" name="deducciones" placeholder="Deducciones" placeholder="Deducciones" required step="0.01">
     <input type="number" name="percepciones" placeholder="Percepciones" required step="0.01">
 
     <button type="submit" class="btn btn-primary" style="width:100%;margin-top:12px;">Agregar Datos</button>
@@ -64,7 +64,8 @@
     <div id="modal-nomina-{{ n.id_nomina }}" class="edit-modal"
       style="display:none;position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);width:380px;background:#fff;border-radius:8px;padding:22px;z-index:1000;">
       <h3>Editar Nómina</h3>
-      <form action="{{ url_for('nomina.editar_nomina', id_nomina=n.id_nomina) }}" method="POST">
+      <form class="form-editar-nomina" action="{{ url_for('nomina.editar_nomina', id_nomina=n.id_nomina) }}"
+        method="POST">
         <!-- Mostrar empleado (no editable) -->
         <div class="form-group" style="margin-bottom:12px;">
           <label>Empleado</label>
@@ -113,5 +114,54 @@
     document.getElementById('overlay-nomina-' + id).style.display = 'none';
     document.getElementById('modal-nomina-' + id).style.display = 'none';
   }
+
+  // Handle Add Form
+  const addForm = document.getElementById('form-agregar-nomina');
+  if (addForm) {
+    addForm.addEventListener('submit', function (e) {
+      e.preventDefault();
+      const formData = new FormData(this);
+      fetch(this.action, {
+        method: 'POST',
+        body: formData
+      })
+        .then(response => response.json().then(data => ({ status: response.status, body: data })))
+        .then(result => {
+          if (result.status === 200) {
+            window.location.reload();
+          } else {
+            alert(result.body.error || 'Ocurrió un error');
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          alert('Error de conexión');
+        });
+    });
+  }
+
+  // Handle Edit Forms
+  document.querySelectorAll('.form-editar-nomina').forEach(form => {
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      const formData = new FormData(this);
+      fetch(this.action, {
+        method: 'POST',
+        body: formData
+      })
+        .then(response => response.json().then(data => ({ status: response.status, body: data })))
+        .then(result => {
+          if (result.status === 200) {
+            window.location.reload();
+          } else {
+            alert(result.body.error || 'Ocurrió un error');
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          alert('Error de conexión');
+        });
+    });
+  });
 </script>
 {% endblock %}

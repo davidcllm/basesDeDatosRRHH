@@ -3,7 +3,7 @@
 <h1>Gestión de Empleados</h1>
 
 <div class="form-container">
-  <form action="{{ url_for('empleados.agregar_empleado') }}" method="POST">
+  <form id="form-agregar-empleado" action="{{ url_for('empleados.agregar_empleado') }}" method="POST">
     <input type="text" name="nombre" placeholder="Nombre" required
       oninput="this.value = this.value.replace(/[^A-Za-zÁÉÍÓÚáéíóúñÑ\s]/g, '')">
     <input type="text" name="apellido" placeholder="Apellido" required
@@ -13,11 +13,14 @@
       oninput="this.value = this.value.replace(/[^0-9\s]/g, '')">
 
     <label>Fecha Nacimiento:</label>
-    <input type="date" name="fecha_nacimiento" placeholder="Fecha Nacimiento" required>
+    <input type="date" name="fecha_nacimiento" id="add_fecha_nacimiento" placeholder="Fecha Nacimiento" required
+      onchange="validateAddDates()">
 
-    <input type="text" name="cargo" placeholder="Cargo" required>
+    <input type="text" name="cargo" placeholder="Cargo" required
+      oninput="this.value = this.value.replace(/[^A-Za-zÁÉÍÓÚáéíóúñÑ\s]/g, '')">
     <label>Fecha Contratación:</label>
-    <input type="date" name="fecha_contratacion" placeholder="Fecha Contratación">
+    <input type="date" name="fecha_contratacion" id="add_fecha_contratacion" placeholder="Fecha Contratación"
+      onchange="validateAddDates()">
     <label>Historial Laboral:</label>
     <textarea name="historial_laboral" placeholder="Historial Laboral"></textarea>
 
@@ -97,7 +100,8 @@
     <div id="modal-empleado-{{ e.id_empleado }}" class="edit-modal"
       style="display:none;position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);width:600px;background:#fff;border-radius:8px;padding:22px;z-index:1000;max-height:90vh;overflow-y:auto;box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
       <h3 style="margin-top:0;margin-bottom:20px;color:#333;">Editar Empleado</h3>
-      <form action="{{ url_for('empleados.editar_empleado', id=e.id_empleado) }}" method="POST">
+      <form class="form-editar-empleado" action="{{ url_for('empleados.editar_empleado', id=e.id_empleado) }}"
+        method="POST">
 
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:15px;">
           <!-- Nombre y Apellido -->
@@ -131,20 +135,26 @@
           <!-- Fecha Nacimiento y Cargo -->
           <div class="form-group">
             <label style="display:block;margin-bottom:5px;font-weight:bold;color:#555;">Fecha Nacimiento</label>
-            <input type="date" name="fecha_nacimiento" value="{{ e.fecha_nacimiento }}" required
-              style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
+            <input type="date" name="fecha_nacimiento" id="edit_fecha_nacimiento_{{ e.id_empleado }}"
+              value="{{ e.fecha_nacimiento }}" required
+              style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;"
+              onchange="validateEditDates({{ e.id_empleado }})">
           </div>
           <div class="form-group">
             <label style="display:block;margin-bottom:5px;font-weight:bold;color:#555;">Cargo</label>
             <input type="text" name="cargo" value="{{ e.cargo }}" required
+              oninput="this.value = this.value.replace(/[^A-Za-zÁÉÍÓÚáéíóúñÑ\s]/g, '')"
+              onclick="return 'No se aceptan números en el campo de cargo'"
               style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
           </div>
 
           <!-- Fecha Contratación -->
           <div class="form-group">
             <label style="display:block;margin-bottom:5px;font-weight:bold;color:#555;">Fecha Contratación</label>
-            <input type="date" name="fecha_contratacion" value="{{ e.fecha_contratacion }}"
-              style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
+            <input type="date" name="fecha_contratacion" id="edit_fecha_contratacion_{{ e.id_empleado }}"
+              value="{{ e.fecha_contratacion }}"
+              style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;"
+              onchange="validateEditDates({{ e.id_empleado }})">
           </div>
 
           <!-- Dropdowns -->
@@ -216,5 +226,78 @@
     document.getElementById('overlay-empleado-' + id).style.display = 'none';
     document.getElementById('modal-empleado-' + id).style.display = 'none';
   }
+
+  function validateAddDates() {
+    const nac = document.getElementById('add_fecha_nacimiento').value;
+    const con = document.getElementById('add_fecha_contratacion').value;
+
+    if (nac && con) {
+      if (new Date(con) <= new Date(nac)) {
+        alert("La fecha de contratación debe ser posterior a la fecha de nacimiento.");
+        document.getElementById('add_fecha_contratacion').value = "";
+      }
+    }
+  }
+
+  function validateEditDates(id) {
+    const nac = document.getElementById('edit_fecha_nacimiento_' + id).value;
+    const con = document.getElementById('edit_fecha_contratacion_' + id).value;
+
+    if (nac && con) {
+      if (new Date(con) <= new Date(nac)) {
+        alert("La fecha de contratación debe ser posterior a la fecha de nacimiento.");
+        document.getElementById('edit_fecha_contratacion_' + id).value = "";
+      }
+    }
+  }
+
+  // Handle Add Form
+  const addForm = document.getElementById('form-agregar-empleado');
+  if (addForm) {
+    addForm.addEventListener('submit', function (e) {
+      e.preventDefault();
+      const formData = new FormData(this);
+      fetch(this.action, {
+        method: 'POST',
+        body: formData
+      })
+        .then(response => response.json().then(data => ({ status: response.status, body: data })))
+        .then(result => {
+          if (result.status === 200) {
+            window.location.reload();
+          } else {
+            alert(result.body.error || 'Ocurrió un error');
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          alert('Error de conexión');
+        });
+    });
+  }
+
+  // Handle Edit Forms
+  document.querySelectorAll('.form-editar-empleado').forEach(form => {
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      const formData = new FormData(this);
+      fetch(this.action, {
+        method: 'POST',
+        body: formData
+      })
+        .then(response => response.json().then(data => ({ status: response.status, body: data })))
+        .then(result => {
+          if (result.status === 200) {
+            window.location.reload();
+          } else {
+            alert(result.body.error || 'Ocurrió un error');
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          alert('Error de conexión');
+        });
+    });
+  });
 </script>
 {% endblock %}

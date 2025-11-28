@@ -1,8 +1,23 @@
-from flask import Blueprint, render_template, request, redirect, url_for
+from flask import Blueprint, render_template, request, redirect, url_for, jsonify
 from dp import get_connection
 import pymysql
+from datetime import datetime
+import re
 
 empleados_bp = Blueprint("empleados", __name__)
+
+
+def validar_fechas(fecha_contratacion, fecha_nacimiento):
+    """Valida que fecha_contratacion sea menor que fecha_nacimiento"""
+    try:
+        fc = datetime.fromisoformat(fecha_contratacion)
+        fn = datetime.fromisoformat(fecha_nacimiento)
+        if fc <= fn:
+            return False, "La fecha de contratación debe ser posterior a la fecha de nacimiento"
+        return True, ""
+    except:
+        return False, "Formato de fecha inválido"
+
 
 @empleados_bp.route("/empleados")
 def empleados():
@@ -12,8 +27,6 @@ def empleados():
     cursor.execute("SELECT * FROM EMPLEADO;")
 
     empleados = cursor.fetchall()
-    print("Fetched data:", empleados)  # <-- ADD THIS LINE
-
     
     cursor.close()
     cnx.close()
@@ -25,21 +38,27 @@ def agregar_empleado():
     apellido = request.form["apellido"]
 
     # Backend Validation
-    import re
     if not re.match(r"^[A-Za-zÁÉÍÓÚáéíóúñÑ\s]+$", nombre):
-        return "Error: El nombre solo debe contener letras y espacios.", 400
+        return jsonify({"error": "El nombre solo debe contener letras y espacios."}), 400
     if not re.match(r"^[A-Za-zÁÉÍÓÚáéíóúñÑ\s]+$", apellido):
-        return "Error: El apellido solo debe contener letras y espacios.", 400
+        return jsonify({"error": "El apellido solo debe contener letras y espacios."}), 400
     
     telefono = request.form["telefono"]
-    if not re.match(r"^\d+$", telefono):
-        return "Error: El teléfono solo debe contener números.", 400
+    if not re.match(r"^[\d\s]+$", telefono):
+        return jsonify({"error": "El teléfono puede contener números y espacios."}), 400
 
     nombre_completo = f"{nombre} {apellido}"
+    direccion = request.form["direccion"]
     fecha_nacimiento = request.form["fecha_nacimiento"]
     cargo = request.form["cargo"]
-    fecha_contratacion = request.form.get("fecha_contratacion")  # Optional
-    historial_laboral = request.form.get("historial_laboral", "")  # Optional
+    
+    if not re.match(r"^[A-Za-zÁÉÍÓÚáéíóúñÑ\s]+$", cargo):
+        return jsonify({"error": "El cargo solo debe contener letras y espacios."}), 400
+    
+    
+    fecha_contratacion = request.form.get("fecha_contratacion")
+    
+    historial_laboral = request.form.get("historial_laboral", "")
     id_cuenta_bancaria = int(request.form["id_cuenta_bancaria"])
     id_plan_carrera = int(request.form["id_plan_carrera"])
     id_departamento = int(request.form["id_departamento"])
@@ -64,14 +83,13 @@ def agregar_empleado():
             id_departamento
         ))
         cnx.commit()
-        print("✅ Employee added successfully")
     except Exception as e:
-        print("❌ Error adding employee:", str(e))
         cnx.rollback()
+        return jsonify({"error": f"Error al agregar empleado: {str(e)}"}), 500
     finally:
         cursor.close()
         cnx.close()
-    return redirect(url_for("empleados.empleados"))
+    return jsonify({"success": True}), 200
 
 @empleados_bp.route("/empleados/eliminar/<int:id>", methods=["POST"])
 def eliminar_empleado(id):
@@ -89,21 +107,30 @@ def editar_empleado(id):
     apellido = request.form["apellido"]
     
     # Backend Validation
-    import re
     if not re.match(r"^[A-Za-zÁÉÍÓÚáéíóúñÑ\s]+$", nombre):
-        return "Error: El nombre solo debe contener letras y espacios.", 400
+        return jsonify({"error": "El nombre solo debe contener letras y espacios."}), 400
     if not re.match(r"^[A-Za-zÁÉÍÓÚáéíóúñÑ\s]+$", apellido):
-        return "Error: El apellido solo debe contener letras y espacios.", 400
+        return jsonify({"error": "El apellido solo debe contener letras y espacios."}), 400
         
     telefono = request.form["telefono"]
     if not re.match(r"^[\d\s]+$", telefono):
-        return "Error: El teléfono solo debe contener números.", 400
+        return jsonify({"error": "El teléfono solo debe contener números."}), 400
 
     nombre_completo = f"{nombre} {apellido}"
     direccion = request.form["direccion"]
     fecha_nacimiento = request.form["fecha_nacimiento"]
     cargo = request.form["cargo"]
+    if not re.match(r"^[A-Za-zÁÉÍÓÚáéíóúñÑ\s]+$", cargo):
+        return jsonify({"error": "El cargo solo debe contener letras y espacios."}), 400
+    
+
     fecha_contratacion = request.form.get("fecha_contratacion")
+    if not fecha_contratacion:
+        fecha_contratacion = None
+    else:
+        valido, mensaje = validar_fechas(fecha_contratacion, fecha_nacimiento)
+        if not valido:
+            return jsonify({"error": mensaje}), 400
     historial_laboral = request.form.get("historial_laboral", "")
     id_cuenta_bancaria = int(request.form["id_cuenta_bancaria"])
     id_plan_carrera = int(request.form["id_plan_carrera"])
@@ -115,7 +142,7 @@ def editar_empleado(id):
         cursor.execute("""
             UPDATE EMPLEADO 
             SET id_cuenta_bancaria=%s, id_plan_carrera=%s, nombre_completo=%s, direccion=%s, telefono=%s, 
-                fecha_nacimiento=%s, cargo=%s, fecha_contratacion=%s, historial_laboral=%s, id_departamento=%s
+            fecha_nacimiento=%s, cargo=%s, fecha_contratacion=%s, historial_laboral=%s, id_departamento=%s
             WHERE id_empleado=%s
         """, (
             id_cuenta_bancaria, id_plan_carrera, nombre_completo, direccion, telefono, 
@@ -123,9 +150,9 @@ def editar_empleado(id):
         ))
         cnx.commit()
     except Exception as e:
-        print("❌ Error updating employee:", str(e))
         cnx.rollback()
+        return jsonify({"error": f"Error al actualizar empleado: {str(e)}"}), 500
     finally:
         cursor.close()
         cnx.close()
-    return redirect(url_for("empleados.empleados"))
+    return jsonify({"success": True}), 200

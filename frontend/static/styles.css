@@ -17,17 +17,20 @@ h1 {
   margin: 20px auto;
   border-radius: 8px;
   width: 400px;
-  box-shadow: 0 0 10px rgba(0,0,0,0.1);
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
 
-form input, form select, form textarea {
+form input,
+form select,
+form textarea {
   display: block;
   width: 95%;
   margin: 10px auto;
   padding: 10px;
   border: 1px solid #ccc;
   border-radius: 4px;
-  font-family: inherit; /* Ensures textarea uses the same font */
+  font-family: inherit;
+  /* Ensures textarea uses the same font */
 }
 
 form button {
@@ -52,7 +55,8 @@ table {
   margin-top: 20px;
 }
 
-table th, table td {
+table th,
+table td {
   padding: 10px;
   border-bottom: 1px solid #ddd;
   text-align: left;
