@@ -3,18 +3,6 @@
 
 <h1>Presupuestos y Centros Costo</h1>
 
-<!-- MENSAJES FLASH -->
-{% with messages = get_flashed_messages(with_categories=true) %}
-  {% if messages %}
-    <ul style="list-style:none;padding:0;margin:20px auto;max-width:520px;width:100%;">
-      {% for category, message in messages %}
-        {% set color = 'red' if 'error' in category else 'green' if 'success' in category else 'blue' %}
-        <li style="color: {{ color }}; padding:8px 12px; border-radius:6px; background:rgba(0,0,0,0.03); margin-bottom:8px;">{{ message }}</li>
-      {% endfor %}
-    </ul>
-  {% endif %}
-{% endwith %}
-
 <!-- FORMULARIO CREAR PRESUPUESTO (siempre visible) -->
 <div class="form-container" style="width:520px; margin: 20px auto;">
   <form action="{{ url_for('presupuestos.crear_presupuesto') }}" method="POST" style="display:flex;flex-direction:column;gap:8px;" onsubmit="return validarPresupuesto()">
@@ -74,7 +62,7 @@
     <label for="nombre">Nombre:</label>
     <input type="text" name="nombre" id="nombre" maxlength="45" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
 
-    <label style="margin-top:0;">Descripción (máx 100 caracteres):</label>
+    <label style="margin-top:0;">Descripción:</label>
     <input type="text" name="descripcion" id="descripcion" maxlength="100" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
 
     <label style="margin-top:0;">Departamento:</label>
@@ -112,6 +100,9 @@
     </tbody>
   </table>
 </div>
+
+<!-- Contenedor para modales; los modales se insertan aquí para evitar problemas dentro de <table> -->
+<div id="modals-root"></div>
 
 <script>
 let presupuestosData = [];
@@ -240,12 +231,15 @@ function loadCentros(){
 
 function renderPresupuestos(data){
   const tbody = document.getElementById('presupuestos-tbody');
+  const modalsRoot = document.getElementById('modals-root');
   tbody.innerHTML = '';
-  
+  modalsRoot.innerHTML = ''; // limpiar modales previos
+
   data.forEach(p => {
     const deleteUrl = `/presupuestos/eliminar/${p.id_presupuesto}`;
     const editUrl = `/presupuestos/actualizar/${p.id_presupuesto}`;
-    
+
+    // fila únicamente con <tr>
     const row = `
       <tr id="row-${p.id_presupuesto}">
         <td>${p.id_presupuesto}</td>
@@ -262,7 +256,11 @@ function renderPresupuestos(data){
           </div>
         </td>
       </tr>
+    `;
+    tbody.insertAdjacentHTML('beforeend', row);
 
+    // modal OUTSIDE de la tabla (en modalsRoot)
+    const modal = `
       <div id="overlay-presupuesto-${p.id_presupuesto}" class="modal-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.35);z-index:999;" onclick="closeModalPresupuesto(${p.id_presupuesto})"></div>
 
       <div id="modal-presupuesto-${p.id_presupuesto}" class="edit-modal" style="display:none;position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);width:380px;background:#fff;border-radius:8px;padding:22px;z-index:1000;">
@@ -278,7 +276,7 @@ function renderPresupuestos(data){
           <input type="number" name="monto_utilizado" value="${p.monto_utilizado}" min="0" step="0.01" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;margin-bottom:10px;" id="edit_utilizado_${p.id_presupuesto}">
 
           <label>Departamento:</label>
-          <select name="id_departamento" style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;margin-bottom:10px;">
+          <select name="id_departamento" id="edit_departamento_${p.id_presupuesto}" style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;margin-bottom:10px;">
             {% for d in departamentos %}
               <option value="{{ d.id_departamento }}">{{ d.nombre }}</option>
             {% endfor %}
@@ -291,18 +289,29 @@ function renderPresupuestos(data){
         </form>
       </div>
     `;
-    tbody.insertAdjacentHTML('beforeend', row);
+    modalsRoot.insertAdjacentHTML('beforeend', modal);
+
+    // opcional: establecer el departamento seleccionado si la API devuelve id_departamento
+    if (p.id_departamento) {
+      const sel = document.getElementById(`edit_departamento_${p.id_presupuesto}`);
+      if (sel) sel.value = p.id_departamento;
+    }
   });
 }
 
 function renderCentros(data){
   const tbody = document.getElementById('centros-tbody');
+  const modalsRoot = document.getElementById('modals-root');
   tbody.innerHTML = '';
-  
+  // NO limpiar modalsRoot aquí para evitar borrar modales de presupuestos que ya podrían existir
+  // pero mejor limpiar los modales previos relacionados a centros:
+  // (simple enfoque: reconstruir todo)
+  modalsRoot.innerHTML = modalsRoot.innerHTML; // no-op placeholder
+
   data.forEach(c => {
     const deleteUrl = `/centro_costo/eliminar/${c.id_centro_costo}`;
     const editUrl = `/centro_costo/actualizar/${c.id_centro_costo}`;
-    
+
     const row = `
       <tr id="row-centro-${c.id_centro_costo}">
         <td>${c.id_centro_costo}</td>
@@ -318,20 +327,23 @@ function renderCentros(data){
           </div>
         </td>
       </tr>
+    `;
+    tbody.insertAdjacentHTML('beforeend', row);
 
+    const modal = `
       <div id="overlay-centro-${c.id_centro_costo}" class="modal-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.35);z-index:999;" onclick="closeModalCentro(${c.id_centro_costo})"></div>
 
       <div id="modal-centro-${c.id_centro_costo}" class="edit-modal" style="display:none;position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);width:380px;background:#fff;border-radius:8px;padding:22px;z-index:1000;">
         <h3>Editar Centro de Costo</h3>
         <form action="${editUrl}" method="POST" onsubmit="return validarCentroCostoModal(${c.id_centro_costo})">
-          <label>Nombre (máx 45 caracteres):</label>
+          <label>Nombre:</label>
           <input type="text" name="nombre" value="${c.nombre}" maxlength="45" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;margin-bottom:10px;" id="edit_nombre_${c.id_centro_costo}">
 
-          <label>Descripción (máx 100 caracteres):</label>
+          <label>Descripción:</label>
           <input type="text" name="descripcion" value="${c.descipcion}" maxlength="100" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;margin-bottom:10px;" id="edit_descripcion_${c.id_centro_costo}">
 
           <label>Departamento:</label>
-          <select name="id_departamento" style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;margin-bottom:10px;">
+          <select name="id_departamento" id="edit_departamento_centro_${c.id_centro_costo}" style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;margin-bottom:10px;">
             {% for d in departamentos %}
               <option value="{{ d.id_departamento }}">{{ d.nombre }}</option>
             {% endfor %}
@@ -344,7 +356,13 @@ function renderCentros(data){
         </form>
       </div>
     `;
-    tbody.insertAdjacentHTML('beforeend', row);
+    modalsRoot.insertAdjacentHTML('beforeend', modal);
+
+    // Si la API devuelve id_departamento para centros, setear seleccionado:
+    if (c.id_departamento) {
+      const sel = document.getElementById(`edit_departamento_centro_${c.id_centro_costo}`);
+      if (sel) sel.value = c.id_departamento;
+    }
   });
 }
 
