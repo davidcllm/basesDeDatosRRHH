@@ -66,16 +66,7 @@
                            style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box;">
                 </div>
 
-                <div style="margin-bottom: 25px;">
-                    <label for="reg_rol" style="display: block; margin-bottom: 5px; font-weight: bold;">Rol:</label>
-                    <select id="reg_rol" name="rol" required
-                            style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; background-color: white;">
-                        <option value="" disabled selected>Selecciona un rol</option>
-                        {% for r in ['administrador', 'finanzas', 'recursos_humanos'] %}
-                            <option value="{{ r }}">{{ r.replace('_', ' ')|title }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
+                <!-- Nota: ya no pedimos rol al registrarse; se asigna 'invitado' automáticamente en el backend -->
 
                 <button type="submit" 
                         style="width: 100%; padding: 12px; background-color: #0066ff; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; font-weight: bold;">

@@ -14,7 +14,7 @@ SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,N
 -- -----------------------------------------------------
 -- Schema mydb
 -- -----------------------------------------------------
-CREATE SCHEMA IF NOT EXISTS `mydb` DEFAULT CHARACTER SET utf8 ;
+CREATE SCHEMA IF NOT EXISTS `mydb` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 USE `mydb` ;
 
 -- -----------------------------------------------------
@@ -429,9 +429,17 @@ CREATE TABLE IF NOT EXISTS `mydb`.`USUARIO` (
   `id_usuario` INT NOT NULL AUTO_INCREMENT,
   `email` VARCHAR(100) NOT NULL UNIQUE, -- Usaremos el email como nombre de usuario
   `password_hash` VARCHAR(255) NOT NULL, -- Para almacenar el hash de la contraseña
-  `rol` ENUM('administrador', 'finanzas', 'recursos_humanos') NOT NULL,
+  `rol` ENUM('administrador', 'finanzas', 'recursos_humanos', 'invitado') NOT NULL,
   PRIMARY KEY (`id_usuario`))
 ENGINE = InnoDB;
+
+INSERT INTO USUARIO (email, password_hash, rol)
+VALUES (
+    'admin@gmail.com',
+    'scrypt:32768:8:1$UfINWj8THZ1OAaNT$7c280cd5950f74c326b0e5ce7987b0e5dd65d5e8341a797360d836dc69463db515c92b7cc6c49bc36478e92487032a934c2409d7896b8a94d642e2df67fa723f',
+    'administrador'
+);
+
 
 INSERT INTO `CUENTA_BANCARIA` (banco, numero_cuenta, saldo) VALUES
 ('BBVA', '0011223344', 15000.00),
@@ -444,35 +452,35 @@ INSERT INTO `PLAN_CARRERA` (objetivo, etapas, fecha_inicio, fecha_fin) VALUES
 ('Especialista en Finanzas', 'Junior-Senior-Especialista', '2023-03-01', '2025-03-01');
 
 INSERT INTO `DEPARTAMENTO` (nombre, descripcion) VALUES
-('Sistemas', 'Departamento de Tecnologías de la Información'),
-('Recursos Humanos', 'Gestión de personal'),
+('Sistemas', 'Departamento de TI y desarrollo'),
+('Recursos Humanos', 'Manejo de personal'),
 ('Finanzas', 'Control financiero y presupuestos');
 
 INSERT INTO `EMPLEADO`
 (id_cuenta_bancaria, id_plan_carrera, nombre_completo, direccion, telefono, fecha_nacimiento, cargo, fecha_contratacion, historial_laboral, id_departamento)
 VALUES
-(1, 1, 'Juan Pérez', 'Calle Uno #123', '555 1001', '1990-05-10', 'Developer', '2024-02-15', '2 años en soporte técnico', 1),
-(2, 2, 'María Gómez', 'Calle Dos #456', '555 2002', '1985-11-20', 'HR Manager', '2023-12-01', '5 años en gestión de personal', 2),
-(3, 3, 'Carlos López', 'Calle Tres #789', '555 3003', '1992-07-15', 'Analista Financiero', '2022-09-10', '3 años como auxiliar contable', 3),
-(1, 2, 'Ana Martínez', 'Calle Cuatro #321', '555 4004', '1988-03-25', 'Project Manager', '2024-01-20', '4 años en gestión de proyectos', 1),
-(2, 1, 'Luis Rodríguez', 'Calle Cinco #654', '555 5005', '1991-12-30', 'Software Engineer', '2023-11-15', '3 años en desarrollo web', 1),
-(3, 3, 'Sofía Hernández', 'Calle Seis #987', '555 6006', '1987-09-05', 'Financial Advisor', '2022-08-05', '6 años en asesoría financiera', 3);
+(1, 1, 'Juan Sauza', 'Calle Uno #123', '555 1001', '1990-05-10', 'Developer', '2024-02-15', '9 meses en soporte', 1),
+(2, 2, 'Daniela Guerra', 'Calle Dos #456', '555 2002', '1985-11-20', 'HR Manager', '2023-12-01', '5 meses en manejo de personal', 2),
+(3, 3, 'Carlos Herrera', 'Calle Tres #789', '555 3003', '1992-07-15', 'Analista Financiero', '2022-09-10', '7 meses como auxiliar contable', 3),
+(1, 2, 'Ana Cruz', 'Calle Cuatro #321', '555 4004', '1988-03-25', 'Project Manager', '2024-01-20', '3 meses en manejo de proyectos', 1),
+(2, 1, 'Luis Murillo', 'Calle Cinco #654', '555 5005', '1991-12-30', 'Software Engineer', '2023-11-15', '5 meses en desarrollo web', 1),
+(3, 3, 'Brenda Amezola', 'Calle Seis #987', '555 6006', '1987-09-05', 'Financial Advisor', '2022-08-05', '6 meses como asesor financiero', 3);
 
 INSERT INTO `EVALUACION` (fecha_evaluacion, tipo, resultado, observaciones) VALUES
-('2024-06-01', 'Anual', 90.50, 'Excelente desempeño'),
+('2024-06-01', 'Anual', 90.50, 'Excelente rendimiento'),
 ('2024-09-15', 'Semestral', 75.00, 'Cumplimiento adecuado'),
 ('2025-01-10', 'Especial', 88.00, 'Mejoras visibles');
 
 INSERT INTO `CAPACITACION` (nombre, descripcion, fecha_inicio, fecha_fin, proveedor) VALUES
-('Python Básico', 'Introducción al lenguaje', '2024-01-10', '2024-01-20', 'Coding Academy'),
+('Python Avanzado', 'Estructuras de datos', '2024-01-10', '2024-01-20', 'Coding Academy'),
 ('Liderazgo', 'Taller de habilidades gerenciales', '2023-05-01', '2023-05-05', 'HREdu'),
-('Finanzas Avanzadas', 'Optimización financiera', '2024-03-15', '2024-03-30', 'FinancePro');
+('Finanzas Avanzadas', 'Consultor financiero', '2024-03-15', '2024-03-30', 'FinancePro');
 
 INSERT INTO `mydb`.`EMPLEADO-CAPACITACION`
 (id_empleado, id_capacitacion, fecha_inicio, fecha_fin, resultado, comentarios)
 VALUES
-(1, 1, '2025-01-10', '2025-01-20', 88.50, 'Cumplió con los objetivos del curso'),
-(2, 3, '2025-02-01', '2025-02-15', 92.00, 'Excelente rendimiento y participación'),
+(1, 1, '2025-01-10', '2025-01-20', 88.50, 'Buen manejo de conceptos'),
+(2, 3, '2025-02-01', '2025-02-15', 92.00, 'Excelente rendimiento'),
 (3, 2, '2025-03-05', '2025-03-18', 75.25, 'Necesita reforzar algunos temas');
 
 INSERT INTO `NOMINA` (salario_base, deducciones, percepciones, total_pagar) VALUES
@@ -483,7 +491,7 @@ INSERT INTO `NOMINA` (salario_base, deducciones, percepciones, total_pagar) VALU
 INSERT INTO `mydb`.`AUSENCIA` (`id_empleado`, `tipo`, `fecha_inicio`, `fecha_fin`, `motivo`) VALUES
 (1, 'Enfermedad', '2024-10-01 09:00:00', '2024-10-03 18:00:00', 'Gripe'),
 (2, 'Vacaciones', '2024-12-20 00:00:00', '2024-12-27 23:59:59', 'Vacaciones anuales'),
-(3, 'Permiso', '2025-03-10 09:00:00', '2025-03-10 13:00:00', 'Cita médica');
+(3, 'Permiso', '2025-03-10 09:00:00', '2025-03-10 13:00:00', 'Cita con el doctor');
 
 INSERT INTO `mydb`.`ASISTENCIA` (`id_empleado`, `fecha_inicio`, `fecha_fin`) VALUES
 (1, '2025-01-02 08:30:00', '2025-01-02 17:30:00'),
@@ -498,7 +506,7 @@ INSERT INTO `PRESUPUESTO` (periodo, monto_asignado, monto_utilizado, id_departam
 INSERT INTO `PROYECTO` (nombre, descripcion) VALUES
 ('Sistema Contable', 'Desarrollo de un sistema contable interno'),
 ('Portal RH', 'Plataforma web de recursos humanos'),
-('App Financiera', 'Aplicación móvil para reportes financieros');
+('App Financiera', 'App de celular para reportes financieros');
 
 INSERT INTO `EMPLEADO-PROYECTO` (id_empleado, id_proyecto, horas_asignadas, fecha_asignacion, fecha_entrega) VALUES
 (1, 1, 120, '2024-01-10', '2024-04-10'),
@@ -507,12 +515,12 @@ INSERT INTO `EMPLEADO-PROYECTO` (id_empleado, id_proyecto, horas_asignadas, fech
 
 INSERT INTO `CENTRO_COSTO` (nombre, descipcion, id_departamento) VALUES
 ('Infraestructura', 'Costos de hardware y redes', 1),
-('Capacitación', 'Gastos de cursos y formación', 2),
+('Capacitación', 'Gastos de cursos', 2),
 ('Contabilidad', 'Gestión financiera', 3);
 
 INSERT INTO `CUENTA_CONTABLE` (banco, numero_cuenta, tipo, saldo, id_centro_costo) VALUES
 ('BBVA', 'CC1111', 'Operativa', 50000.00, 1),
-('Santander', 'CC2222', 'Inversión', 75000.00, 2),
+('Santander', 'CC2222', 'Invertir', 75000.00, 2),
 ('Banorte', 'CC3333', 'Ahorro', 60000.00, 3),
 ('HSBC', 'CC4444', 'Operativa', 82000.00, 1);
 
@@ -525,8 +533,8 @@ VALUES
 
 INSERT INTO `BENEFICIO` (nombre, descripcion, tipo) VALUES
 ('Vales de despensa', 'Apoyo alimentario mensual', 'Monetario'),
-('Seguro Médico', 'Cobertura médica privada', 'Salud'),
-('Bono de desempeño', 'Recompensa por objetivos cumplidos', 'Económico');
+('Seguro Médico', 'Cobertura de salud privada', 'Salud'),
+('Bono por rendimiento', 'Recompensa por objetivos cumplidos', 'Bono');
 
 INSERT INTO `EMPLEADO-BENEFICIO` (id_empleado, id_beneficio, fecha_asignacion) VALUES
 (1, 1, '2024-02-01'),

@@ -1,257 +1,438 @@
 {% extends "base.html" %}
 {% block content %}
 
-<h1 class="titulo-vista">Presupuestos y Gastos</h1>
+<h1>Presupuestos y Centros Costo</h1>
 
-<div class="acciones-superior">
-    <button class="btn-primary" onclick="toggleForm()">+ Nuevo Presupuesto</button>
+<!-- FORMULARIO CREAR PRESUPUESTO (siempre visible) -->
+<div class="form-container" style="width:520px; margin: 20px auto;">
+  <form action="{{ url_for('presupuestos.crear_presupuesto') }}" method="POST" style="display:flex;flex-direction:column;gap:8px;" onsubmit="return validarPresupuesto()">
+    <h2 style="text-align:center; margin:0 0 12px 0;">Crear Presupuesto</h2>
+
+    <label for="periodo">Periodo (AAAA-MM-DD):</label>
+    <input type="date" name="periodo" id="periodo" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
+
+    <label style="margin-top:0;">Monto asignado:</label>
+    <input type="number" name="monto_asignado" id="monto_asignado" min="0.01" step="0.01" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
+
+    <label style="margin-top:0;">Monto utilizado:</label>
+    <input type="number" name="monto_utilizado" id="monto_utilizado" min="0" step="0.01" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
+
+    <label style="margin-top:0;">Departamento:</label>
+    <select name="id_departamento" id="id_departamento" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
+      <option value="">-- Seleccionar Departamento --</option>
+      {% for d in departamentos %}
+        <option value="{{ d.id_departamento }}">{{ d.nombre }}</option>
+      {% endfor %}
+    </select>
+
+    <button type="submit" class="btn btn-primary" style="width:100%;margin-top:12px;">Crear Presupuesto</button>
+  </form>
 </div>
 
-<!-- FORMULARIO CREAR -->
-<div id="formulario" class="form-container" style="display:none;">
-    <h2>Crear Presupuesto</h2>
+<h2>Listado de Presupuestos</h2>
 
-    <form action="{{ url_for('presupuestos.crear_presupuesto') }}" method="POST">
-
-        <label>Periodo (AAAA-MM):</label>
-        <input type="text" name="periodo" placeholder="2025-01" required>
-
-        <label>Monto asignado:</label>
-        <input type="number" step="0.01" name="monto_asignado" required>
-
-        <label>Monto utilizado:</label>
-        <input type="number" step="0.01" name="monto_utilizado" required>
-
-        <label>Departamento:</label>
-        <select name="id_departamento" required>
-            {% for d in departamentos %}
-                <option value="{{ d.id_departamento }}">{{ d.nombre }}</option>
-            {% endfor %}
-        </select>
-        <br>
-        <button type="submit" class="btn-primary">Guardar</button>
-        <br>
-        <button type="button" class="btn-secondary"onclick="toggleForm()">Cancelar</button>
-    </form>
+<div style="width:95%;margin:20px auto;display:flex;gap:10px;align-items:center;">
+  <button type="button" id="toggle-presupuestos" class="btn btn-primary" onclick="togglePresupuestos()" style="padding:8px 16px;border-radius:6px;">▼ Cargar Presupuestos</button>
+  <input type="text" id="search-presupuestos" placeholder="Buscar en presupuestos..." onkeyup="filterTable('presupuestos')" style="flex:1;padding:8px;border-radius:6px;border:1px solid #ddd;display:none;">
 </div>
 
-
-<!-- LISTADO -->
-<h2 class="subtitulo">Listado de Presupuestos</h2>
-
-<table class="tabla">
+<div id="presupuestos-container" style="display:none;">
+  <table class="table" style="width:95%;margin:20px auto;">
     <thead>
-        <tr>
-            <th>ID</th>
-            <th>Periodo</th>
-            <th>Asignado</th>
-            <th>Utilizado</th>
-            <th>Departamento</th>
-            <th>Acciones</th>
-        </tr>
+      <tr>
+        <th>ID</th>
+        <th>Periodo</th>
+        <th>Asignado</th>
+        <th>Utilizado</th>
+        <th>Departamento</th>
+        <th>Acciones</th>
+      </tr>
     </thead>
-
-    <tbody>
-        {% for p in presupuestos %}
-        <tr>
-            <td>{{ p.id_presupuesto }}</td>
-            <td>{{ p.periodo }}</td>
-            <td>${{ p.monto_asignado }}</td>
-            <td>${{ p.monto_utilizado }}</td>
-            <td>{{ p.departamento }}</td>
-
-            <td style="width:220px;">
-                <div style="display:flex;gap:8px;justify-content:flex-end;align-items:center;">
-                    <button class="btn-secondary" onclick="abrirEditar({{ p.id_presupuesto }})" style="padding:0 8px;">Editar</button>
-
-                    <form action="{{ url_for('presupuestos.eliminar_presupuesto', id=p.id_presupuesto) }}"
-                        method="POST" style="margin:0;">
-                        <button class="btn-danger" onclick="return confirm('Eliminar presupuesto?')" style="background:#007bff;border-color:#007bff;padding:6px 18px;border-radius:6px;color:#fff;">Eliminar</button>
-                    </form>
-                </div>
-            </td>
-        </tr>
-        {% endfor %}
+    <tbody id="presupuestos-tbody">
+      <!-- Data cargada vía AJAX -->
     </tbody>
-</table>
-
-
-<!-- MODAL EDITAR -->
-<div id="modalEditar" class="form-container" style="display:none;">
-    <h2>Editar Presupuesto</h2>
-
-    <form id="formEditar" method="POST">
-
-        <label>Periodo:</label>
-        <input type="text" name="periodo" id="edit_periodo" required>
-
-        <label>Monto asignado:</label>
-        <input type="number" step="0.01" name="monto_asignado" id="edit_asignado" required>
-
-        <label>Monto utilizado:</label>
-        <input type="number" step="0.01" name="monto_utilizado" id="edit_utilizado" required>
-
-        <label>Departamento:</label>
-        <select name="id_departamento" id="edit_departamento">
-            {% for d in departamentos %}
-                <option value="{{ d.id_departamento }}">{{ d.nombre }}</option>
-            {% endfor %}
-        </select>
-        <br>
-        <button type="submit" class="btn-primary">Actualizar</button>
-        <br>
-        <button type="button" class="btn-secondary" onclick="cerrarEditar()">Cancelar</button>
-    </form>
+  </table>
 </div>
 
+<!-- FORMULARIO CREAR CENTRO COSTO (siempre visible) -->
+<div class="form-container" style="width:520px; margin: 20px auto;">
+  <form action="{{ url_for('presupuestos.crear_centro_costo') }}" method="POST" style="display:flex;flex-direction:column;gap:8px;" onsubmit="return validarCentroCosto()">
+    <h2 style="text-align:center; margin:0 0 12px 0;">Crear Centro de Costo</h2>
+
+    <label for="nombre">Nombre:</label>
+    <input type="text" name="nombre" id="nombre" maxlength="45" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
+
+    <label style="margin-top:0;">Descripción:</label>
+    <input type="text" name="descripcion" id="descripcion" maxlength="100" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
+
+    <label style="margin-top:0;">Departamento:</label>
+    <select name="id_departamento" id="id_departamento_centro" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
+      <option value="">-- Seleccionar Departamento --</option>
+      {% for d in departamentos %}
+        <option value="{{ d.id_departamento }}">{{ d.nombre }}</option>
+      {% endfor %}
+    </select>
+
+    <button type="submit" class="btn btn-primary" style="width:100%;margin-top:12px;">Crear Centro de Costo</button>
+  </form>
+</div>
+
+<h2>Listado de Centros de Costo</h2>
+
+<div style="width:95%;margin:20px auto;display:flex;gap:10px;align-items:center;">
+  <button type="button" id="toggle-centros" class="btn btn-primary" onclick="toggleCentros()" style="padding:8px 16px;border-radius:6px;">▼ Cargar Centros</button>
+  <input type="text" id="search-centros" placeholder="Buscar en centros..." onkeyup="filterTable('centros')" style="flex:1;padding:8px;border-radius:6px;border:1px solid #ddd;display:none;">
+</div>
+
+<div id="centros-container" style="display:none;">
+  <table class="table" style="width:95%;margin:20px auto;">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Centro</th>
+        <th>Descripción</th>
+        <th>Departamento</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
+    <tbody id="centros-tbody">
+      <!-- Data cargada vía AJAX -->
+    </tbody>
+  </table>
+</div>
+
+<!-- Contenedor para modales; los modales se insertan aquí para evitar problemas dentro de <table> -->
+<div id="modals-root"></div>
 
 <script>
-function toggleForm() {
-    const f = document.getElementById("formulario");
-    f.style.display = f.style.display === "none" ? "block" : "none";
+let presupuestosData = [];
+let centrosData = [];
+let presupuestosLoaded = false;
+let centrosLoaded = false;
+
+function validarPresupuesto(){
+  const periodo = document.getElementById("periodo").value;
+  const asignado = parseFloat(document.getElementById("monto_asignado").value);
+  const utilizado = parseFloat(document.getElementById("monto_utilizado").value);
+  const departamento = document.getElementById("id_departamento").value;
+
+  if(!periodo){
+    alert("Debe ingresar un periodo válido.");
+    return false;
+  }
+
+  if(!asignado || asignado <= 0){
+    alert("El monto asignado debe ser un número positivo.");
+    return false;
+  }
+
+  if(utilizado < 0){
+    alert("El monto utilizado no puede ser negativo.");
+    return false;
+  }
+
+  if(utilizado > asignado){
+    alert("El monto utilizado no puede ser mayor al monto asignado.");
+    return false;
+  }
+
+  if(!departamento){
+    alert("Debe seleccionar un departamento.");
+    return false;
+  }
+
+  return true;
 }
 
-function abrirEditar(id) {
-    const modal = document.getElementById("modalEditar");
-    modal.style.display = "block";
+function validarCentroCosto(){
+  const nombre = document.getElementById("nombre").value.trim();
+  const descripcion = document.getElementById("descripcion").value.trim();
+  const departamento = document.getElementById("id_departamento_centro").value;
 
-    const row = [...document.querySelectorAll("tbody tr")]
-        .find(r => r.children[0].innerText == id);
+  if(nombre.length === 0 || nombre.length > 45){
+    alert("El nombre debe tener entre 1 y 45 caracteres.");
+    return false;
+  }
 
-    document.getElementById("edit_periodo").value = row.children[1].innerText;
-    document.getElementById("edit_asignado").value = row.children[2].innerText.replace("$", "");
-    document.getElementById("edit_utilizado").value = row.children[3].innerText.replace("$", "");
+  if(descripcion.length === 0 || descripcion.length > 100){
+    alert("La descripción debe tener entre 1 y 100 caracteres.");
+    return false;
+  }
 
-    document.getElementById("formEditar").action =
-        "/presupuestos/actualizar/" + id;
+  if(!departamento){
+    alert("Debe seleccionar un departamento.");
+    return false;
+  }
+
+  return true;
 }
 
-function cerrarEditar() {
-    document.getElementById("modalEditar").style.display = "none";
+function togglePresupuestos(){
+  const container = document.getElementById('presupuestos-container');
+  const btn = document.getElementById('toggle-presupuestos');
+  const search = document.getElementById('search-presupuestos');
+  
+  if(!presupuestosLoaded){
+    loadPresupuestos();
+    presupuestosLoaded = true;
+  }
+  
+  if(container.style.display === 'none'){
+    container.style.display = 'block';
+    search.style.display = 'block';
+    btn.textContent = '▲ Ocultar Presupuestos';
+  } else {
+    container.style.display = 'none';
+    search.style.display = 'none';
+    btn.textContent = '▼ Cargar Presupuestos';
+  }
 }
-</script>
 
-<hr><br>
-<h2 class="subtitulo">Centros de Costo</h2>
+function toggleCentros(){
+  const container = document.getElementById('centros-container');
+  const btn = document.getElementById('toggle-centros');
+  const search = document.getElementById('search-centros');
+  
+  if(!centrosLoaded){
+    loadCentros();
+    centrosLoaded = true;
+  }
+  
+  if(container.style.display === 'none'){
+    container.style.display = 'block';
+    search.style.display = 'block';
+    btn.textContent = '▲ Ocultar Centros';
+  } else {
+    container.style.display = 'none';
+    search.style.display = 'none';
+    btn.textContent = '▼ Cargar Centros';
+  }
+}
 
-<div class="acciones-superior">
-    <button class="btn-primary" onclick="toggleFormCentro()">+ Nuevo Centro de Costo</button>
-</div>
+function loadPresupuestos(){
+  fetch('{{ url_for("presupuestos.get_presupuestos") }}')
+    .then(response => response.json())
+    .then(data => {
+      presupuestosData = data;
+      renderPresupuestos(data);
+    })
+    .catch(error => console.error('Error:', error));
+}
 
-<!-- FORM CREAR CENTRO COSTO -->
-<div id="formCentro" class="form-container" style="display:none;">
-    <h2>Crear Centro de Costo</h2>
+function loadCentros(){
+  fetch('{{ url_for("presupuestos.get_centros") }}')
+    .then(response => response.json())
+    .then(data => {
+      centrosData = data;
+      renderCentros(data);
+    })
+    .catch(error => console.error('Error:', error));
+}
 
-    <form action="{{ url_for('presupuestos.crear_centro_costo') }}" method="POST">
+function renderPresupuestos(data){
+  const tbody = document.getElementById('presupuestos-tbody');
+  const modalsRoot = document.getElementById('modals-root');
+  tbody.innerHTML = '';
+  modalsRoot.innerHTML = ''; // limpiar modales previos
 
-        <label>Nombre:</label>
-        <input type="text" name="nombre" required>
+  data.forEach(p => {
+    const deleteUrl = `/presupuestos/eliminar/${p.id_presupuesto}`;
+    const editUrl = `/presupuestos/actualizar/${p.id_presupuesto}`;
 
-        <label>Descripción:</label>
-        <input type="text" name="descripcion" required>
+    // fila únicamente con <tr>
+    const row = `
+      <tr id="row-${p.id_presupuesto}">
+        <td>${p.id_presupuesto}</td>
+        <td>${p.periodo}</td>
+        <td>$${parseFloat(p.monto_asignado).toFixed(2)}</td>
+        <td>$${parseFloat(p.monto_utilizado).toFixed(2)}</td>
+        <td>${p.departamento}</td>
+        <td style="width:220px;">
+          <div style="display:flex;gap:8px;justify-content:flex-end;align-items:center;">
+            <button type="button" class="btn btn-link" onclick="openModalPresupuesto(${p.id_presupuesto})" style="padding:0 8px;">Editar</button>
+            <form action="${deleteUrl}" method="POST" style="margin:0;">
+              <button type="submit" class="btn btn-primary" style="background:#007bff;border-color:#007bff;padding:6px 18px;border-radius:6px;color:#fff;" onclick="return confirm('¿Eliminar presupuesto?')">Eliminar</button>
+            </form>
+          </div>
+        </td>
+      </tr>
+    `;
+    tbody.insertAdjacentHTML('beforeend', row);
 
-        <label>Departamento:</label>
-        <select name="id_departamento" required>
+    // modal OUTSIDE de la tabla (en modalsRoot)
+    const modal = `
+      <div id="overlay-presupuesto-${p.id_presupuesto}" class="modal-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.35);z-index:999;" onclick="closeModalPresupuesto(${p.id_presupuesto})"></div>
+
+      <div id="modal-presupuesto-${p.id_presupuesto}" class="edit-modal" style="display:none;position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);width:380px;background:#fff;border-radius:8px;padding:22px;z-index:1000;">
+        <h3>Editar Presupuesto</h3>
+        <form action="${editUrl}" method="POST" onsubmit="return validarPresupuestoModal(${p.id_presupuesto})">
+          <label>Periodo (AAAA-MM-DD):</label>
+          <input type="date" name="periodo" value="${p.periodo}" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;margin-bottom:10px;" id="edit_periodo_${p.id_presupuesto}">
+
+          <label>Monto asignado:</label>
+          <input type="number" name="monto_asignado" value="${p.monto_asignado}" min="0.01" step="0.01" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;margin-bottom:10px;" id="edit_asignado_${p.id_presupuesto}">
+
+          <label>Monto utilizado:</label>
+          <input type="number" name="monto_utilizado" value="${p.monto_utilizado}" min="0" step="0.01" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;margin-bottom:10px;" id="edit_utilizado_${p.id_presupuesto}">
+
+          <label>Departamento:</label>
+          <select name="id_departamento" id="edit_departamento_${p.id_presupuesto}" style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;margin-bottom:10px;">
             {% for d in departamentos %}
-                <option value="{{ d.id_departamento }}">{{ d.nombre }}</option>
+              <option value="{{ d.id_departamento }}">{{ d.nombre }}</option>
             {% endfor %}
-        </select>
-        <br>
-        <button class="btn-primary">Guardar</button>
-        <br>
-        <button type="button" class="btn-secondary" onclick="toggleFormCentro()">Cancelar</button>
-    </form>
-</div>
+          </select>
 
+          <div style="display:flex;gap:10px;margin-top:12px;">
+            <button type="submit" class="btn" style="flex:1;background:#0069ff;color:#fff;padding:10px;border-radius:6px;border:0;">Actualizar</button>
+            <button type="button" class="btn" style="flex:1;background:#e9ecef;color:#333;padding:10px;border-radius:6px;border:0;" onclick="closeModalPresupuesto(${p.id_presupuesto})">Cancelar</button>
+          </div>
+        </form>
+      </div>
+    `;
+    modalsRoot.insertAdjacentHTML('beforeend', modal);
 
-<!-- TABLA CENTROS DE COSTO -->
-<table class="tabla">
-    <thead>
-        <tr>
-            <th>ID</th>
-            <th>Centro</th>
-            <th>Descripción</th>
-            <th>Departamento</th>
-            <th>Acciones</th>
-        </tr>
-    </thead>
+    // opcional: establecer el departamento seleccionado
+    if (p.id_departamento) {
+      setTimeout(() => {
+        const sel = document.getElementById(`edit_departamento_${p.id_presupuesto}`);
+        if (sel) sel.value = p.id_departamento;
+      }, 0);
+    }
+  });
+}
 
-    <tbody>
-        {% for c in centros %}
-        <tr>
-            <td>{{ c.id_centro_costo }}</td>
-            <td>{{ c.nombre }}</td>
-            <td>{{ c.descipcion }}</td>
-            <td>{{ c.departamento }}</td>
+function renderCentros(data){
+  const tbody = document.getElementById('centros-tbody');
+  const modalsRoot = document.getElementById('modals-root');
+  tbody.innerHTML = '';
+  // NO limpiar modalsRoot aquí para evitar borrar modales de presupuestos que ya podrían existir
+  // pero mejor limpiar los modales previos relacionados a centros:
+  // (simple enfoque: reconstruir todo)
+  modalsRoot.innerHTML = modalsRoot.innerHTML; // no-op placeholder
 
-            <td style="width:220px;">
-                    <div style="display:flex;gap:8px;justify-content:flex-end;align-items:center;">
-                    <button class="btn-secondary"onclick="editarCentro({{ c.id_centro_costo }})" style="padding:0 8px;">
-                        Editar
-                    </button>
+  data.forEach(c => {
+    const deleteUrl = `/centro_costo/eliminar/${c.id_centro_costo}`;
+    const editUrl = `/centro_costo/actualizar/${c.id_centro_costo}`;
 
-                    <form action="{{ url_for('presupuestos.eliminar_centro_costo', id=c.id_centro_costo) }}"
-                        method="POST" style="margin:0;">
-                        <button class="btn-danger" onclick="return confirm('¿Eliminar centro de costo?')" style="background:#007bff;border-color:#007bff;padding:6px 18px;border-radius:6px;color:#fff;" onclick="return confirm('Eliminar nómina?')">
-                            Eliminar
-                        </button>
-                    </form>
-                </div>
-            </td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
+    const row = `
+      <tr id="row-centro-${c.id_centro_costo}">
+        <td>${c.id_centro_costo}</td>
+        <td>${c.nombre}</td>
+        <td>${c.descipcion}</td>
+        <td>${c.departamento}</td>
+        <td style="width:220px;">
+          <div style="display:flex;gap:8px;justify-content:flex-end;align-items:center;">
+            <button type="button" class="btn btn-link" onclick="openModalCentro(${c.id_centro_costo})" style="padding:0 8px;">Editar</button>
+            <form action="${deleteUrl}" method="POST" style="margin:0;">
+              <button type="submit" class="btn btn-primary" style="background:#007bff;border-color:#007bff;padding:6px 18px;border-radius:6px;color:#fff;" onclick="return confirm('¿Eliminar centro de costo?')">Eliminar</button>
+            </form>
+          </div>
+        </td>
+      </tr>
+    `;
+    tbody.insertAdjacentHTML('beforeend', row);
 
+    const modal = `
+      <div id="overlay-centro-${c.id_centro_costo}" class="modal-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.35);z-index:999;" onclick="closeModalCentro(${c.id_centro_costo})"></div>
 
-<!-- MODAL EDITAR CENTRO COSTO -->
-<div id="modalCentro" class="form-container" style="display:none;">
-    <h2>Editar Centro de Costo</h2>
+      <div id="modal-centro-${c.id_centro_costo}" class="edit-modal" style="display:none;position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);width:380px;background:#fff;border-radius:8px;padding:22px;z-index:1000;">
+        <h3>Editar Centro de Costo</h3>
+        <form action="${editUrl}" method="POST" onsubmit="return validarCentroCostoModal(${c.id_centro_costo})">
+          <label>Nombre:</label>
+          <input type="text" name="nombre" value="${c.nombre}" maxlength="45" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;margin-bottom:10px;" id="edit_nombre_${c.id_centro_costo}">
 
-    <form id="formEditarCentro" method="POST">
+          <label>Descripción:</label>
+          <input type="text" name="descripcion" value="${c.descipcion}" maxlength="100" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;margin-bottom:10px;" id="edit_descripcion_${c.id_centro_costo}">
 
-        <label>Nombre:</label>
-        <input type="text" name="nombre" id="editCC_nombre" required placeholder="Nombre del Centro Costo">
-
-        <label>Descripción:</label>
-        <input type="text" name="descripcion" id="editCC_desc" required placeholder="Descripción del Centro Costo">
-
-        <label>Departamento:</label>
-        <select name="id_departamento" id="editCC_depto">
+          <label>Departamento:</label>
+          <select name="id_departamento" id="edit_departamento_centro_${c.id_centro_costo}" style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;margin-bottom:10px;">
             {% for d in departamentos %}
-                <option value="{{ d.id_departamento }}">{{ d.nombre }}</option>
+              <option value="{{ d.id_departamento }}">{{ d.nombre }}</option>
             {% endfor %}
-        </select>
-        <br>
-        <button class="btn-primary">Actualizar</button>
-        <br>
-        <button type="button" class="btn-secondary" onclick="cerrarCentro()">Cancelar</button>
-    </form>
-</div>
+          </select>
 
+          <div style="display:flex;gap:10px;margin-top:12px;">
+            <button type="submit" class="btn" style="flex:1;background:#0069ff;color:#fff;padding:10px;border-radius:6px;border:0;">Actualizar</button>
+            <button type="button" class="btn" style="flex:1;background:#e9ecef;color:#333;padding:10px;border-radius:6px;border:0;" onclick="closeModalCentro(${c.id_centro_costo})">Cancelar</button>
+          </div>
+        </form>
+      </div>
+    `;
+    modalsRoot.insertAdjacentHTML('beforeend', modal);
 
-<script>
-function toggleFormCentro() {
-    const f = document.getElementById("formCentro");
-    f.style.display = f.style.display === "none" ? "block" : "none";
+    // Si la API devuelve id_departamento para centros, setear seleccionado:
+    if (c.id_departamento) {
+      const sel = document.getElementById(`edit_departamento_centro_${c.id_centro_costo}`);
+      if (sel) sel.value = c.id_departamento;
+    }
+  });
 }
 
-function editarCentro(id) {
-    const modal = document.getElementById("modalCentro");
-    modal.style.display = "block";
+function validarPresupuestoModal(id){
+  const asignado = parseFloat(document.getElementById(`edit_asignado_${id}`).value);
+  const utilizado = parseFloat(document.getElementById(`edit_utilizado_${id}`).value);
 
-    const row = [...document.querySelectorAll("tbody tr")]
-        .find(r => r.children[0].innerText == id);
+  if(!asignado || asignado <= 0){
+    alert("El monto asignado debe ser un número positivo.");
+    return false;
+  }
 
-    //document.getElementById("editCC_nombre").value = row.children[1].innerText;
-    //document.getElementById("editCC_desc").value = row.children[2].innerText;
+  if(utilizado < 0){
+    alert("El monto utilizado no puede ser negativo.");
+    return false;
+  }
 
-    document.getElementById("formEditarCentro").action =
-        "/centro_costo/actualizar/" + id;
+  if(utilizado > asignado){
+    alert("El monto utilizado no puede ser mayor al monto asignado.");
+    return false;
+  }
+
+  return true;
 }
 
-function cerrarCentro() {
-    document.getElementById("modalCentro").style.display = "none";
+function validarCentroCostoModal(id){
+  const nombre = document.getElementById(`edit_nombre_${id}`).value.trim();
+  const descripcion = document.getElementById(`edit_descripcion_${id}`).value.trim();
+
+  if(nombre.length === 0 || nombre.length > 45){
+    alert("El nombre debe tener entre 1 y 45 caracteres.");
+    return false;
+  }
+
+  if(descripcion.length === 0 || descripcion.length > 100){
+    alert("La descripción debe tener entre 1 y 100 caracteres.");
+    return false;
+  }
+
+  return true;
+}
+
+function filterTable(type){
+  const searchInput = document.getElementById(`search-${type}`).value.toLowerCase();
+  const rows = document.querySelectorAll(`#${type}-tbody tr`);
+  
+  rows.forEach(row => {
+    const text = row.textContent.toLowerCase();
+    row.style.display = text.includes(searchInput) ? '' : 'none';
+  });
+}
+
+function openModalPresupuesto(id){
+  document.getElementById("overlay-presupuesto-" + id).style.display = "block";
+  document.getElementById("modal-presupuesto-" + id).style.display = "block";
+}
+function closeModalPresupuesto(id){
+  document.getElementById("overlay-presupuesto-" + id).style.display = "none";
+  document.getElementById("modal-presupuesto-" + id).style.display = "none";
+}
+
+function openModalCentro(id){
+  document.getElementById("overlay-centro-" + id).style.display = "block";
+  document.getElementById("modal-centro-" + id).style.display = "block";
+}
+function closeModalCentro(id){
+  document.getElementById("overlay-centro-" + id).style.display = "none";
+  document.getElementById("modal-centro-" + id).style.display = "none";
 }
 </script>
 

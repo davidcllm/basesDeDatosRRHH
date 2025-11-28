@@ -1,4 +1,4 @@
-from flask import Flask, render_template, redirect, url_for, session
+from flask import Flask, render_template, redirect, url_for, session, flash
 from flask_jwt_extended import JWTManager
 from datetime import timedelta
 
@@ -18,6 +18,8 @@ from jinja2 import Environment, FileSystemLoader
 
 app = Flask(__name__, template_folder="../frontend/templates", static_folder="../frontend/static")
 
+app.config['JSON_AS_ASCII'] = False
+
 app.config["SECRET_KEY"] = "1b16d3f2c5897a0e5b9f4d6c8e3a2b10d7e4f9c0a6b5d4e3c2b1a0f9e8d7c6b5"
 app.config["JWT_SECRET_KEY"] = "abc2c97e4dc1b1d3b48491098d7dfe6f"
 app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(hours=1)
@@ -30,6 +32,24 @@ app.config["JWT_COOKIE_SECURE"] = False
 app.config["JWT_COOKIE_CSRF_PROTECT"] = False
 
 jwt = JWTManager(app)
+
+# Manejador de errores JWT: redirigir a login si falta token
+@jwt.unauthorized_loader
+def missing_token_callback(error):
+    flash("Intentaste ingresar a una ruta protegida sin credenciales.", "error")
+    return redirect(url_for('auth.login'))
+
+# Manejador de errores JWT: redirigir a login si el token es inválido o expiró
+@jwt.invalid_token_loader
+def invalid_token_callback(error):
+    flash("Token inválido o expirado. Por favor, inicia sesión nuevamente.", "error")
+    return redirect(url_for('auth.login'))
+
+# Manejador de errores JWT: redirigir a login si el token expiró
+@jwt.expired_token_loader
+def expired_token_callback(jwt_header, jwt_payload):
+    flash("Tu sesión ha expirado. Por favor, inicia sesión nuevamente.", "error")
+    return redirect(url_for('auth.login'))
 
 @app.template_filter('currency')
 def format_currency(value):

@@ -9,6 +9,9 @@ def get_connection():
         user=os.getenv("DB_USER", "admin"),
         password=os.getenv("DB_PASS", "admin123"),
         database=os.getenv("DB_NAME", "mydb"),
+        charset='utf8mb4',
+        use_unicode=True,
+        init_command="SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci",
         cursorclass=pymysql.cursors.DictCursor,
         autocommit=False
     )
