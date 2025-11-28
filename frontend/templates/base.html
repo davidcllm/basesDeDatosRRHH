@@ -10,7 +10,8 @@
     {% if current_role == 'invitado' %}
       <!-- Solo cerrar sesión para invitados (mantener estilo del botón) -->
       {% if current_role %}
-        <a href="{{ url_for('auth.logout') }}" style="color:white; margin-left:525px;">
+        <a style="color:#0066ff; margin-right:15px;">Si no pongo esto se buguea la barra de navegación lol</a>
+        <a href="{{ url_for('auth.logout') }}" style="color:white; float:right; margin-right:10px;">
           Cerrar Sesión
         </a>
       {% endif %}
@@ -26,7 +27,7 @@
       <a href="/seguridad" style="color:white; margin-right:15px;">Seguridad</a>
 
       {% if current_role %}
-        <a href="{{ url_for('auth.logout') }}" style="color:white; margin-left:525px;">
+        <a href="{{ url_for('auth.logout') }}" style="color:white; float:right; margin-right:10px;">
           Cerrar Sesión
         </a>
       {% endif %}
@@ -38,7 +39,7 @@
       <a href="/reportes" style="color:white; margin-right:15px;">Reportes</a>
 
       {% if current_role %}
-        <a href="{{ url_for('auth.logout') }}" style="color:white; margin-left:905px;">
+        <a href="{{ url_for('auth.logout') }}" style="color:white; float:right; margin-right:10px;">
           Cerrar Sesión
         </a>
       {% endif %}
@@ -51,7 +52,7 @@
       <a href="/reportes" style="color:white; margin-right:15px;">Reportes</a>
 
       {% if current_role %}
-        <a href="{{ url_for('auth.logout') }}" style="color:white; margin-left:815px;">
+        <a href="{{ url_for('auth.logout') }}" style="color:white; float:right; margin-right:10px;">
           Cerrar Sesión
         </a>
       {% endif %}
