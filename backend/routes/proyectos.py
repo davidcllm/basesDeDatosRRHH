@@ -91,32 +91,107 @@ def get_asignaciones():
     cnx.close()
     return jsonify(data)
 
-# Helpers para validar existencia
-def validate_empleado(id_empleado):
+# --- ENDPOINT JSON: devolver departamentos (para AJAX) ---
+@proyectos_bp.route("/departamentos/get_departamentos")
+@jwt_required()
+@roles_required('administrador','recursos_humanos')
+def get_departamentos():
     cnx = get_connection()
-    cursor = cnx.cursor()
-    cursor.execute("SELECT id_empleado FROM EMPLEADO WHERE id_empleado = %s", (id_empleado,))
-    ok = cursor.fetchone() is not None
+    cursor = cnx.cursor(pymysql.cursors.DictCursor)
+    cursor.execute("SELECT id_departamento, nombre, descripcion FROM DEPARTAMENTO ORDER BY id_departamento DESC;")
+    data = cursor.fetchall()
     cursor.close()
     cnx.close()
-    return ok
+    return jsonify(data)
 
-def validate_proyecto(id_proyecto):
-    cnx = get_connection()
-    cursor = cnx.cursor()
-    cursor.execute("SELECT id_proyecto FROM PROYECTO WHERE id_proyecto = %s", (id_proyecto,))
-    ok = cursor.fetchone() is not None
-    cursor.close()
-    cnx.close()
-    return ok
+# Crear departamento
+@proyectos_bp.route("/departamentos/crear", methods=["POST"])
+@jwt_required()
+@roles_required('administrador','recursos_humanos')
+def crear_departamento():
+    nombre = request.form.get("nombre", "").strip()
+    descripcion = request.form.get("descripcion", "").strip()
 
-# Validar longitudes de campos
-def validate_proyecto_lengths(nombre, descripcion):
+    if not nombre or not descripcion:
+        flash("Nombre y descripción son obligatorios.", "error")
+        return redirect(url_for("proyectos.proyectos"))
+
     if len(nombre) > 45:
-        return False, "El nombre no puede exceder 45 caracteres."
+        flash("El nombre no puede exceder 45 caracteres.", "error")
+        return redirect(url_for("proyectos.proyectos"))
+
     if len(descripcion) > 145:
-        return False, "La descripción no puede exceder 145 caracteres."
-    return True, ""
+        flash("La descripción no puede exceder 145 caracteres.", "error")
+        return redirect(url_for("proyectos.proyectos"))
+
+    cnx = get_connection()
+    cursor = cnx.cursor()
+    try:
+        cursor.execute("INSERT INTO DEPARTAMENTO (nombre, descripcion) VALUES (%s, %s);", (nombre, descripcion))
+        cnx.commit()
+        flash("Departamento creado correctamente.", "success")
+    except Exception as e:
+        cnx.rollback()
+        flash(f"Error al crear departamento: {e}", "error")
+    finally:
+        cursor.close()
+        cnx.close()
+
+    return redirect(url_for("proyectos.proyectos"))
+
+# Actualizar departamento
+@proyectos_bp.route("/departamentos/actualizar/<int:id>", methods=["POST"])
+@jwt_required()
+@roles_required('administrador','recursos_humanos')
+def actualizar_departamento(id):
+    nombre = request.form.get("nombre", "").strip()
+    descripcion = request.form.get("descripcion", "").strip()
+
+    if not nombre or not descripcion:
+        flash("Nombre y descripción son obligatorios.", "error")
+        return redirect(url_for("proyectos.proyectos"))
+
+    if len(nombre) > 45:
+        flash("El nombre no puede exceder 45 caracteres.", "error")
+        return redirect(url_for("proyectos.proyectos"))
+
+    if len(descripcion) > 145:
+        flash("La descripción no puede exceder 145 caracteres.", "error")
+        return redirect(url_for("proyectos.proyectos"))
+
+    cnx = get_connection()
+    cursor = cnx.cursor()
+    try:
+        cursor.execute("UPDATE DEPARTAMENTO SET nombre=%s, descripcion=%s WHERE id_departamento=%s", (nombre, descripcion, id))
+        cnx.commit()
+        flash("Departamento actualizado correctamente.", "success")
+    except Exception as e:
+        cnx.rollback()
+        flash(f"Error al actualizar departamento: {e}", "error")
+    finally:
+        cursor.close()
+        cnx.close()
+
+    return redirect(url_for("proyectos.proyectos"))
+
+# Eliminar departamento
+@proyectos_bp.route("/departamentos/eliminar/<int:id>", methods=["POST"])
+@jwt_required()
+@roles_required('administrador','recursos_humanos')
+def eliminar_departamento(id):
+    cnx = get_connection()
+    cursor = cnx.cursor()
+    try:
+        cursor.execute("DELETE FROM DEPARTAMENTO WHERE id_departamento=%s", (id,))
+        cnx.commit()
+        flash("Departamento eliminado correctamente.", "success")
+    except Exception as e:
+        cnx.rollback()
+        flash(f"Error al eliminar departamento: {e}", "error")
+    finally:
+        cursor.close()
+        cnx.close()
+    return redirect(url_for("proyectos.proyectos"))
 
 #crear proyectos
 @proyectos_bp.route("/proyectos/crear", methods=["POST"])

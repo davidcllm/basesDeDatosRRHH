@@ -68,6 +68,44 @@
   </table>
 </div>
 
+<!-- Agregar CRUD Departamentos (estilo consistente) -->
+<h2>Departamentos</h2>
+
+<!-- Form crear departamento (visible) -->
+<div class="form-container" style="width:520px; margin: 20px auto;">
+  <h3>Crear Departamento</h3>
+  <form action="{{ url_for('proyectos.crear_departamento') }}" method="POST" onsubmit="return validarCrearDepartamento()" style="display:flex;flex-direction:column;gap:8px;">
+    <label>Nombre:</label>
+    <input type="text" name="nombre" id="crear_depart_nombre" maxlength="45" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
+
+    <label>Descripción:</label>
+    <textarea name="descripcion" id="crear_depart_descripcion" maxlength="145" required rows="3" style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;"></textarea>
+
+    <button type="submit" class="btn btn-primary" style="width:120px;margin-top:8px;">Crear</button>
+  </form>
+</div>
+
+<div style="width:95%;margin:20px auto;display:flex;gap:10px;align-items:center;">
+  <button type="button" id="toggle-departamentos" class="btn btn-primary" onclick="toggleDepartamentos()" style="padding:8px 16px;border-radius:6px;">▼ Cargar Departamentos</button>
+  <input type="text" id="search-departamentos" placeholder="Buscar departamentos..." onkeyup="filterTable('departamentos')" style="flex:1;padding:8px;border-radius:6px;border:1px solid #ddd;display:none;">
+</div>
+
+<div id="departamentos-container" style="display:none;">
+  <table class="table" style="width:95%;margin:20px auto;">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Nombre</th>
+        <th>Descripción</th>
+        <th style="text-align:right;">Acciones</th>
+      </tr>
+    </thead>
+    <tbody id="departamentos-tbody">
+      <!-- filas cargadas vía AJAX -->
+    </tbody>
+  </table>
+</div>
+
 <!-- Contenedor para modales (fuera de la tabla) -->
 <div id="modals-root"></div>
 
@@ -77,6 +115,8 @@ let empleadosData = [];
 let proyectosLoaded = false;
 let asignacionesData = [];
 let asignacionesLoaded = false;
+let departamentosData = [];
+let departamentosLoaded = false;
 
 /* reemplazar loadAsignaciones por esta versión que asegura cargas previas */
 function loadAsignaciones(){
@@ -263,9 +303,9 @@ function renderProyectos(data){
       <div id="modal-edit-${p.id_proyecto}" class="edit-modal" style="display:none;position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);width:480px;background:#fff;border-radius:8px;padding:22px;z-index:1000;">
         <h3>Editar Proyecto</h3>
         <form action="${editUrl}" method="POST" onsubmit="return validarEditarProyecto(${p.id_proyecto})">
-          <label>Nombre (máx 45 caracteres):</label>
+          <label>Nombre:</label>
           <input type="text" name="nombre" value="${escapeAttr(p.nombre)}" maxlength="45" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;margin-bottom:8px;" id="edit_nombre_${p.id_proyecto}">
-          <label>Descripción (máx 145 caracteres):</label>
+          <label>Descripción:</label>
           <textarea name="descripcion" maxlength="145" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;margin-bottom:8px;" id="edit_descripcion_${p.id_proyecto}">${escapeHtml(p.descripcion || '')}</textarea>
           <div style="display:flex;gap:10px;margin-top:12px;">
             <button type="submit" class="btn" style="flex:1;background:#0069ff;color:#fff;padding:10px;border-radius:6px;border:0;">Actualizar</button>
@@ -330,12 +370,83 @@ function toggleAsignaciones(){
   }
 }
 
-function filterTable(type){
-  const searchInput = document.getElementById(`search-${type}`).value.toLowerCase();
-  const rows = document.querySelectorAll(`#${type}-tbody tr`);
-  rows.forEach(row => {
-    const text = row.textContent.toLowerCase();
-    row.style.display = text.includes(searchInput) ? '' : 'none';
+function toggleDepartamentos(){
+  const container = document.getElementById('departamentos-container');
+  const btn = document.getElementById('toggle-departamentos');
+  const search = document.getElementById('search-departamentos');
+
+  if(!departamentosLoaded){
+    loadDepartamentos();
+    departamentosLoaded = true;
+  }
+
+  if(container.style.display === 'none'){
+    container.style.display = 'block';
+    search.style.display = 'block';
+    btn.textContent = '▲ Ocultar Departamentos';
+  } else {
+    container.style.display = 'none';
+    search.style.display = 'none';
+    btn.textContent = '▼ Cargar Departamentos';
+  }
+}
+
+function loadDepartamentos(){
+  fetch('{{ url_for("proyectos.get_departamentos") }}')
+    .then(r => r.json())
+    .then(data => {
+      departamentosData = data;
+      renderDepartamentos(data);
+    })
+    .catch(e => console.error('Error cargando departamentos:', e));
+}
+
+function renderDepartamentos(data){
+  const tbody = document.getElementById('departamentos-tbody');
+  const modalsRoot = document.getElementById('modals-root');
+  tbody.innerHTML = '';
+  // eliminar modales de departamentos previos
+  const prev = Array.from(modalsRoot.querySelectorAll('[id^="modal-depart-"], [id^="overlay-depart-"]'));
+  prev.forEach(n => n.remove());
+
+  data.forEach(d => {
+    const deleteUrl = `/departamentos/eliminar/${d.id_departamento}`;
+    const updateUrl = `/departamentos/actualizar/${d.id_departamento}`;
+
+    const row = `
+      <tr id="row-depart-${d.id_departamento}">
+        <td>${d.id_departamento}</td>
+        <td>${escapeHtml(d.nombre)}</td>
+        <td>${escapeHtml(d.descripcion)}</td>
+        <td style="text-align:right; width:240px;">
+          <div style="display:flex;gap:8px;justify-content:flex-end;align-items:center;">
+            <button type="button" class="btn btn-link" onclick="openModalDepartEdit(${d.id_departamento})" style="padding:0 8px;">Editar</button>
+            <form action="${deleteUrl}" method="POST" style="margin:0;">
+              <button type="submit" class="btn btn-primary" style="background:#007bff;border-color:#007bff;padding:6px 18px;border-radius:6px;color:#fff;" onclick="return confirm('¿Eliminar departamento?')">Eliminar</button>
+            </form>
+          </div>
+        </td>
+      </tr>
+    `;
+    tbody.insertAdjacentHTML('beforeend', row);
+
+    const modal = `
+      <div id="overlay-depart-${d.id_departamento}" class="modal-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.35);z-index:999;" onclick="closeModalDepartEdit(${d.id_departamento})"></div>
+      <div id="modal-depart-${d.id_departamento}" class="edit-modal" style="display:none;position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);width:460px;background:#fff;border-radius:8px;padding:22px;z-index:1000;">
+        <h3>Editar Departamento</h3>
+        <form action="${updateUrl}" method="POST" onsubmit="return validarEditarDepartamento(${d.id_departamento})">
+          <label>Nombre:</label>
+          <input type="text" name="nombre" id="edit_depart_nombre_${d.id_departamento}" value="${escapeAttr(d.nombre)}" maxlength="45" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;margin-bottom:8px;">
+          <label>Descripción:</label>
+          <textarea name="descripcion" id="edit_depart_descripcion_${d.id_departamento}" maxlength="145" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;margin-bottom:8px;">${escapeHtml(d.descripcion)}</textarea>
+          <div style="display:flex;gap:10px;margin-top:12px;">
+            <button type="submit" class="btn btn-primary" style="flex:1;">Actualizar</button>
+            <button type="button" class="btn" style="flex:1;background:#e9ecef;color:#333;" onclick="closeModalDepartEdit(${d.id_departamento})">Cancelar</button>
+          </div>
+        </form>
+      </div>
+    `;
+    modalsRoot.insertAdjacentHTML('beforeend', modal);
   });
 }
 
@@ -364,6 +475,15 @@ function openModalAsignEdit(id){
 function closeModalAsignEdit(id){
   document.getElementById("overlay-asign-" + id).style.display = "none";
   document.getElementById("modal-asign-" + id).style.display = "none";
+}
+
+function openModalDepartEdit(id){
+  document.getElementById("overlay-depart-" + id).style.display = "block";
+  document.getElementById("modal-depart-" + id).style.display = "block";
+}
+function closeModalDepartEdit(id){
+  document.getElementById("overlay-depart-" + id).style.display = "none";
+  document.getElementById("modal-depart-" + id).style.display = "none";
 }
 
 function validarCrearProyecto(){
@@ -442,6 +562,45 @@ function validarEditarAsignacion(id){
   if(!fechaInicio || !fechaFin){ alert("Ingrese ambas fechas."); return false; }
   if(fechaInicio >= fechaFin){ alert("La fecha de asignación debe ser anterior a la fecha de entrega."); return false; }
   return true;
+}
+
+function validarCrearDepartamento(){
+  const nombre = document.getElementById("crear_depart_nombre").value.trim();
+  const descripcion = document.getElementById("crear_depart_descripcion").value.trim();
+  if(nombre.length === 0 || nombre.length > 45){
+    alert("El nombre debe tener entre 1 y 45 caracteres.");
+    return false;
+  }
+  if(descripcion.length === 0 || descripcion.length > 145){
+    alert("La descripción debe tener entre 1 y 145 caracteres.");
+    return false;
+  }
+  return true;
+}
+
+function validarEditarDepartamento(id){
+  const nombre = document.getElementById(`edit_depart_nombre_${id}`).value.trim();
+  const descripcion = document.getElementById(`edit_depart_descripcion_${id}`).value.trim();
+  if(nombre.length === 0 || nombre.length > 45){
+    alert("El nombre debe tener entre 1 y 45 caracteres.");
+    return false;
+  }
+  if(descripcion.length === 0 || descripcion.length > 145){
+    alert("La descripción debe tener entre 1 y 145 caracteres.");
+    return false;
+  }
+  return true;
+}
+
+/* ...existing JS functions (filterTable, escapeHtml, etc.) ... */
+
+function filterTable(type){
+  const searchInput = document.getElementById(`search-${type}`).value.toLowerCase();
+  const rows = document.querySelectorAll(`#${type}-tbody tr`);
+  rows.forEach(row => {
+    const text = row.textContent.toLowerCase();
+    row.style.display = text.includes(searchInput) ? '' : 'none';
+  });
 }
 
 // utility to avoid XSS when inserting text into templates
