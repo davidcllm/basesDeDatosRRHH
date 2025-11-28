@@ -18,6 +18,8 @@ from jinja2 import Environment, FileSystemLoader
 
 app = Flask(__name__, template_folder="../frontend/templates", static_folder="../frontend/static")
 
+app.config['JSON_AS_ASCII'] = False
+
 app.config["SECRET_KEY"] = "1b16d3f2c5897a0e5b9f4d6c8e3a2b10d7e4f9c0a6b5d4e3c2b1a0f9e8d7c6b5"
 app.config["JWT_SECRET_KEY"] = "abc2c97e4dc1b1d3b48491098d7dfe6f"
 app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(hours=1)
