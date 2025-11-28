@@ -35,6 +35,7 @@
               <option value="administrador" {% if u.rol == 'administrador' %}selected{% endif %}>Administrador</option>
               <option value="finanzas" {% if u.rol == 'finanzas' %}selected{% endif %}>Finanzas</option>
               <option value="recursos_humanos" {% if u.rol == 'recursos_humanos' %}selected{% endif %}>Recursos Humanos</option>
+              <option value="invitado" {% if u.rol == 'invitado' %}selected{% endif %}>Invitado</option>
             </select>
             <button type="submit" class="btn" style="background:#0069ff;color:#fff;padding:8px 12px;border-radius:6px;border:0;">Guardar</button>
           </form>

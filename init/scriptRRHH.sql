@@ -429,9 +429,17 @@ CREATE TABLE IF NOT EXISTS `mydb`.`USUARIO` (
   `id_usuario` INT NOT NULL AUTO_INCREMENT,
   `email` VARCHAR(100) NOT NULL UNIQUE, -- Usaremos el email como nombre de usuario
   `password_hash` VARCHAR(255) NOT NULL, -- Para almacenar el hash de la contraseña
-  `rol` ENUM('administrador', 'finanzas', 'recursos_humanos') NOT NULL,
+  `rol` ENUM('administrador', 'finanzas', 'recursos_humanos', 'invitado') NOT NULL,
   PRIMARY KEY (`id_usuario`))
 ENGINE = InnoDB;
+
+INSERT INTO USUARIO (email, password_hash, rol)
+VALUES (
+    'admin@gmail.com',
+    'scrypt:32768:8:1$UfINWj8THZ1OAaNT$7c280cd5950f74c326b0e5ce7987b0e5dd65d5e8341a797360d836dc69463db515c92b7cc6c49bc36478e92487032a934c2409d7896b8a94d642e2df67fa723f',
+    'administrador'
+);
+
 
 INSERT INTO `CUENTA_BANCARIA` (banco, numero_cuenta, saldo) VALUES
 ('BBVA', '0011223344', 15000.00),

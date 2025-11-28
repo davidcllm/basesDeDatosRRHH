@@ -73,26 +73,18 @@ def login():
 
 @auth_bp.route("/register", methods=["GET", "POST"])
 def register():
-    # Roles disponibles para el registro 
-    AVAILABLE_ROLES = ['administrador', 'finanzas', 'recursos_humanos'] 
-
+    # Eliminamos la posibilidad de elegir rol en el frontend; todos los registros nuevos son 'invitado'
     if request.method == "POST":
         email = request.form.get("email")
         password = request.form.get("password")
-        rol = request.form.get("rol")
-        
-        # Validación
-        if rol not in AVAILABLE_ROLES:
-            flash("Rol inválido.", "error")
-            return redirect(url_for('auth.login'))
+        rol = "invitado"  # asignación automática
 
         if not email or not password:
             flash("Email y contraseña son obligatorios.", "error")
             return redirect(url_for('auth.login'))
 
-        # Usar la función de utilidad para crear el usuario en la DB
         if create_user_in_db(email, password, rol):
-            flash("Usuario registrado correctamente.", "success")
+            flash("Usuario registrado correctamente. Espera a que el administrador te otorgue permisos.", "success")
         else:
             flash("Error al registrar usuario (tal vez el email ya existe).", "error")
 
