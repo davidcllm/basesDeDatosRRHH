@@ -1,4 +1,4 @@
-from flask import Flask, render_template, redirect, url_for, session
+from flask import Flask, render_template, redirect, url_for, session, flash
 from flask_jwt_extended import JWTManager
 from datetime import timedelta
 
@@ -30,6 +30,24 @@ app.config["JWT_COOKIE_SECURE"] = False
 app.config["JWT_COOKIE_CSRF_PROTECT"] = False
 
 jwt = JWTManager(app)
+
+# Manejador de errores JWT: redirigir a login si falta token
+@jwt.unauthorized_loader
+def missing_token_callback(error):
+    flash("Intentaste ingresar a una ruta protegida sin credenciales.", "error")
+    return redirect(url_for('auth.login'))
+
+# Manejador de errores JWT: redirigir a login si el token es inválido o expiró
+@jwt.invalid_token_loader
+def invalid_token_callback(error):
+    flash("Token inválido o expirado. Por favor, inicia sesión nuevamente.", "error")
+    return redirect(url_for('auth.login'))
+
+# Manejador de errores JWT: redirigir a login si el token expiró
+@jwt.expired_token_loader
+def expired_token_callback(jwt_header, jwt_payload):
+    flash("Tu sesión ha expirado. Por favor, inicia sesión nuevamente.", "error")
+    return redirect(url_for('auth.login'))
 
 @app.template_filter('currency')
 def format_currency(value):
