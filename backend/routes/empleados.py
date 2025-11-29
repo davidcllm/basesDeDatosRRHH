@@ -8,7 +8,7 @@ empleados_bp = Blueprint("empleados", __name__)
 
 @empleados_bp.route("/empleados")
 @jwt_required()
-@roles_required('administrador','finanzas', 'recursos_humanos')
+@roles_required('administrador','finanzas', 'recursos_humanos', 'invitado')
 def empleados():
     cnx = get_connection()
     
