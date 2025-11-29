@@ -3,6 +3,8 @@
 
 <h1>Gestión de Proyectos</h1>
 
+<!-- MENSAJES FLASH -->
+
 <!-- FORMULARIO CREAR PROYECTO (siempre visible) -->
 <div class="form-container" style="width:520px; margin: 20px auto;">
   <h2>Crear Proyecto</h2>
@@ -13,11 +15,15 @@
     <label>Descripción:</label>
     <textarea name="descripcion" id="crear_descripcion" placeholder="Descripción del proyecto..." rows="3" maxlength="145" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;"></textarea>
 
+    <label>Fecha inicio:</label>
+    <input type="date" name="fecha_inicio" id="crear_fecha_inicio" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
+
+    <label>Fecha fin:</label>
+    <input type="date" name="fecha_fin" id="crear_fecha_fin" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
+
     <button type="submit" class="btn btn-primary" style="width:120px;margin-top:8px;">Guardar</button>
   </form>
 </div>
-
-<!-- MENSAJES FLASH -->
 
 <h2>Proyectos registrados</h2>
 
@@ -33,6 +39,8 @@
         <th>ID</th>
         <th>Proyecto</th>
         <th>Descripción</th>
+        <th>Inicio</th>
+        <th>Fin</th>
         <th style="text-align:right;">Acciones</th>
       </tr>
     </thead>
@@ -41,6 +49,8 @@
     </tbody>
   </table>
 </div>
+
+<!-- MENSAJES FLASH -->
 
 <h2>Asignaciones de Proyectos</h2>
 
@@ -282,6 +292,8 @@ function renderProyectos(data){
         <td>${p.id_proyecto}</td>
         <td>${escapeHtml(p.nombre)}</td>
         <td>${escapeHtml(p.descripcion || '')}</td>
+        <td>${p.fecha_inicio || ''}</td>
+        <td>${p.fecha_fin || ''}</td>
         <td style="text-align:right; width:320px;">
           <div style="display:flex;gap:8px;justify-content:flex-end;align-items:center;">
             <button type="button" class="btn btn-link" onclick="openModalEdit(${p.id_proyecto})" style="padding:0 8px;">Editar</button>
@@ -300,13 +312,117 @@ function renderProyectos(data){
     // modal editar (fuera de la tabla)
     const editModal = `
       <div id="overlay-edit-${p.id_proyecto}" class="modal-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.35);z-index:999;" onclick="closeModalEdit(${p.id_proyecto})"></div>
-      <div id="modal-edit-${p.id_proyecto}" class="edit-modal" style="display:none;position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);width:480px;background:#fff;border-radius:8px;padding:22px;z-index:1000;">
+      <div id="modal-edit-${p.id_proyecto}" class="edit-modal" style="display:none;position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);width:520px;background:#fff;border-radius:8px;padding:22px;z-index:1000;">
         <h3>Editar Proyecto</h3>
         <form action="${editUrl}" method="POST" onsubmit="return validarEditarProyecto(${p.id_proyecto})">
           <label>Nombre:</label>
           <input type="text" name="nombre" value="${escapeAttr(p.nombre)}" maxlength="45" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;margin-bottom:8px;" id="edit_nombre_${p.id_proyecto}">
           <label>Descripción:</label>
           <textarea name="descripcion" maxlength="145" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;margin-bottom:8px;" id="edit_descripcion_${p.id_proyecto}">${escapeHtml(p.descripcion || '')}</textarea>
+
+          <label>Fecha inicio:</label>
+          <input type="date" name="fecha_inicio" id="edit_fecha_inicio_${p.id_proyecto}" value="${p.fecha_inicio || ''}" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;margin-bottom:8px;">
+
+          <label>Fecha fin:</label>
+          <input type="date" name="fecha_fin" id="edit_fecha_fin_${p.id_proyecto}" value="${p.fecha_fin || ''}" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;margin-bottom:8px;">
+
+          <div style="display:flex;gap:10px;margin-top:12px;">
+            <button type="submit" class="btn" style="flex:1;background:#0069ff;color:#fff;padding:10px;border-radius:6px;border:0;">Actualizar</button>
+            <button type="button" class="btn" style="flex:1;background:#e9ecef;color:#333;padding:10px;border-radius:6px;border:0;" onclick="closeModalEdit(${p.id_proyecto})">Cancelar</button>
+          </div>
+        </form>
+      </div>
+    `;
+    modalsRoot.insertAdjacentHTML('beforeend', editModal);
+  });
+}
+
+function toggleProyectos(){
+  const container = document.getElementById('proyectos-container');
+  const btn = document.getElementById('toggle-proyectos');
+  const search = document.getElementById('search-proyectos');
+
+  if(!proyectosLoaded){
+    loadProyectos();
+    proyectosLoaded = true;
+  }
+
+  if(container.style.display === 'none'){
+    container.style.display = 'block';
+    search.style.display = 'block';
+    btn.textContent = '▲ Ocultar Proyectos';
+  } else {
+    container.style.display = 'none';
+    search.style.display = 'none';
+    btn.textContent = '▼ Cargar Proyectos';
+  }
+}
+
+function loadProyectos(){
+  // Usar Promise.all para esperar ambas peticiones
+  Promise.all([
+    fetch('{{ url_for("proyectos.get_proyectos") }}').then(r => r.json()),
+    fetch('{{ url_for("proyectos.get_empleados") }}').then(r => r.json())
+  ])
+  .then(([proyectosResponse, empleadosResponse]) => {
+    proyectosData = proyectosResponse;
+    empleadosData = empleadosResponse;
+    renderProyectos(proyectosData);
+  })
+  .catch(e => console.error('Error cargando datos:', e));
+}
+
+function renderProyectos(data){
+  const tbody = document.getElementById('proyectos-tbody');
+  const modalsRoot = document.getElementById('modals-root');
+  tbody.innerHTML = '';
+  modalsRoot.innerHTML = '';
+
+  data.forEach(p => {
+    const deleteUrl = `/proyectos/${p.id_proyecto}`;
+    const editUrl = `/proyectos/actualizar/${p.id_proyecto}`;
+    const assignUrl = `/proyectos/asignar`;
+
+    // fila
+    const row = `
+      <tr id="row-${p.id_proyecto}">
+        <td>${p.id_proyecto}</td>
+        <td>${escapeHtml(p.nombre)}</td>
+        <td>${escapeHtml(p.descripcion || '')}</td>
+        <td>${p.fecha_inicio || ''}</td>
+        <td>${p.fecha_fin || ''}</td>
+        <td style="text-align:right; width:320px;">
+          <div style="display:flex;gap:8px;justify-content:flex-end;align-items:center;">
+            <button type="button" class="btn btn-link" onclick="openModalEdit(${p.id_proyecto})" style="padding:0 8px;">Editar</button>
+
+            <button type="button" class="btn btn-link" onclick="openModalAsignar(${p.id_proyecto})" style="padding:0 8px;">Asignar empleado</button>
+
+            <form action="${deleteUrl}" method="POST" style="margin:0;">
+              <button type="submit" class="btn btn-primary" style="background:#007bff;border-color:#007bff;padding:6px 18px;border-radius:6px;color:#fff;" onclick="return confirm('¿Eliminar proyecto?')">Eliminar</button>
+            </form>
+          </div>
+        </td>
+      </tr>
+    `;
+    tbody.insertAdjacentHTML('beforeend', row);
+
+    // modal editar (fuera de la tabla)
+    const editModal = `
+      <div id="overlay-edit-${p.id_proyecto}" class="modal-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.35);z-index:999;" onclick="closeModalEdit(${p.id_proyecto})"></div>
+      <div id="modal-edit-${p.id_proyecto}" class="edit-modal" style="display:none;position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);width:520px;background:#fff;border-radius:8px;padding:22px;z-index:1000;">
+        <h3>Editar Proyecto</h3>
+        <form action="${editUrl}" method="POST" onsubmit="return validarEditarProyecto(${p.id_proyecto})">
+          <label>Nombre:</label>
+          <input type="text" name="nombre" value="${escapeAttr(p.nombre)}" maxlength="45" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;margin-bottom:8px;" id="edit_nombre_${p.id_proyecto}">
+          <label>Descripción:</label>
+          <textarea name="descripcion" maxlength="145" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;margin-bottom:8px;" id="edit_descripcion_${p.id_proyecto}">${escapeHtml(p.descripcion || '')}</textarea>
+
+          <label>Fecha inicio:</label>
+          <input type="date" name="fecha_inicio" id="edit_fecha_inicio_${p.id_proyecto}" value="${p.fecha_inicio || ''}" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;margin-bottom:8px;">
+
+          <label>Fecha fin:</label>
+          <input type="date" name="fecha_fin" id="edit_fecha_fin_${p.id_proyecto}" value="${p.fecha_fin || ''}" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;margin-bottom:8px;">
+
           <div style="display:flex;gap:10px;margin-top:12px;">
             <button type="submit" class="btn" style="flex:1;background:#0069ff;color:#fff;padding:10px;border-radius:6px;border:0;">Actualizar</button>
             <button type="button" class="btn" style="flex:1;background:#e9ecef;color:#333;padding:10px;border-radius:6px;border:0;" onclick="closeModalEdit(${p.id_proyecto})">Cancelar</button>
@@ -489,6 +605,8 @@ function closeModalDepartEdit(id){
 function validarCrearProyecto(){
   const nombre = document.getElementById("crear_nombre").value.trim();
   const descripcion = document.getElementById("crear_descripcion").value.trim();
+  const fi = document.getElementById("crear_fecha_inicio").value;
+  const ff = document.getElementById("crear_fecha_fin").value;
 
   if(nombre.length === 0 || nombre.length > 45){
     alert("El nombre debe tener entre 1 y 45 caracteres.");
@@ -497,6 +615,15 @@ function validarCrearProyecto(){
 
   if(descripcion.length === 0 || descripcion.length > 145){
     alert("La descripción debe tener entre 1 y 145 caracteres.");
+    return false;
+  }
+
+  if(!fi || !ff){
+    alert("Ingrese fechas de inicio y fin.");
+    return false;
+  }
+  if(fi >= ff){
+    alert("La fecha de inicio debe ser anterior a la fecha de fin.");
     return false;
   }
 
@@ -506,6 +633,8 @@ function validarCrearProyecto(){
 function validarEditarProyecto(id){
   const nombre = document.getElementById(`edit_nombre_${id}`).value.trim();
   const descripcion = document.getElementById(`edit_descripcion_${id}`).value.trim();
+  const fi = document.getElementById(`edit_fecha_inicio_${id}`).value;
+  const ff = document.getElementById(`edit_fecha_fin_${id}`).value;
 
   if(nombre.length === 0 || nombre.length > 45){
     alert("El nombre debe tener entre 1 y 45 caracteres.");
@@ -514,6 +643,15 @@ function validarEditarProyecto(id){
 
   if(descripcion.length === 0 || descripcion.length > 145){
     alert("La descripción debe tener entre 1 y 145 caracteres.");
+    return false;
+  }
+
+  if(!fi || !ff){
+    alert("Ingrese fechas de inicio y fin.");
+    return false;
+  }
+  if(fi >= ff){
+    alert("La fecha de inicio debe ser anterior a la fecha de fin.");
     return false;
   }
 

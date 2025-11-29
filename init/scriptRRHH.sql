@@ -218,6 +218,8 @@ CREATE TABLE IF NOT EXISTS `mydb`.`PROYECTO` (
   `id_proyecto` INT NOT NULL AUTO_INCREMENT,
   `nombre` VARCHAR(45) NOT NULL,
   `descripcion` VARCHAR(145) NOT NULL,
+  `fecha_inicio` DATE NOT NULL,
+  `fecha_fin` DATE NOT NULL,
   PRIMARY KEY (`id_proyecto`))
 ENGINE = InnoDB;
 
@@ -503,10 +505,10 @@ INSERT INTO `PRESUPUESTO` (periodo, monto_asignado, monto_utilizado, id_departam
 ('2024-01-01', 300000.00, 150000.00, 2),
 ('2024-01-01', 700000.00, 500000.00, 3);
 
-INSERT INTO `PROYECTO` (nombre, descripcion) VALUES
-('Sistema Contable', 'Desarrollo de un sistema contable interno'),
-('Portal RH', 'Plataforma web de recursos humanos'),
-('App Financiera', 'App de celular para reportes financieros');
+INSERT INTO `PROYECTO` (nombre, descripcion, fecha_inicio, fecha_fin) VALUES
+('Sistema Contable', 'Desarrollo de un sistema contable interno', '2024-01-01', '2024-06-30'),
+('Portal RH', 'Plataforma web de recursos humanos', '2024-03-01', '2024-09-30'),
+('App Financiera', 'App de celular para reportes financieros', '2024-05-15', '2024-11-15');
 
 INSERT INTO `EMPLEADO-PROYECTO` (id_empleado, id_proyecto, horas_asignadas, fecha_asignacion, fecha_entrega) VALUES
 (1, 1, 120, '2024-01-10', '2024-04-10'),

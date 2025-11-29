@@ -7,6 +7,18 @@ from datetime import datetime
 
 proyectos_bp = Blueprint("proyectos", __name__)
 
+# helper: validar longitudes (se usaba antes pero no estaba definido)
+def validate_proyecto_lengths(nombre, descripcion):
+    if len(nombre) == 0:
+        return False, "El nombre no puede estar vacío."
+    if len(nombre) > 45:
+        return False, "El nombre no puede exceder 45 caracteres."
+    if len(descripcion) == 0:
+        return False, "La descripción no puede estar vacía."
+    if len(descripcion) > 145:
+        return False, "La descripción no puede exceder 145 caracteres."
+    return True, ""
+
 #Listar proyectos (renders the template)
 @proyectos_bp.route("/proyectos")
 @jwt_required()
@@ -17,7 +29,9 @@ def proyectos():
 
     # --- Proyectos --- (no cargamos aquí la tabla completa para permitir carga bajo demanda)
     cursor.execute("""
-        SELECT id_proyecto, nombre, descripcion
+        SELECT id_proyecto, nombre, descripcion,
+               DATE_FORMAT(fecha_inicio, '%Y-%m-%d') AS fecha_inicio,
+               DATE_FORMAT(fecha_fin, '%Y-%m-%d') AS fecha_fin
         FROM PROYECTO;
     """)
     proyectos = cursor.fetchall()
@@ -45,7 +59,13 @@ def proyectos():
 def get_proyectos():
     cnx = get_connection()
     cursor = cnx.cursor(pymysql.cursors.DictCursor)
-    cursor.execute("SELECT id_proyecto, nombre, descripcion FROM PROYECTO ORDER BY id_proyecto DESC;")
+    cursor.execute("""
+        SELECT id_proyecto, nombre, descripcion,
+               DATE_FORMAT(fecha_inicio, '%Y-%m-%d') AS fecha_inicio,
+               DATE_FORMAT(fecha_fin, '%Y-%m-%d') AS fecha_fin
+        FROM PROYECTO
+        ORDER BY id_proyecto DESC;
+    """)
     data = cursor.fetchall()
     cursor.close()
     cnx.close()
@@ -200,16 +220,28 @@ def eliminar_departamento(id):
 def crear_proyecto():
     nombre = request.form.get("nombre", "").strip()
     descripcion = request.form.get("descripcion", "").strip()
+    fecha_inicio = request.form.get("fecha_inicio", "").strip()
+    fecha_fin = request.form.get("fecha_fin", "").strip()
 
-    # Validar que no estén vacíos
-    if not nombre or not descripcion:
-        flash("El nombre y descripción no pueden estar vacíos.", "error")
-        return redirect(url_for("proyectos.proyectos"))
-
-    # Validar longitudes
+    # Validar que no estén vacíos y longitudes
     valid, msg = validate_proyecto_lengths(nombre, descripcion)
     if not valid:
         flash(msg, "error")
+        return redirect(url_for("proyectos.proyectos"))
+
+    # Validar fechas
+    if not fecha_inicio or not fecha_fin:
+        flash("Debe ingresar fecha de inicio y fecha de fin.", "error")
+        return redirect(url_for("proyectos.proyectos"))
+
+    try:
+        fi = datetime.strptime(fecha_inicio, "%Y-%m-%d").date()
+        ff = datetime.strptime(fecha_fin, "%Y-%m-%d").date()
+        if fi >= ff:
+            flash("La fecha de inicio debe ser anterior a la fecha de fin.", "error")
+            return redirect(url_for("proyectos.proyectos"))
+    except Exception:
+        flash("Formato de fecha inválido. Use YYYY-MM-DD.", "error")
         return redirect(url_for("proyectos.proyectos"))
 
     cnx = get_connection()
@@ -217,9 +249,9 @@ def crear_proyecto():
 
     try:
         cursor.execute("""
-            INSERT INTO PROYECTO (nombre, descripcion)
-            VALUES (%s, %s);
-        """, (nombre, descripcion))
+            INSERT INTO PROYECTO (nombre, descripcion, fecha_inicio, fecha_fin)
+            VALUES (%s, %s, %s, %s);
+        """, (nombre, descripcion, fecha_inicio, fecha_fin))
 
         cnx.commit()
         flash("Proyecto creado correctamente.", "success")
@@ -261,16 +293,27 @@ def eliminar_proyecto(id):
 def actualizar_proyecto(id):
     nombre = request.form.get("nombre", "").strip()
     descripcion = request.form.get("descripcion", "").strip()
+    fecha_inicio = request.form.get("fecha_inicio", "").strip()
+    fecha_fin = request.form.get("fecha_fin", "").strip()
 
-    # Validar que no estén vacíos
-    if not nombre or not descripcion:
-        flash("El nombre y descripción no pueden estar vacíos.", "error")
-        return redirect(url_for("proyectos.proyectos"))
-
-    # Validar longitudes
+    # Validar que no estén vacíos y longitudes
     valid, msg = validate_proyecto_lengths(nombre, descripcion)
     if not valid:
         flash(msg, "error")
+        return redirect(url_for("proyectos.proyectos"))
+
+    if not fecha_inicio or not fecha_fin:
+        flash("Debe ingresar fecha de inicio y fecha de fin.", "error")
+        return redirect(url_for("proyectos.proyectos"))
+
+    try:
+        fi = datetime.strptime(fecha_inicio, "%Y-%m-%d").date()
+        ff = datetime.strptime(fecha_fin, "%Y-%m-%d").date()
+        if fi >= ff:
+            flash("La fecha de inicio debe ser anterior a la fecha de fin.", "error")
+            return redirect(url_for("proyectos.proyectos"))
+    except Exception:
+        flash("Formato de fecha inválido. Use YYYY-MM-DD.", "error")
         return redirect(url_for("proyectos.proyectos"))
 
     cnx = get_connection()
@@ -279,9 +322,9 @@ def actualizar_proyecto(id):
     try:
         cursor.execute("""
             UPDATE PROYECTO
-            SET nombre=%s, descripcion=%s
+            SET nombre=%s, descripcion=%s, fecha_inicio=%s, fecha_fin=%s
             WHERE id_proyecto=%s
-        """, (nombre, descripcion, id))
+        """, (nombre, descripcion, fecha_inicio, fecha_fin, id))
 
         cnx.commit()
         flash("Proyecto actualizado correctamente.", "success")
