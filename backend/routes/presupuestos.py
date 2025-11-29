@@ -36,7 +36,9 @@ def get_presupuestos():
     cursor = cnx.cursor(pymysql.cursors.DictCursor)
 
     cursor.execute("""
-        SELECT P.id_presupuesto, DATE_FORMAT(P.periodo, '%Y-%m-%d') AS periodo, 
+        SELECT P.id_presupuesto,
+               DATE_FORMAT(P.fecha_inicio, '%Y-%m-%d') AS fecha_inicio,
+               DATE_FORMAT(P.fecha_fin, '%Y-%m-%d') AS fecha_fin,
                P.monto_asignado, P.monto_utilizado, D.nombre AS departamento, 
                D.id_departamento
         FROM PRESUPUESTO P
@@ -83,21 +85,26 @@ def validate_departamento(id_departamento):
     cnx.close()
     return exists is not None
 
-# Crear presupuestos
+# Crear presupuestos (antes crear_presupuesto)
 @presupuestos_bp.route("/presupuestos/crear", methods=["POST"])
 @jwt_required()
 @roles_required('administrador','finanzas')
 def crear_presupuesto():
-    periodo = request.form.get("periodo", "").strip()
+    fecha_inicio = request.form.get("fecha_inicio", "").strip()
+    fecha_fin = request.form.get("fecha_fin", "").strip()
     asignado = request.form.get("monto_asignado", "").strip()
     utilizado = request.form.get("monto_utilizado", "").strip()
     id_departamento = request.form.get("id_departamento", "").strip()
 
-    # Validar periodo (debe ser fecha válida YYYY-MM-DD)
+    # Validar fechas (YYYY-MM-DD)
     try:
-        datetime.strptime(periodo, "%Y-%m-%d")
-    except ValueError:
-        flash("Periodo debe ser una fecha válida (YYYY-MM-DD).", "error")
+        fi = datetime.strptime(fecha_inicio, "%Y-%m-%d").date()
+        ff = datetime.strptime(fecha_fin, "%Y-%m-%d").date()
+        if fi > ff:
+            flash("La fecha de inicio no puede ser posterior a la fecha de fin.", "error")
+            return redirect(url_for("presupuestos.presupuestos"))
+    except Exception:
+        flash("Fechas inválidas. Use formato YYYY-MM-DD.", "error")
         return redirect(url_for("presupuestos.presupuestos"))
 
     # Validar montos son números positivos
@@ -117,12 +124,8 @@ def crear_presupuesto():
         return redirect(url_for("presupuestos.presupuestos"))
 
     # Validar departamento existe
-    if not id_departamento or not id_departamento.isdigit():
+    if not id_departamento or not id_departamento.isdigit() or not validate_departamento(id_departamento):
         flash("Debe seleccionar un departamento válido.", "error")
-        return redirect(url_for("presupuestos.presupuestos"))
-
-    if not validate_departamento(id_departamento):
-        flash("El departamento seleccionado no existe.", "error")
         return redirect(url_for("presupuestos.presupuestos"))
 
     cnx = get_connection()
@@ -130,9 +133,9 @@ def crear_presupuesto():
 
     try:
         cursor.execute("""
-            INSERT INTO PRESUPUESTO (periodo, monto_asignado, monto_utilizado, id_departamento)
-            VALUES (%s, %s, %s, %s)
-        """, (periodo, asignado_float, utilizado_float, id_departamento))
+            INSERT INTO PRESUPUESTO (fecha_inicio, fecha_fin, monto_asignado, monto_utilizado, id_departamento)
+            VALUES (%s, %s, %s, %s, %s)
+        """, (fecha_inicio, fecha_fin, asignado_float, utilizado_float, id_departamento))
         cnx.commit()
         flash("Presupuesto creado correctamente.", "success")
     except Exception as e:
@@ -144,24 +147,29 @@ def crear_presupuesto():
 
     return redirect(url_for("presupuestos.presupuestos"))
 
-# Editar presupuesto
+# Editar presupuesto (actualizar_presupuesto)
 @presupuestos_bp.route("/presupuestos/actualizar/<int:id>", methods=["POST"])
 @jwt_required()
 @roles_required('administrador','finanzas')
 def actualizar_presupuesto(id):
-    periodo = request.form.get("periodo", "").strip()
+    fecha_inicio = request.form.get("fecha_inicio", "").strip()
+    fecha_fin = request.form.get("fecha_fin", "").strip()
     asignado = request.form.get("monto_asignado", "").strip()
     utilizado = request.form.get("monto_utilizado", "").strip()
     id_departamento = request.form.get("id_departamento", "").strip()
 
-    # Validar periodo (debe ser fecha válida YYYY-MM-DD)
+    # Validar fechas (YYYY-MM-DD)
     try:
-        datetime.strptime(periodo, "%Y-%m-%d")
-    except ValueError:
-        flash("Periodo debe ser una fecha válida (YYYY-MM-DD).", "error")
+        fi = datetime.strptime(fecha_inicio, "%Y-%m-%d").date()
+        ff = datetime.strptime(fecha_fin, "%Y-%m-%d").date()
+        if fi > ff:
+            flash("La fecha de inicio no puede ser posterior a la fecha de fin.", "error")
+            return redirect(url_for("presupuestos.presupuestos"))
+    except Exception:
+        flash("Fechas inválidas. Use formato YYYY-MM-DD.", "error")
         return redirect(url_for("presupuestos.presupuestos"))
 
-    # Validar montos son números positivos
+    # Validar montos
     try:
         asignado_float = float(asignado)
         utilizado_float = float(utilizado)
@@ -172,18 +180,12 @@ def actualizar_presupuesto(id):
         flash("Los montos deben ser números válidos.", "error")
         return redirect(url_for("presupuestos.presupuestos"))
 
-    # Validar monto utilizado <= monto asignado
     if utilizado_float > asignado_float:
         flash("El monto utilizado no puede ser mayor al monto asignado.", "error")
         return redirect(url_for("presupuestos.presupuestos"))
 
-    # Validar departamento existe
-    if not id_departamento or not id_departamento.isdigit():
+    if not id_departamento or not id_departamento.isdigit() or not validate_departamento(id_departamento):
         flash("Debe seleccionar un departamento válido.", "error")
-        return redirect(url_for("presupuestos.presupuestos"))
-
-    if not validate_departamento(id_departamento):
-        flash("El departamento seleccionado no existe.", "error")
         return redirect(url_for("presupuestos.presupuestos"))
 
     cnx = get_connection()
@@ -192,9 +194,9 @@ def actualizar_presupuesto(id):
     try:
         cursor.execute("""
             UPDATE PRESUPUESTO
-            SET periodo=%s, monto_asignado=%s, monto_utilizado=%s, id_departamento=%s
+            SET fecha_inicio=%s, fecha_fin=%s, monto_asignado=%s, monto_utilizado=%s, id_departamento=%s
             WHERE id_presupuesto=%s
-        """, (periodo, asignado_float, utilizado_float, id_departamento, id))
+        """, (fecha_inicio, fecha_fin, asignado_float, utilizado_float, id_departamento, id))
         cnx.commit()
         flash("Presupuesto actualizado correctamente.", "success")
     except Exception as e:

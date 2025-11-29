@@ -8,8 +8,11 @@
   <form action="{{ url_for('presupuestos.crear_presupuesto') }}" method="POST" style="display:flex;flex-direction:column;gap:8px;" onsubmit="return validarPresupuesto()">
     <h2 style="text-align:center; margin:0 0 12px 0;">Crear Presupuesto</h2>
 
-    <label for="periodo">Periodo (AAAA-MM-DD):</label>
-    <input type="date" name="periodo" id="periodo" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
+    <label for="fecha_inicio">Fecha inicio (AAAA-MM-DD):</label>
+    <input type="date" name="fecha_inicio" id="fecha_inicio" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
+
+    <label for="fecha_fin">Fecha fin (AAAA-MM-DD):</label>
+    <input type="date" name="fecha_fin" id="fecha_fin" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
 
     <label style="margin-top:0;">Monto asignado:</label>
     <input type="number" name="monto_asignado" id="monto_asignado" min="0.01" step="0.01" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
@@ -41,7 +44,8 @@
     <thead>
       <tr>
         <th>ID</th>
-        <th>Periodo</th>
+        <th>Fecha inicio</th>
+        <th>Fecha fin</th>
         <th>Asignado</th>
         <th>Utilizado</th>
         <th>Departamento</th>
@@ -111,13 +115,18 @@ let presupuestosLoaded = false;
 let centrosLoaded = false;
 
 function validarPresupuesto(){
-  const periodo = document.getElementById("periodo").value;
+  const fechaInicio = document.getElementById("fecha_inicio").value;
+  const fechaFin = document.getElementById("fecha_fin").value;
   const asignado = parseFloat(document.getElementById("monto_asignado").value);
   const utilizado = parseFloat(document.getElementById("monto_utilizado").value);
   const departamento = document.getElementById("id_departamento").value;
 
-  if(!periodo){
-    alert("Debe ingresar un periodo válido.");
+  if(!fechaInicio || !fechaFin){
+    alert("Debe ingresar fecha inicio y fecha fin.");
+    return false;
+  }
+  if(fechaInicio > fechaFin){
+    alert("La fecha de inicio no puede ser posterior a la fecha de fin.");
     return false;
   }
 
@@ -239,11 +248,11 @@ function renderPresupuestos(data){
     const deleteUrl = `/presupuestos/eliminar/${p.id_presupuesto}`;
     const editUrl = `/presupuestos/actualizar/${p.id_presupuesto}`;
 
-    // fila únicamente con <tr>
     const row = `
       <tr id="row-${p.id_presupuesto}">
         <td>${p.id_presupuesto}</td>
-        <td>${p.periodo}</td>
+        <td>${p.fecha_inicio}</td>
+        <td>${p.fecha_fin}</td>
         <td>$${parseFloat(p.monto_asignado).toFixed(2)}</td>
         <td>$${parseFloat(p.monto_utilizado).toFixed(2)}</td>
         <td>${p.departamento}</td>
@@ -259,15 +268,17 @@ function renderPresupuestos(data){
     `;
     tbody.insertAdjacentHTML('beforeend', row);
 
-    // modal OUTSIDE de la tabla (en modalsRoot)
     const modal = `
       <div id="overlay-presupuesto-${p.id_presupuesto}" class="modal-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.35);z-index:999;" onclick="closeModalPresupuesto(${p.id_presupuesto})"></div>
 
-      <div id="modal-presupuesto-${p.id_presupuesto}" class="edit-modal" style="display:none;position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);width:380px;background:#fff;border-radius:8px;padding:22px;z-index:1000;">
+      <div id="modal-presupuesto-${p.id_presupuesto}" class="edit-modal" style="display:none;position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);width:420px;background:#fff;border-radius:8px;padding:22px;z-index:1000;">
         <h3>Editar Presupuesto</h3>
         <form action="${editUrl}" method="POST" onsubmit="return validarPresupuestoModal(${p.id_presupuesto})">
-          <label>Periodo (AAAA-MM-DD):</label>
-          <input type="date" name="periodo" value="${p.periodo}" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;margin-bottom:10px;" id="edit_periodo_${p.id_presupuesto}">
+          <label>Fecha inicio:</label>
+          <input type="date" name="fecha_inicio" value="${p.fecha_inicio}" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;margin-bottom:10px;" id="edit_fecha_inicio_${p.id_presupuesto}">
+
+          <label>Fecha fin:</label>
+          <input type="date" name="fecha_fin" value="${p.fecha_fin}" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;margin-bottom:10px;" id="edit_fecha_fin_${p.id_presupuesto}">
 
           <label>Monto asignado:</label>
           <input type="number" name="monto_asignado" value="${p.monto_asignado}" min="0.01" step="0.01" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;margin-bottom:10px;" id="edit_asignado_${p.id_presupuesto}">
@@ -291,13 +302,11 @@ function renderPresupuestos(data){
     `;
     modalsRoot.insertAdjacentHTML('beforeend', modal);
 
-    // opcional: establecer el departamento seleccionado
-    if (p.id_departamento) {
-      setTimeout(() => {
-        const sel = document.getElementById(`edit_departamento_${p.id_presupuesto}`);
-        if (sel) sel.value = p.id_departamento;
-      }, 0);
-    }
+    // set selected departamento
+    setTimeout(() => {
+      const sel = document.getElementById(`edit_departamento_${p.id_presupuesto}`);
+      if (sel && p.id_departamento) sel.value = p.id_departamento;
+    }, 0);
   });
 }
 
@@ -369,8 +378,19 @@ function renderCentros(data){
 }
 
 function validarPresupuestoModal(id){
+  const fi = document.getElementById(`edit_fecha_inicio_${id}`).value;
+  const ff = document.getElementById(`edit_fecha_fin_${id}`).value;
   const asignado = parseFloat(document.getElementById(`edit_asignado_${id}`).value);
   const utilizado = parseFloat(document.getElementById(`edit_utilizado_${id}`).value);
+
+  if(!fi || !ff){
+    alert("Debe ingresar fecha inicio y fecha fin.");
+    return false;
+  }
+  if(fi > ff){
+    alert("La fecha de inicio no puede ser posterior a la fecha de fin.");
+    return false;
+  }
 
   if(!asignado || asignado <= 0){
     alert("El monto asignado debe ser un número positivo.");

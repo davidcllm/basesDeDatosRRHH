@@ -197,7 +197,8 @@ CREATE TABLE IF NOT EXISTS `mydb`.`ASISTENCIA` (
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `mydb`.`PRESUPUESTO` (
   `id_presupuesto` INT NOT NULL AUTO_INCREMENT,
-  `periodo` DATE NOT NULL,
+  `fecha_inicio` DATE NOT NULL,
+  `fecha_fin` DATE NOT NULL,
   `monto_asignado` DECIMAL(10,2) NOT NULL,
   `monto_utilizado` DECIMAL(10,2) NOT NULL,
   `id_departamento` INT NOT NULL,
@@ -500,10 +501,10 @@ INSERT INTO `mydb`.`ASISTENCIA` (`id_empleado`, `fecha_inicio`, `fecha_fin`) VAL
 (2, '2025-01-02 09:00:00', '2025-01-02 18:00:00'),
 (3, '2025-01-02 08:45:00', '2025-01-02 17:15:00');
 
-INSERT INTO `PRESUPUESTO` (periodo, monto_asignado, monto_utilizado, id_departamento) VALUES
-('2024-01-01', 500000.00, 200000.00, 1),
-('2024-01-01', 300000.00, 150000.00, 2),
-('2024-01-01', 700000.00, 500000.00, 3);
+INSERT INTO `PRESUPUESTO` (fecha_inicio, fecha_fin, monto_asignado, monto_utilizado, id_departamento) VALUES
+('2024-01-01','2024-01-31', 500000.00, 200000.00, 1),
+('2024-01-01','2024-01-31', 300000.00, 150000.00, 2),
+('2024-01-01','2024-01-31', 700000.00, 500000.00, 3);
 
 INSERT INTO `PROYECTO` (nombre, descripcion, fecha_inicio, fecha_fin) VALUES
 ('Sistema Contable', 'Desarrollo de un sistema contable interno', '2024-01-01', '2024-06-30'),
@@ -518,7 +519,7 @@ INSERT INTO `EMPLEADO-PROYECTO` (id_empleado, id_proyecto, horas_asignadas, fech
 INSERT INTO `CENTRO_COSTO` (nombre, descipcion, id_departamento) VALUES
 ('Infraestructura', 'Costos de hardware y redes', 1),
 ('Capacitaciones', 'Gastos de cursos', 2),
-('Contabilidad', 'Gestión financiera', 3);
+('Contabilidad', 'Manejo de finanzas', 3);
 
 INSERT INTO `CUENTA_CONTABLE` (banco, numero_cuenta, tipo, saldo, id_centro_costo) VALUES
 ('BBVA', 'CC1111', 'Operativa', 50000.00, 1),
