@@ -334,103 +334,6 @@ function renderProyectos(data){
       </div>
     `;
     modalsRoot.insertAdjacentHTML('beforeend', editModal);
-  });
-}
-
-function toggleProyectos(){
-  const container = document.getElementById('proyectos-container');
-  const btn = document.getElementById('toggle-proyectos');
-  const search = document.getElementById('search-proyectos');
-
-  if(!proyectosLoaded){
-    loadProyectos();
-    proyectosLoaded = true;
-  }
-
-  if(container.style.display === 'none'){
-    container.style.display = 'block';
-    search.style.display = 'block';
-    btn.textContent = '▲ Ocultar Proyectos';
-  } else {
-    container.style.display = 'none';
-    search.style.display = 'none';
-    btn.textContent = '▼ Cargar Proyectos';
-  }
-}
-
-function loadProyectos(){
-  // Usar Promise.all para esperar ambas peticiones
-  Promise.all([
-    fetch('{{ url_for("proyectos.get_proyectos") }}').then(r => r.json()),
-    fetch('{{ url_for("proyectos.get_empleados") }}').then(r => r.json())
-  ])
-  .then(([proyectosResponse, empleadosResponse]) => {
-    proyectosData = proyectosResponse;
-    empleadosData = empleadosResponse;
-    renderProyectos(proyectosData);
-  })
-  .catch(e => console.error('Error cargando datos:', e));
-}
-
-function renderProyectos(data){
-  const tbody = document.getElementById('proyectos-tbody');
-  const modalsRoot = document.getElementById('modals-root');
-  tbody.innerHTML = '';
-  modalsRoot.innerHTML = '';
-
-  data.forEach(p => {
-    const deleteUrl = `/proyectos/${p.id_proyecto}`;
-    const editUrl = `/proyectos/actualizar/${p.id_proyecto}`;
-    const assignUrl = `/proyectos/asignar`;
-
-    // fila
-    const row = `
-      <tr id="row-${p.id_proyecto}">
-        <td>${p.id_proyecto}</td>
-        <td>${escapeHtml(p.nombre)}</td>
-        <td>${escapeHtml(p.descripcion || '')}</td>
-        <td>${p.fecha_inicio || ''}</td>
-        <td>${p.fecha_fin || ''}</td>
-        <td style="text-align:right; width:320px;">
-          <div style="display:flex;gap:8px;justify-content:flex-end;align-items:center;">
-            <button type="button" class="btn btn-link" onclick="openModalEdit(${p.id_proyecto})" style="padding:0 8px;">Editar</button>
-
-            <button type="button" class="btn btn-link" onclick="openModalAsignar(${p.id_proyecto})" style="padding:0 8px;">Asignar empleado</button>
-
-            <form action="${deleteUrl}" method="POST" style="margin:0;">
-              <button type="submit" class="btn btn-primary" style="background:#007bff;border-color:#007bff;padding:6px 18px;border-radius:6px;color:#fff;" onclick="return confirm('¿Eliminar proyecto?')">Eliminar</button>
-            </form>
-          </div>
-        </td>
-      </tr>
-    `;
-    tbody.insertAdjacentHTML('beforeend', row);
-
-    // modal editar (fuera de la tabla)
-    const editModal = `
-      <div id="overlay-edit-${p.id_proyecto}" class="modal-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.35);z-index:999;" onclick="closeModalEdit(${p.id_proyecto})"></div>
-      <div id="modal-edit-${p.id_proyecto}" class="edit-modal" style="display:none;position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);width:520px;background:#fff;border-radius:8px;padding:22px;z-index:1000;">
-        <h3>Editar Proyecto</h3>
-        <form action="${editUrl}" method="POST" onsubmit="return validarEditarProyecto(${p.id_proyecto})">
-          <label>Nombre:</label>
-          <input type="text" name="nombre" value="${escapeAttr(p.nombre)}" maxlength="45" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;margin-bottom:8px;" id="edit_nombre_${p.id_proyecto}">
-          <label>Descripción:</label>
-          <textarea name="descripcion" maxlength="145" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;margin-bottom:8px;" id="edit_descripcion_${p.id_proyecto}">${escapeHtml(p.descripcion || '')}</textarea>
-
-          <label>Fecha inicio:</label>
-          <input type="date" name="fecha_inicio" id="edit_fecha_inicio_${p.id_proyecto}" value="${p.fecha_inicio || ''}" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;margin-bottom:8px;">
-
-          <label>Fecha fin:</label>
-          <input type="date" name="fecha_fin" id="edit_fecha_fin_${p.id_proyecto}" value="${p.fecha_fin || ''}" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;margin-bottom:8px;">
-
-          <div style="display:flex;gap:10px;margin-top:12px;">
-            <button type="submit" class="btn" style="flex:1;background:#0069ff;color:#fff;padding:10px;border-radius:6px;border:0;">Actualizar</button>
-            <button type="button" class="btn" style="flex:1;background:#e9ecef;color:#333;padding:10px;border-radius:6px;border:0;" onclick="closeModalEdit(${p.id_proyecto})">Cancelar</button>
-          </div>
-        </form>
-      </div>
-    `;
-    modalsRoot.insertAdjacentHTML('beforeend', editModal);
 
     // modal asignar empleado
     let empleadosOptions = '<option value="">Seleccione un empleado</option>';
@@ -658,18 +561,18 @@ function validarEditarProyecto(id){
   return true;
 }
 
-function validarAsignar(id){
-  const empleado = document.getElementById(`assign_empleado_${id}`).value;
-  const horas = document.getElementById(`assign_horas_${id}`).value;
-  const fechaInicio = document.getElementById(`assign_fecha_inicio_${id}`).value;
-  const fechaFin = document.getElementById(`assign_fecha_fin_${id}`).value;
+function validarAsignar(projectId){
+  const empleado = document.getElementById(`assign_empleado_${projectId}`).value;
+  const horas = document.getElementById(`assign_horas_${projectId}`).value;
+  const fechaInicio = document.getElementById(`assign_fecha_inicio_${projectId}`).value;
+  const fechaFin = document.getElementById(`assign_fecha_fin_${projectId}`).value;
 
   if(!empleado){
     alert("Debe seleccionar un empleado.");
     return false;
   }
 
-  if(!horas || horas <= 0 || !Number.isInteger(parseFloat(horas))){
+  if(!horas || parseInt(horas) <= 0 || !Number.isInteger(parseFloat(horas))){
     alert("Las horas asignadas deben ser un número entero positivo.");
     return false;
   }
@@ -684,21 +587,43 @@ function validarAsignar(id){
     return false;
   }
 
+  // validar contra rango del proyecto
+  const proyecto = proyectosData.find(p => String(p.id_proyecto) === String(projectId));
+  if(!proyecto){
+    alert("Datos del proyecto no disponibles. Recargue la lista de proyectos.");
+    return false;
+  }
+  if(fechaInicio < proyecto.fecha_inicio || fechaFin > proyecto.fecha_fin){
+    alert(`Las fechas deben estar entre ${proyecto.fecha_inicio} y ${proyecto.fecha_fin}.`);
+    return false;
+  }
+
   return true;
 }
 
 function validarEditarAsignacion(id){
   const empleado = document.getElementById(`edit_asign_empleado_${id}`).value;
-  const proyecto = document.getElementById(`edit_asign_proyecto_${id}`).value;
+  const proyectoId = document.getElementById(`edit_asign_proyecto_${id}`).value;
   const horas = document.getElementById(`edit_asign_horas_${id}`).value;
   const fechaInicio = document.getElementById(`edit_asign_fecha_inicio_${id}`).value;
   const fechaFin = document.getElementById(`edit_asign_fecha_fin_${id}`).value;
 
   if(!empleado){ alert("Seleccione un empleado."); return false; }
-  if(!proyecto){ alert("Seleccione un proyecto."); return false; }
+  if(!proyectoId){ alert("Seleccione un proyecto."); return false; }
   if(!horas || parseInt(horas) <= 0){ alert("Horas deben ser un entero positivo."); return false; }
   if(!fechaInicio || !fechaFin){ alert("Ingrese ambas fechas."); return false; }
   if(fechaInicio >= fechaFin){ alert("La fecha de asignación debe ser anterior a la fecha de entrega."); return false; }
+
+  const proyecto = proyectosData.find(p => String(p.id_proyecto) === String(proyectoId));
+  if(!proyecto){
+    alert("Datos del proyecto no disponibles. Recargue la lista de proyectos.");
+    return false;
+  }
+  if(fechaInicio < proyecto.fecha_inicio || fechaFin > proyecto.fecha_fin){
+    alert(`Las fechas deben estar entre ${proyecto.fecha_inicio} y ${proyecto.fecha_fin}.`);
+    return false;
+  }
+
   return true;
 }
 
