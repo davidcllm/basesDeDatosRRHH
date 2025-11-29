@@ -1,10 +1,14 @@
 from flask import Blueprint, render_template, request, redirect, url_for
+from flask_jwt_extended import jwt_required
+from routes.auth import roles_required
 from dp import get_connection
 import pymysql
 
 empleados_bp = Blueprint("empleados", __name__)
 
 @empleados_bp.route("/empleados")
+@jwt_required()
+@roles_required('administrador','finanzas', 'recursos_humanos')
 def empleados():
     cnx = get_connection()
     
@@ -20,6 +24,8 @@ def empleados():
     return render_template("empleados.html", empleados=empleados)
 
 @empleados_bp.route("/empleados/agregar", methods=["POST"])
+@jwt_required()
+@roles_required('administrador','finanzas', 'recursos_humanos')
 def agregar_empleado():
     nombre = request.form["nombre"]
     apellido = request.form["apellido"]
@@ -74,6 +80,8 @@ def agregar_empleado():
     return redirect(url_for("empleados.empleados"))
 
 @empleados_bp.route("/empleados/eliminar/<int:id>", methods=["POST"])
+@jwt_required()
+@roles_required('administrador','finanzas', 'recursos_humanos')
 def eliminar_empleado(id):
     cnx = get_connection()
     cursor = cnx.cursor()
@@ -84,6 +92,8 @@ def eliminar_empleado(id):
     return redirect(url_for("empleados.empleados"))
 
 @empleados_bp.route("/empleados/editar/<int:id>", methods=["POST"])
+@jwt_required()
+@roles_required('administrador','finanzas', 'recursos_humanos')
 def editar_empleado(id):
     nombre = request.form["nombre"]
     apellido = request.form["apellido"]
