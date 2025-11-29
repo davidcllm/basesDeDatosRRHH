@@ -19,16 +19,22 @@
         <td>{{ u.id_usuario }}</td>
         <td>{{ u.email }}</td>
         <td>{{ u.rol }}</td>
-        <td style="text-align:right; width:320px;">
-          <form action="{{ url_for('seguridad.modificar_rol', id_usuario=u.id_usuario) }}" method="POST" style="display:flex; gap:8px; justify-content:flex-end; align-items:center;">
-            <select name="rol" required style="padding:8px;border-radius:6px;border:1px solid #ddd;background:#fff;">
-              <option value="administrador" {% if u.rol == 'administrador' %}selected{% endif %}>Administrador</option>
-              <option value="finanzas" {% if u.rol == 'finanzas' %}selected{% endif %}>Finanzas</option>
-              <option value="recursos_humanos" {% if u.rol == 'recursos_humanos' %}selected{% endif %}>Recursos Humanos</option>
-              <option value="invitado" {% if u.rol == 'invitado' %}selected{% endif %}>Invitado</option>
-            </select>
-            <button type="submit" class="btn" style="background:#0069ff;color:#fff;padding:8px 12px;border-radius:6px;border:0;">Guardar</button>
-          </form>
+        <td style="text-align:right; width:420px;">
+          <div style="display:flex;gap:8px;justify-content:flex-end;align-items:center;">
+            <form action="{{ url_for('seguridad.modificar_rol', id_usuario=u.id_usuario) }}" method="POST" style="display:flex; gap:8px; justify-content:flex-end; align-items:center; flex:1;">
+              <select name="rol" required style="padding:8px;border-radius:6px;border:1px solid #ddd;background:#fff;">
+                <option value="administrador" {% if u.rol == 'administrador' %}selected{% endif %}>Administrador</option>
+                <option value="finanzas" {% if u.rol == 'finanzas' %}selected{% endif %}>Finanzas</option>
+                <option value="recursos_humanos" {% if u.rol == 'recursos_humanos' %}selected{% endif %}>Recursos Humanos</option>
+                <option value="invitado" {% if u.rol == 'invitado' %}selected{% endif %}>Invitado</option>
+              </select>
+              <button type="submit" class="btn" style="background:#0069ff;color:#fff;padding:8px 12px;border-radius:6px;border:0;">Guardar</button>
+            </form>
+
+            <form action="{{ url_for('seguridad.eliminar_usuario', id_usuario=u.id_usuario) }}" method="POST" style="margin:0;">
+              <button type="submit" class="btn btn-primary" style="background:#dc3545;border-color:#dc3545;padding:8px 18px;border-radius:6px;color:#fff;" onclick="return confirm('¿Eliminar usuario {{ u.email }}?')">Eliminar</button>
+            </form>
+          </div>
         </td>
       </tr>
       {% endfor %}
