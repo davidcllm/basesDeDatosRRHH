@@ -32,7 +32,7 @@ def seguridad():
 @roles_required('administrador')
 def modificar_rol(id_usuario):
     new_rol = request.form.get("rol")
-    ALLOWED_ROLES = ['administrador', 'finanzas', 'recursos_humanos']
+    ALLOWED_ROLES = ['administrador', 'finanzas', 'recursos_humanos', 'invitado']
     if new_rol not in ALLOWED_ROLES:
         flash("Rol inválido.", "error")
         return redirect(url_for("seguridad.seguridad"))
