@@ -517,7 +517,7 @@ INSERT INTO `EMPLEADO-PROYECTO` (id_empleado, id_proyecto, horas_asignadas, fech
 
 INSERT INTO `CENTRO_COSTO` (nombre, descipcion, id_departamento) VALUES
 ('Infraestructura', 'Costos de hardware y redes', 1),
-('Capacitación', 'Gastos de cursos', 2),
+('Capacitaciones', 'Gastos de cursos', 2),
 ('Contabilidad', 'Gestión financiera', 3);
 
 INSERT INTO `CUENTA_CONTABLE` (banco, numero_cuenta, tipo, saldo, id_centro_costo) VALUES
