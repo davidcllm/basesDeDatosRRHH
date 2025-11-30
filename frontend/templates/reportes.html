@@ -22,150 +22,56 @@
     </select>
 </form>
 
-
 <div class="text-center mb-3">
-    <form id="csvDownloadForm" method="get" action="/reportes/descargar" style="display:inline;">
-        <input type="hidden" name="tipo" value="{{ tipo }}">
-        <input type="hidden" name="formato" value="csv">
-        <button type="submit" class="btn btn-sm btn-outline-primary">Descargar CSV</button>
-    </form>
-</div>
-    {% if tipo == 'nomina' or tipo == 'todos' %}
-    <div class="stat-card">
-        <div class="stat-label">Total Nómina</div>
-        <div class="stat-value">${{ "%.2f"|format(stats.get('nomina_total', 0)) }}</div>
-    </div>
-    <div class="stat-card">
-        <div class="stat-label">Promedio Salario</div>
-        <div class="stat-value">${{ "%.2f"|format(stats.get('nomina_promedio', 0)) }}</div>
-    </div>
-    {% endif %}
-    {% if tipo == 'ausencias' or tipo == 'todos' %}
-    <div class="stat-card">
-        <div class="stat-label">Total Ausencias</div>
-        <div class="stat-value">{{ stats.get('ausencias_cantidad', 0) }}</div>
-    </div>
-    {% endif %}
-    {% if tipo == 'evaluaciones' or tipo == 'todos' %}
-    <div class="stat-card">
-        <div class="stat-label">Total Evaluaciones</div>
-        <div class="stat-value">{{ stats.get('evaluaciones_cantidad', 0) }}</div>
-    </div>
-    {% endif %}
-    {% if tipo == 'capacitaciones' or tipo == 'todos' %}
-    <div class="stat-card">
-        <div class="stat-label">Total Capacitaciones</div>
-        <div class="stat-value">{{ stats.get('capacitaciones_cantidad', 0) }}</div>
-    </div>
-    {% endif %}
-    {% if tipo == 'proyectos' or tipo == 'todos' %}
-    <div class="stat-card">
-        <div class="stat-label">Proyectos Activos</div>
-        <div class="stat-value">{{ stats.get('proyectos_cantidad', 0) }}</div>
-    </div>
-    <div class="stat-card">
-        <div class="stat-label">Horas Asignadas</div>
-        <div class="stat-value">{{ stats.get('proyectos_horas', 0) }}</div>
-    </div>
-    {% endif %}
-    {% if tipo == 'presupuestos' or tipo == 'todos' %}
-    <div class="stat-card">
-        <div class="stat-label">Presupuesto Total</div>
-        <div class="stat-value">${{ "%.2f"|format(stats.get('presupuestos_asignado', 0)) }}</div>
-    </div>
-    <div class="stat-card">
-        <div class="stat-label">Utilizado</div>
-        <div class="stat-value">${{ "%.2f"|format(stats.get('presupuestos_utilizado', 0)) }}</div>
-    </div>
-    {% endif %}
+    <a id="btnCsv" class="btn btn-sm btn-outline-primary" href="/reportes/descargar?tipo={{ tipo }}&formato=csv">Descargar CSV</a>
 </div>
 
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
 <style>
-    body {
-        background-color: #f8f9fa;
-    }
-    .stats-container {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-        gap: 12px;
-        max-width: 100%;
-        margin: 0 auto;
-        padding: 0 15px;
-    }
-    .stat-card {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        padding: 15px;
-        border-radius: 8px;
-        text-align: center;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        font-size: 12px;
-    }
-    .stat-label {
-        font-size: 11px;
-        font-weight: 600;
-        opacity: 0.9;
-        margin-bottom: 5px;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-    .stat-value {
-        font-size: 18px;
-        font-weight: bold;
-    }
     .report-card {
-        max-width: 100%;
-        margin: 20px auto;
+        max-width: 1200px;
+        margin: 25px auto;
         padding: 20px;
-        border-radius: 10px;
+        border-radius: 12px;
         background: #ffffff;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        box-shadow: 0 2px 10px rgba(0,0,0,0.08);
     }
     .report-card h2 {
-        margin-bottom: 10px;
-        font-size: 20px;
+        margin-bottom: 8px;
+        font-size: 22px;
         font-weight: bold;
-        color: #333;
     }
     .report-card p {
         color: #6c757d;
-        font-size: 13px;
-        margin-bottom: 15px;
-    }
-    .table-responsive {
-        border-radius: 8px;
-        overflow: auto;
+        font-size: 14px;
+        margin-bottom: 16px;
     }
     table.dataTable {
         width: 100%;
-        font-size: 12px;
+        text-align: left;
+        border-collapse: collapse;
     }
     table.dataTable thead th {
-        background: #e7f3ff;
-        padding: 10px 8px;
+        background: #eaf1ff;
+        font-size: 14px;
+        padding: 10px;
         font-weight: 600;
         border-bottom: 2px solid #0066ff;
-        font-size: 11px;
-        white-space: nowrap;
     }
     table.dataTable tbody td {
-        padding: 8px;
+        padding: 8px 12px;
+        font-size: 13px;
         border-bottom: 1px solid #eaeaea;
     }
     table.dataTable tbody tr:hover {
         background-color: #f5f5f5;
     }
     .empty-msg {
-        padding: 20px;
+        padding: 12px;
         text-align: center;
         font-size: 13px;
         font-style: italic;
-        color: #999;
-    }
-    .dataTables_wrapper {
-        font-size: 12px;
+        color: #777;
     }
 </style>
 
@@ -176,28 +82,26 @@
     <h2>Resumen de Nómina</h2>
     <p>Salarios registrados por empleado.</p>
     {% if rep_nomina %}
-    <table class="display table dataTable tbl-nomina">
+    <table class="display table dataTable" id="tblNomina">
         <thead>
             <tr>
-                <th class="col-nomina-id">ID</th>
-                <th class="col-nomina-empleado">Empleado</th>
-                <th class="col-nomina-depto">Depto</th>
-                <th class="col-nomina-base">Salario Base</th>
-                <th class="col-nomina-ded">Deducciones</th>
-                <th class="col-nomina-perc">Percepciones</th>
-                <th class="col-nomina-total">Total</th>
+                <th>ID Nómina</th>
+                <th>Empleado</th>
+                <th>Salario base</th>
+                <th>Deducciones</th>
+                <th>Percepciones</th>
+                <th>Total a pagar</th>
             </tr>
         </thead>
         <tbody>
             {% for n in rep_nomina %}
             <tr>
-                <td class="col-nomina-id">{{ n.id_nomina }}</td>
-                <td class="col-nomina-empleado">{{ n.nombre_completo or 'N/A' }}</td>
-                <td class="col-nomina-depto">{{ n.departamento or 'N/A' }}</td>
-                <td class="col-nomina-base">{{ n.salario_base or '0' }}</td>
-                <td class="col-nomina-ded">{{ n.deducciones or '0' }}</td>
-                <td class="col-nomina-perc">{{ n.percepciones or '0' }}</td>
-                <td class="col-nomina-total">{{ n.total_pagar or '0' }}</td>
+                <td>{{ n.id_nomina }}</td>
+                <td>{{ n.nombre_completo or 'N/A' }}</td>
+                <td>{{ n.salario_base or '0' }}</td>
+                <td>{{ n.deducciones or '0' }}</td>
+                <td>{{ n.percepciones or '0' }}</td>
+                <td>{{ n.total_pagar or '0' }}</td>
             </tr>
             {% endfor %}
         </tbody>
@@ -215,28 +119,24 @@
     <h2>Ausencias del Personal</h2>
     <p>Ausencias registradas por empleado.</p>
     {% if rep_ausencias %}
-    <table class="display table dataTable tbl-ausencias">
+    <table class="display table dataTable" id="tblAusencias">
         <thead>
             <tr>
-                <th class="col-aus-empleado">Empleado</th>
-                <th class="col-aus-depto">Depto</th>
-                <th class="col-aus-tipo">Tipo</th>
-                <th class="col-aus-inicio">Inicio</th>
-                <th class="col-aus-fin">Fin</th>
-                <th class="col-aus-dias">Días</th>
-                <th class="col-aus-motivo">Motivo</th>
+                <th>Empleado</th>
+                <th>Tipo</th>
+                <th>Fecha inicio</th>
+                <th>Fecha fin</th>
+                <th>Motivo</th>
             </tr>
         </thead>
         <tbody>
             {% for a in rep_ausencias %}
             <tr>
-                <td class="col-aus-empleado">{{ a.nombre_completo or 'N/A' }}</td>
-                <td class="col-aus-depto">{{ a.departamento or 'N/A' }}</td>
-                <td class="col-aus-tipo">{{ a.tipo or 'N/A' }}</td>
-                <td class="col-aus-inicio">{{ a.fecha_inicio or 'N/A' }}</td>
-                <td class="col-aus-fin">{{ a.fecha_fin or 'N/A' }}</td>
-                <td class="col-aus-dias">{{ a.dias_ausencia or '0' }}</td>
-                <td class="col-aus-motivo">{{ a.motivo or 'N/A' }}</td>
+                <td>{{ a.nombre_completo or 'N/A' }}</td>
+                <td>{{ a.tipo or 'N/A' }}</td>
+                <td>{{ a.fecha_inicio or 'N/A' }}</td>
+                <td>{{ a.fecha_fin or 'N/A' }}</td>
+                <td>{{ a.motivo or 'N/A' }}</td>
             </tr>
             {% endfor %}
         </tbody>
@@ -254,26 +154,24 @@
     <h2>Evaluaciones de Desempeño</h2>
     <p>Evaluaciones aplicadas a los empleados.</p>
     {% if rep_evaluaciones %}
-    <table class="display table dataTable tbl-evaluaciones">
+    <table class="display table dataTable" id="tblEvaluaciones">
         <thead>
             <tr>
-                <th class="col-eval-empleado">Empleado</th>
-                <th class="col-eval-depto">Depto</th>
-                <th class="col-eval-fecha">Fecha</th>
-                <th class="col-eval-tipo">Tipo</th>
-                <th class="col-eval-resultado">Resultado</th>
-                <th class="col-eval-obs">Observaciones</th>
+                <th>Empleado</th>
+                <th>Fecha evaluación</th>
+                <th>Tipo</th>
+                <th>Resultado</th>
+                <th>Observaciones</th>
             </tr>
         </thead>
         <tbody>
             {% for ev in rep_evaluaciones %}
             <tr>
-                <td class="col-eval-empleado">{{ ev.nombre_completo or 'N/A' }}</td>
-                <td class="col-eval-depto">{{ ev.departamento or 'N/A' }}</td>
-                <td class="col-eval-fecha">{{ ev.fecha_evaluacion or 'N/A' }}</td>
-                <td class="col-eval-tipo">{{ ev.tipo or 'N/A' }}</td>
-                <td class="col-eval-resultado">{{ ev.resultado or 'N/A' }}</td>
-                <td class="col-eval-obs">{{ ev.observaciones or 'N/A' }}</td>
+                <td>{{ ev.nombre_completo or 'N/A' }}</td>
+                <td>{{ ev.fecha_evaluacion or 'N/A' }}</td>
+                <td>{{ ev.tipo or 'N/A' }}</td>
+                <td>{{ ev.resultado or 'N/A' }}</td>
+                <td>{{ ev.observaciones or 'N/A' }}</td>
             </tr>
             {% endfor %}
         </tbody>
@@ -291,30 +189,28 @@
     <h2>Capacitaciones por Empleado</h2>
     <p>Listado de cursos realizados.</p>
     {% if rep_capacitaciones %}
-    <table class="display table dataTable tbl-capacitaciones">
+    <table class="display table dataTable" id="tblCapacitaciones">
         <thead>
             <tr>
-                <th class="col-cap-empleado">Empleado</th>
-                <th class="col-cap-depto">Depto</th>
-                <th class="col-cap-nombre">Capacitación</th>
-                <th class="col-cap-proveedor">Proveedor</th>
-                <th class="col-cap-inicio">Inicio</th>
-                <th class="col-cap-fin">Fin</th>
-                <th class="col-cap-resultado">Resultado</th>
-                <th class="col-cap-comentarios">Comentarios</th>
+                <th>Empleado</th>
+                <th>Capacitación</th>
+                <th>Proveedor</th>
+                <th>Fecha inicio</th>
+                <th>Fecha fin</th>
+                <th>Resultado</th>
+                <th>Comentarios</th>
             </tr>
         </thead>
         <tbody>
             {% for c in rep_capacitaciones %}
             <tr>
-                <td class="col-cap-empleado">{{ c.nombre_completo or 'N/A' }}</td>
-                <td class="col-cap-depto">{{ c.departamento or 'N/A' }}</td>
-                <td class="col-cap-nombre">{{ c.capacitacion or 'N/A' }}</td>
-                <td class="col-cap-proveedor">{{ c.proveedor or 'N/A' }}</td>
-                <td class="col-cap-inicio">{{ c.fecha_inicio or 'N/A' }}</td>
-                <td class="col-cap-fin">{{ c.fecha_fin or 'N/A' }}</td>
-                <td class="col-cap-resultado">{{ c.resultado or 'N/A' }}</td>
-                <td class="col-cap-comentarios">{{ c.comentarios or 'N/A' }}</td>
+                <td>{{ c.nombre_completo or 'N/A' }}</td>
+                <td>{{ c.capacitacion or 'N/A' }}</td>
+                <td>{{ c.proveedor or 'N/A' }}</td>
+                <td>{{ c.fecha_inicio or 'N/A' }}</td>
+                <td>{{ c.fecha_fin or 'N/A' }}</td>
+                <td>{{ c.resultado or 'N/A' }}</td>
+                <td>{{ c.comentarios or 'N/A' }}</td>
             </tr>
             {% endfor %}
         </tbody>
@@ -332,26 +228,24 @@
     <h2>Participación en Proyectos</h2>
     <p>Asignaciones por cada empleado.</p>
     {% if rep_proyectos %}
-    <table class="display table dataTable tbl-proyectos">
+    <table class="display table dataTable" id="tblProyectos">
         <thead>
             <tr>
-                <th class="col-proy-empleado">Empleado</th>
-                <th class="col-proy-depto">Depto</th>
-                <th class="col-proy-nombre">Proyecto</th>
-                <th class="col-proy-horas">Horas</th>
-                <th class="col-proy-asignacion">Asignación</th>
-                <th class="col-proy-entrega">Entrega</th>
+                <th>Empleado</th>
+                <th>Proyecto</th>
+                <th>Horas asignadas</th>
+                <th>Fecha asignación</th>
+                <th>Fecha entrega</th>
             </tr>
         </thead>
         <tbody>
             {% for p in rep_proyectos %}
             <tr>
-                <td class="col-proy-empleado">{{ p.nombre_completo or 'N/A' }}</td>
-                <td class="col-proy-depto">{{ p.departamento or 'N/A' }}</td>
-                <td class="col-proy-nombre">{{ p.proyecto or 'N/A' }}</td>
-                <td class="col-proy-horas">{{ p.horas_asignadas or '0' }}</td>
-                <td class="col-proy-asignacion">{{ p.fecha_asignacion or 'N/A' }}</td>
-                <td class="col-proy-entrega">{{ p.fecha_entrega or 'N/A' }}</td>
+                <td>{{ p.nombre_completo or 'N/A' }}</td>
+                <td>{{ p.proyecto or 'N/A' }}</td>
+                <td>{{ p.horas_asignadas or '0' }}</td>
+                <td>{{ p.fecha_asignacion or 'N/A' }}</td>
+                <td>{{ p.fecha_entrega or 'N/A' }}</td>
             </tr>
             {% endfor %}
         </tbody>
@@ -369,26 +263,26 @@
     <h2>Presupuestos por Departamento</h2>
     <p>Asignación y uso de recursos.</p>
     {% if rep_presupuestos %}
-    <table class="display table dataTable tbl-presupuestos">
+    <table class="display table dataTable" id="tblPresupuestos">
         <thead>
             <tr>
-                <th class="col-pres-depto">Departamento</th>
-                <th class="col-pres-inicio">Inicio</th>
-                <th class="col-pres-fin">Fin</th>
-                <th class="col-pres-asignado">Asignado</th>
-                <th class="col-pres-utilizado">Utilizado</th>
-                <th class="col-pres-restante">Restante</th>
+                <th>Departamento</th>
+                <th>Inicio</th>
+                <th>Fin</th>
+                <th>Monto asignado</th>
+                <th>Monto utilizado</th>
+                <th>Restante</th>
             </tr>
         </thead>
         <tbody>
             {% for pr in rep_presupuestos %}
             <tr>
-                <td class="col-pres-depto">{{ pr.departamento or 'N/A' }}</td>
-                <td class="col-pres-inicio">{{ pr.fecha_inicio or 'N/A' }}</td>
-                <td class="col-pres-fin">{{ pr.fecha_fin or 'N/A' }}</td>
-                <td class="col-pres-asignado">{{ pr.monto_asignado or '0' }}</td>
-                <td class="col-pres-utilizado">{{ pr.monto_utilizado or '0' }}</td>
-                <td class="col-pres-restante">{{ pr.restante or '0' }}</td>
+                <td>{{ pr.departamento or 'N/A' }}</td>
+                <td>{{ pr.fecha_inicio or 'N/A' }}</td>
+                <td>{{ pr.fecha_fin or 'N/A' }}</td>
+                <td>{{ pr.monto_asignado or '0' }}</td>
+                <td>{{ pr.monto_utilizado or '0' }}</td>
+                <td>{{ pr.restante or '0' }}</td>
             </tr>
             {% endfor %}
         </tbody>
@@ -403,45 +297,7 @@
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
 <script>
-    // Almacenar preferencias de columnas
-    const columnPreferences = {
-        'nomina': ['col-nomina-id', 'col-nomina-empleado', 'col-nomina-base', 'col-nomina-total'],
-        'ausencias': ['col-aus-empleado', 'col-aus-tipo', 'col-aus-inicio', 'col-aus-dias'],
-        'evaluaciones': ['col-eval-empleado', 'col-eval-fecha', 'col-eval-resultado'],
-        'capacitaciones': ['col-cap-empleado', 'col-cap-nombre', 'col-cap-resultado'],
-        'proyectos': ['col-proy-empleado', 'col-proy-nombre', 'col-proy-horas'],
-        'presupuestos': ['col-pres-depto', 'col-pres-asignado', 'col-pres-utilizado', 'col-pres-restante']
-    };
-
-    function toggleColumn(tableClass, colClass) {
-        const headers = document.querySelectorAll(`.${tableClass} thead th.${colClass}`);
-        const cells = document.querySelectorAll(`.${tableClass} tbody td.${colClass}`);
-        const isHidden = headers[0]?.style.display === 'none';
-        
-        headers.forEach(h => h.style.display = isHidden ? '' : 'none');
-        cells.forEach(c => c.style.display = isHidden ? '' : 'none');
-        
-        localStorage.setItem(`col-${colClass}`, isHidden ? 'visible' : 'hidden');
-    }
-
-    function restoreColumnVisibility() {
-        // Restaurar preferencias guardadas
-        Object.keys(columnPreferences).forEach(table => {
-            columnPreferences[table].forEach(col => {
-                const pref = localStorage.getItem(`col-${col}`);
-                if (pref === 'hidden') {
-                    const headers = document.querySelectorAll(`.tbl-${table} th.${col}`);
-                    const cells = document.querySelectorAll(`.tbl-${table} td.${col}`);
-                    headers.forEach(h => h.style.display = 'none');
-                    cells.forEach(c => c.style.display = 'none');
-                }
-            });
-        });
-    }
-
     $(document).ready(function () {
-        restoreColumnVisibility();
-        
         var settings = {
             pageLength: 5,
             lengthMenu: [[5, 10, 20, -1], [5, 10, 20, "Todos"]],
@@ -459,119 +315,6 @@
         };
         
         $('table.dataTable').DataTable(settings);
-    });
-</script>
-
-<!-- Modal Personalizar Columnas -->
-<div class="modal fade" id="columnModal" tabindex="-1" aria-labelledby="columnModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="columnModalLabel">Personalizar Columnas</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <div id="columnOptions"></div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<script>
-    // Generar opciones de columnas dinámicamente
-    document.addEventListener('DOMContentLoaded', function() {
-        const columnOptions = document.getElementById('columnOptions');
-        const tipo = "{{ tipo }}";
-        
-        const allColumns = {
-            'nomina': [
-                {class: 'col-nomina-id', label: 'ID Nómina'},
-                {class: 'col-nomina-empleado', label: 'Empleado'},
-                {class: 'col-nomina-depto', label: 'Departamento'},
-                {class: 'col-nomina-base', label: 'Salario Base'},
-                {class: 'col-nomina-ded', label: 'Deducciones'},
-                {class: 'col-nomina-perc', label: 'Percepciones'},
-                {class: 'col-nomina-total', label: 'Total a Pagar'}
-            ],
-            'ausencias': [
-                {class: 'col-aus-empleado', label: 'Empleado'},
-                {class: 'col-aus-depto', label: 'Departamento'},
-                {class: 'col-aus-tipo', label: 'Tipo'},
-                {class: 'col-aus-inicio', label: 'Fecha Inicio'},
-                {class: 'col-aus-fin', label: 'Fecha Fin'},
-                {class: 'col-aus-dias', label: 'Días Ausencia'},
-                {class: 'col-aus-motivo', label: 'Motivo'}
-            ],
-            'evaluaciones': [
-                {class: 'col-eval-empleado', label: 'Empleado'},
-                {class: 'col-eval-depto', label: 'Departamento'},
-                {class: 'col-eval-fecha', label: 'Fecha Evaluación'},
-                {class: 'col-eval-tipo', label: 'Tipo'},
-                {class: 'col-eval-resultado', label: 'Resultado'},
-                {class: 'col-eval-obs', label: 'Observaciones'}
-            ],
-            'capacitaciones': [
-                {class: 'col-cap-empleado', label: 'Empleado'},
-                {class: 'col-cap-depto', label: 'Departamento'},
-                {class: 'col-cap-nombre', label: 'Capacitación'},
-                {class: 'col-cap-proveedor', label: 'Proveedor'},
-                {class: 'col-cap-inicio', label: 'Fecha Inicio'},
-                {class: 'col-cap-fin', label: 'Fecha Fin'},
-                {class: 'col-cap-resultado', label: 'Resultado'},
-                {class: 'col-cap-comentarios', label: 'Comentarios'}
-            ],
-            'proyectos': [
-                {class: 'col-proy-empleado', label: 'Empleado'},
-                {class: 'col-proy-depto', label: 'Departamento'},
-                {class: 'col-proy-nombre', label: 'Proyecto'},
-                {class: 'col-proy-horas', label: 'Horas Asignadas'},
-                {class: 'col-proy-asignacion', label: 'Fecha Asignación'},
-                {class: 'col-proy-entrega', label: 'Fecha Entrega'}
-            ],
-            'presupuestos': [
-                {class: 'col-pres-depto', label: 'Departamento'},
-                {class: 'col-pres-inicio', label: 'Fecha Inicio'},
-                {class: 'col-pres-fin', label: 'Fecha Fin'},
-                {class: 'col-pres-asignado', label: 'Monto Asignado'},
-                {class: 'col-pres-utilizado', label: 'Monto Utilizado'},
-                {class: 'col-pres-restante', label: 'Restante'}
-            ]
-        };
-        
-        // Mostrar columnas según el tipo de reporte seleccionado
-        let columnsToShow = [];
-        if (tipo === 'todos') {
-            Object.values(allColumns).forEach(cols => columnsToShow.push(...cols));
-        } else {
-            columnsToShow = allColumns[tipo] || [];
-        }
-        
-        columnsToShow.forEach(col => {
-            const checkbox = document.createElement('div');
-            checkbox.className = 'form-check';
-            checkbox.innerHTML = `
-                <input class="form-check-input" type="checkbox" id="${col.class}" checked>
-                <label class="form-check-label" for="${col.class}">${col.label}</label>
-            `;
-            checkbox.querySelector('input').addEventListener('change', function() {
-                const tableClass = tipo === 'todos' ? 'tbl-todos' : `tbl-${tipo}`;
-                if (!document.querySelector(`.${tableClass}`)) {
-                    // Encontrar la tabla correcta
-                    const tables = document.querySelectorAll(`[class*="tbl-"]`);
-                    tables.forEach(table => {
-                        if (table.querySelector(`th.${col.class}`) || table.querySelector(`td.${col.class}`)) {
-                            toggleColumn(table.className.match(/tbl-\w+/)[0], col.class);
-                        }
-                    });
-                } else {
-                    toggleColumn(tableClass, col.class);
-                }
-            });
-            columnOptions.appendChild(checkbox);
-        });
     });
 </script>
 
