@@ -3,6 +3,7 @@ from flask_jwt_extended import jwt_required
 from routes.auth import roles_required
 from dp import get_connection
 import pymysql
+from datetime import datetime
 
 asistencias_bp = Blueprint("asistencias", __name__)
 
@@ -80,9 +81,14 @@ def agregar_ausencia():
 
     id_empleado = request.form["id_empleado"]
     tipo = request.form["tipo"]
-    fecha_inicio = request.form["fecha_inicio"]
-    fecha_fin = request.form["fecha_fin"]
+    fecha_inicio = request.form.get("fecha_inicio")
+    fecha_fin = request.form.get("fecha_fin")
     motivo = request.form["motivo"]
+
+    # VALIDACIÓN: que las fechas no estén vacías
+    if not fecha_inicio or not fecha_fin:
+        flash("La fecha de inicio y la fecha de fin no pueden estar vacías.", "error")
+        return redirect(url_for("asistencias.asistencias"))
 
     # VALIDACIÓN: inicio no puede ser mayor a fin
     if fecha_inicio > fecha_fin:
@@ -122,9 +128,14 @@ def editar_ausencia(id_ausencia):
 
     id_empleado = request.form["id_empleado"]
     tipo = request.form["tipo"]
-    fecha_inicio = request.form["fecha_inicio"]
-    fecha_fin = request.form["fecha_fin"]
+    fecha_inicio = request.form.get("fecha_inicio")
+    fecha_fin = request.form.get("fecha_fin")
     motivo = request.form["motivo"]
+
+    # VALIDACIÓN: que las fechas no estén vacías
+    if not fecha_inicio or not fecha_fin:
+        flash("La fecha de inicio y la fecha de fin no pueden estar vacías.", "error")
+        return redirect(url_for("asistencias.asistencias"))
 
     # VALIDACIÓN: inicio no puede ser mayor a fin
     if fecha_inicio > fecha_fin:
@@ -185,8 +196,25 @@ def eliminar_ausencia(id_ausencia):
 def agregar_asistencia():
 
     id_empleado = request.form["id_empleado"]
-    fecha_inicio = request.form["fecha_inicio"]
-    fecha_fin = request.form["fecha_fin"]
+    fecha_inicio = request.form.get("fecha_inicio")
+    fecha_fin = request.form.get("fecha_fin")
+
+    # VALIDACIÓN: que las fechas no estén vacías
+    if not fecha_inicio or not fecha_fin:
+        flash("La fecha de inicio y la fecha de fin no pueden estar vacías.", "error")
+        return redirect(url_for("asistencias.asistencias"))
+    
+    # VALIDACIÓN: que sean del mismo día
+    try:
+        fecha_inicio_obj = datetime.strptime(fecha_inicio, '%Y-%m-%dT%H:%M')
+        fecha_fin_obj = datetime.strptime(fecha_fin, '%Y-%m-%dT%H:%M')
+    except (ValueError, TypeError):
+        flash("Formato de fecha inválido.", "error")
+        return redirect(url_for("asistencias.asistencias"))
+
+    if fecha_inicio_obj.date() != fecha_fin_obj.date():
+        flash("La fecha de inicio y la fecha de fin deben ser del mismo día.", "error")
+        return redirect(url_for("asistencias.asistencias"))
 
     # VALIDACIÓN: inicio no puede ser mayor a fin
     if fecha_inicio > fecha_fin:
@@ -218,8 +246,25 @@ def agregar_asistencia():
 def editar_asistencia(id_asistencia):
 
     id_empleado = request.form["id_empleado"]
-    fecha_inicio = request.form["fecha_inicio"]
-    fecha_fin = request.form["fecha_fin"]
+    fecha_inicio = request.form.get("fecha_inicio")
+    fecha_fin = request.form.get("fecha_fin")
+
+    # VALIDACIÓN: que las fechas no estén vacías
+    if not fecha_inicio or not fecha_fin:
+        flash("La fecha de inicio y la fecha de fin no pueden estar vacías.", "error")
+        return redirect(url_for("asistencias.asistencias"))
+
+    # VALIDACIÓN: que sean del mismo día
+    try:
+        fecha_inicio_obj = datetime.strptime(fecha_inicio, '%Y-%m-%dT%H:%M')
+        fecha_fin_obj = datetime.strptime(fecha_fin, '%Y-%m-%dT%H:%M')
+    except (ValueError, TypeError):
+        flash("Formato de fecha inválido.", "error")
+        return redirect(url_for("asistencias.asistencias"))
+
+    if fecha_inicio_obj.date() != fecha_fin_obj.date():
+        flash("La fecha de inicio y la fecha de fin deben ser del mismo día.", "error")
+        return redirect(url_for("asistencias.asistencias"))
 
     # VALIDACIÓN: inicio no puede ser mayor a fin
     if fecha_inicio > fecha_fin:

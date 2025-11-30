@@ -4,7 +4,7 @@
 <h1>Asistencias</h1>
 
 <div class="form-container" style="width:520px; margin: 20px auto;">
-  <form action="{{ url_for('asistencias.agregar_ausencia') }}" method="POST" style="display:flex;flex-direction:column;gap:8px;">
+  <form action="{{ url_for('asistencias.agregar_ausencia') }}" method="POST" style="display:flex;flex-direction:column;gap:8px;" onsubmit="return validarFormAusencia()">
     <h2 style="text-align:center; margin:0 0 12px 0;">Agregar Ausencia</h2>
 
     <label for="id_empleado">Empleado:</label>
@@ -60,7 +60,7 @@
 
 
 <div class="form-container" style="width:520px; margin: 20px auto;">
-  <form action="{{ url_for('asistencias.agregar_asistencia') }}" method="POST" style="display:flex;flex-direction:column;gap:8px;">
+  <form action="{{ url_for('asistencias.agregar_asistencia') }}" method="POST" style="display:flex;flex-direction:column;gap:8px;" onsubmit="return validarFormAsistencia()">
     <h2 style="text-align:center; margin:0 0 12px 0;">Agregar Asistencia</h2>
 
     <label for="id_empleado_ast">Empleado:</label>
@@ -107,8 +107,21 @@
   </table>
 </div>
 
+<div id="modals-root"></div>
+
+<!-- Modal de Error Genérico -->
+<div id="error-modal-overlay" class="modal-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.35);z-index:1001;" onclick="closeErrorModal()"></div>
+<div id="error-modal" class="edit-modal" style="display:none;position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);width:460px;background:#fff;border-radius:8px;padding:22px;z-index:1002;">
+  <h3 style="margin-top:0;">Error</h3>
+  <p id="error-modal-message" style="margin:16px 0;"></p>
+  <div style="display:flex;gap:10px;margin-top:12px;justify-content:flex-end;">
+    <button type="button" class="btn btn-primary" style="background:#007bff;border-color:#007bff;padding:8px 24px;border-radius:6px;color:#fff;" onclick="closeErrorModal()">Cerrar</button>
+  </div>
+</div>
+
 
 <script>
+const empleadosData = JSON.parse('{{ empleados|tojson|safe }}');
 let ausenciasData = [];
 let asistenciasData = [];
 let ausenciasLoaded = false;
@@ -178,12 +191,15 @@ function loadAsistencias(){
 
 function renderAusencias(data){
   const tbody = document.getElementById('ausencias-tbody');
+  const modalsRoot = document.getElementById('modals-root');
   tbody.innerHTML = '';
-  
+  modalsRoot.querySelectorAll('[id^="overlay-"], [id^="modal-"]').forEach(m => m.remove()); // Clean up old modals
+
   data.forEach(a => {
     const deleteUrl = `/asistencias/eliminar/${a.id_ausencia}`;
     const editUrl = `/asistencias/editar/${a.id_ausencia}`;
     
+    // 1. Render Table Row
     const row = `
       <tr id="row-${a.id_ausencia}">
         <td>${a.id_ausencia}</td>
@@ -201,29 +217,35 @@ function renderAusencias(data){
           </div>
         </td>
       </tr>
-      
-      <div id="overlay-${a.id_ausencia}" class="modal-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.35);z-index:999;" onclick="closeModal(${a.id_ausencia})"></div>
+    `;
+    tbody.insertAdjacentHTML('beforeend', row);
 
+    // 2. Build Employee Options
+    let empleadosOptions = '';
+    empleadosData.forEach(emp => {
+      const isSelected = emp.id_empleado == a.id_empleado ? 'selected' : '';
+      empleadosOptions += `<option value="${emp.id_empleado}" ${isSelected}>${emp.nombre_completo}</option>`;
+    });
+
+    // 3. Render Modal
+    const modal = `
+      <div id="overlay-${a.id_ausencia}" class="modal-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.35);z-index:999;" onclick="closeModal(${a.id_ausencia})"></div>
       <div id="modal-${a.id_ausencia}" class="edit-modal" style="display:none;position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);width:380px;background:#fff;border-radius:8px;padding:22px;z-index:1000;">
         <h3>Editar Ausencia</h3>
         <form action="${editUrl}" method="POST">
           <label>Empleado:</label>
           <select name="id_empleado" style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;margin-bottom:10px;">
-            {% for emp in empleados %}
-              <option value="{{ emp.id_empleado }}" ${a.id_empleado == {{ emp.id_empleado }} ? 'selected' : ''}>
-                {{ emp.nombre_completo }}
-              </option>
-            {% endfor %}
+            ${empleadosOptions}
           </select>
 
           <label>Tipo:</label>
-          <input type="text" name="tipo" value="${a.tipo}" pattern="[a-zA-Z\s]+" oninput="this.value = this.value.replace(/[0-9]/g, '');" style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;margin-bottom:10px;">
+          <input type="text" name="tipo" value="${a.tipo}" pattern="[a-zA-Z\\s]+" oninput="this.value = this.value.replace(/[^a-zA-Z\\s]/g, '');" style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;margin-bottom:10px;">
 
           <label>Fecha Inicio:</label>
-          <input type="datetime-local" name="fecha_inicio" value="${a.fecha_inicio}" onchange="validarEditFecha(${a.id_ausencia})" style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;margin-bottom:10px;" id="edit_inicio_${a.id_ausencia}">
+          <input type="datetime-local" name="fecha_inicio" value="${a.fecha_inicio}" onchange="validarEditFecha(${a.id_ausencia})" style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;margin-bottom:10px;" id="edit_inicio_${a.id_ausencia}" required>
 
           <label>Fecha Final:</label>
-          <input type="datetime-local" name="fecha_fin" value="${a.fecha_fin}" onchange="validarEditFecha(${a.id_ausencia})" style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;margin-bottom:10px;" id="edit_fin_${a.id_ausencia}">
+          <input type="datetime-local" name="fecha_fin" value="${a.fecha_fin}" onchange="validarEditFecha(${a.id_ausencia})" style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;margin-bottom:10px;" id="edit_fin_${a.id_ausencia}" required>
 
           <label>Motivo:</label>
           <input type="text" name="motivo" value="${a.motivo}" style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;margin-bottom:10px;">
@@ -235,14 +257,17 @@ function renderAusencias(data){
         </form>
       </div>
     `;
-    tbody.insertAdjacentHTML('beforeend', row);
+    modalsRoot.insertAdjacentHTML('beforeend', modal);
   });
 }
 
 function renderAsistencias(data){
   const tbody = document.getElementById('asistencias-tbody');
+  const modalsRoot = document.getElementById('modals-root');
   tbody.innerHTML = '';
-  
+  // Limpiar solo los modales de asistencias para no afectar a los de ausencias
+  modalsRoot.querySelectorAll('[id^="overlay-ast-"], [id^="modal-ast-"]').forEach(m => m.remove());
+
   data.forEach(ast => {
     const fechaInicio = new Date(ast.fecha_inicio);
     const fechaFin = new Date(ast.fecha_fin);
@@ -251,6 +276,7 @@ function renderAsistencias(data){
     const deleteUrl = `/asistencias/eliminar_asistencia/${ast.id_asistencia}`;
     const editUrl = `/asistencias/editar_asistencia/${ast.id_asistencia}`;
     
+    // 1. Render Table Row
     const row = `
       <tr id="row-ast-${ast.id_asistencia}">
         <td>${ast.id_asistencia}</td>
@@ -267,26 +293,32 @@ function renderAsistencias(data){
           </div>
         </td>
       </tr>
+    `;
+    tbody.insertAdjacentHTML('beforeend', row);
+    
+    // 2. Build Employee Options
+    let empleadosOptions = '';
+    empleadosData.forEach(emp => {
+      const isSelected = emp.id_empleado == ast.id_empleado ? 'selected' : '';
+      empleadosOptions += `<option value="${emp.id_empleado}" ${isSelected}>${emp.nombre_completo}</option>`;
+    });
 
+    // 3. Render Modal
+    const modal = `
       <div id="overlay-ast-${ast.id_asistencia}" class="modal-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.35);z-index:999;" onclick="closeModalAsistencia(${ast.id_asistencia})"></div>
-
       <div id="modal-ast-${ast.id_asistencia}" class="edit-modal" style="display:none;position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);width:380px;background:#fff;border-radius:8px;padding:22px;z-index:1000;">
         <h3>Editar Asistencia</h3>
         <form action="${editUrl}" method="POST">
           <label>Empleado:</label>
           <select name="id_empleado" style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;margin-bottom:10px;">
-            {% for emp in empleados %}
-              <option value="{{ emp.id_empleado }}" ${ast.id_empleado == {{ emp.id_empleado }} ? 'selected' : ''}>
-                {{ emp.nombre_completo }}
-              </option>
-            {% endfor %}
+            ${empleadosOptions}
           </select>
 
           <label>Fecha Inicio:</label>
-          <input type="datetime-local" name="fecha_inicio" value="${ast.fecha_inicio}" onchange="validarEditFechaAsistencia(${ast.id_asistencia})" style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;margin-bottom:10px;" id="edit_inicio_ast_${ast.id_asistencia}">
+          <input type="datetime-local" name="fecha_inicio" value="${ast.fecha_inicio}" onchange="validarEditFechaAsistencia(${ast.id_asistencia})" style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;margin-bottom:10px;" id="edit_inicio_ast_${ast.id_asistencia}" required>
 
           <label>Fecha Fin:</label>
-          <input type="datetime-local" name="fecha_fin" value="${ast.fecha_fin}" onchange="validarEditFechaAsistencia(${ast.id_asistencia})" style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;margin-bottom:10px;" id="edit_fin_ast_${ast.id_asistencia}">
+          <input type="datetime-local" name="fecha_fin" value="${ast.fecha_fin}" onchange="validarEditFechaAsistencia(${ast.id_asistencia})" style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;margin-bottom:10px;" id="edit_fin_ast_${ast.id_asistencia}" required>
 
           <div style="display:flex;gap:10px;margin-top:12px;">
             <button type="submit" class="btn" style="flex:1;background:#0069ff;color:#fff;padding:10px;border-radius:6px;border:0;">Actualizar</button>
@@ -295,7 +327,7 @@ function renderAsistencias(data){
         </form>
       </div>
     `;
-    tbody.insertAdjacentHTML('beforeend', row);
+    modalsRoot.insertAdjacentHTML('beforeend', modal);
   });
 }
 
@@ -341,9 +373,19 @@ function validarNuevaFechaAsistencia(){
     let ini = document.getElementById("new_inicio_ast").value;
     let fin = document.getElementById("new_fin_ast").value;
 
-    if (ini && fin && ini > fin){
-        alert("La fecha de inicio NO puede ser mayor a la fecha final.");
-        document.getElementById("new_fin_ast").value = "";
+    if (ini && fin) {
+        if (ini > fin){
+            alert("La fecha de inicio NO puede ser mayor a la fecha final.");
+            document.getElementById("new_fin_ast").value = "";
+            return;
+        }
+        // New validation
+        const iniDate = ini.split('T')[0];
+        const finDate = fin.split('T')[0];
+        if (iniDate !== finDate) {
+            alert("La fecha de inicio y la fecha de fin deben ser del mismo día.");
+            document.getElementById("new_fin_ast").value = "";
+        }
     }
 }
 
@@ -361,11 +403,66 @@ function validarEditFechaAsistencia(id){
     let ini = document.getElementById("edit_inicio_ast_" + id).value;
     let fin = document.getElementById("edit_fin_ast_" + id).value;
 
-    if (ini && fin && ini > fin){
-        alert("La fecha de inicio NO puede ser mayor a la fecha final.");
-        document.getElementById("edit_fin_ast_" + id).value = "";
+    if (ini && fin) {
+        if (ini > fin){
+            alert("La fecha de inicio NO puede ser mayor a la fecha final.");
+            document.getElementById("edit_fin_ast_" + id).value = "";
+            return;
+        }
+        // New validation
+        const iniDate = ini.split('T')[0];
+        const finDate = fin.split('T')[0];
+        if (iniDate !== finDate) {
+            alert("La fecha de inicio y la fecha de fin deben ser del mismo día.");
+            document.getElementById("edit_fin_ast_" + id).value = "";
+        }
     }
 }
+
+function validarFormAusencia(){
+    const fechaInicio = document.getElementById("new_inicio").value;
+    const fechaFin = document.getElementById("new_fin").value;
+    if (!fechaInicio || !fechaFin) {
+        alert("La fecha de inicio y la fecha de fin no pueden estar vacías.");
+        return false;
+    }
+    return true;
+}
+
+function validarFormAsistencia(){
+    const fechaInicio = document.getElementById("new_inicio_ast").value;
+    const fechaFin = document.getElementById("new_fin_ast").value;
+    if (!fechaInicio || !fechaFin) {
+        alert("La fecha de inicio y la fecha de fin no pueden estar vacías.");
+        return false;
+    }
+    return true;
+}
+
+function openErrorModal(message) {
+  document.getElementById('error-modal-message').textContent = message;
+  document.getElementById('error-modal-overlay').style.display = 'block';
+  document.getElementById('error-modal').style.display = 'block';
+}
+
+function closeErrorModal() {
+  document.getElementById('error-modal-overlay').style.display = 'none';
+  document.getElementById('error-modal').style.display = 'none';
+}
 </script>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <script>
+      window.addEventListener('DOMContentLoaded', (event) => {
+        {% for category, message in messages %}
+          {% if category == 'error' %}
+            openErrorModal("{{ message|safe }}");
+          {% endif %}
+        {% endfor %}
+      });
+    </script>
+  {% endif %}
+{% endwith %}
 
 {% endblock %}
