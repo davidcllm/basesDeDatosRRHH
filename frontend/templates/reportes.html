@@ -56,12 +56,12 @@
   }
 </style>
 
-<!-- 1️⃣ RESUMEN DE NÓMINA -->
+<!-- ==========================
+  1) RESUMEN NÓMINA
+========================== -->
 <div class="report-card">
   <h2>Resumen de Nómina</h2>
-  <p class="desc">
-    Registros de nómina por empleado, incluyendo salario base, deducciones y percepciones.
-  </p>
+  <p class="desc">Salarios registrados por empleado.</p>
 
   <div class="report-table-wrapper">
     {% if rep_nomina %}
@@ -95,10 +95,13 @@
   </div>
 </div>
 
-<!-- 2️⃣ AUSENCIAS DEL PERSONAL -->
+<!-- ==========================
+  2) AUSENCIAS
+========================== -->
 <div class="report-card">
   <h2>Ausencias del Personal</h2>
-  <p class="desc">Ausencias por tipo, fechas y motivo.</p>
+  <p class="desc">Ausencias registradas por empleado.</p>
+
   <div class="report-table-wrapper">
     {% if rep_ausencias %}
     <table>
@@ -129,10 +132,13 @@
   </div>
 </div>
 
-<!-- 3️⃣ EVALUACIONES -->
+<!-- ==========================
+  3) EVALUACIONES
+========================== -->
 <div class="report-card">
   <h2>Evaluaciones de Desempeño</h2>
   <p class="desc">Evaluaciones aplicadas a los empleados.</p>
+
   <div class="report-table-wrapper">
     {% if rep_evaluaciones %}
     <table>
@@ -163,10 +169,13 @@
   </div>
 </div>
 
-<!-- 4️⃣ CAPACITACIONES -->
+<!-- ==========================
+  4) CAPACITACIONES
+========================== -->
 <div class="report-card">
-  <h2>Capacitaciones del Personal</h2>
-  <p class="desc">Cursos realizados y desempeño del empleado.</p>
+  <h2>Capacitaciones por Empleado</h2>
+  <p class="desc">Listado de cursos realizados.</p>
+
   <div class="report-table-wrapper">
     {% if rep_capacitaciones %}
     <table>
@@ -201,10 +210,13 @@
   </div>
 </div>
 
-<!-- 5️⃣ PROYECTOS -->
+<!-- ==========================
+  5) PROYECTOS
+========================== -->
 <div class="report-card">
   <h2>Participación en Proyectos</h2>
-  <p class="desc">Asignaciones de empleados a proyectos.</p>
+  <p class="desc">Asignaciones por cada proyecto.</p>
+
   <div class="report-table-wrapper">
     {% if rep_proyectos %}
     <table>
@@ -235,10 +247,13 @@
   </div>
 </div>
 
-<!-- 6️⃣ PRESUPUESTOS -->
+<!-- ==========================
+  6) PRESUPUESTOS
+========================== -->
 <div class="report-card">
   <h2>Presupuestos por Departamento</h2>
-  <p class="desc">Montos asignados, utilizados y restantes.</p>
+  <p class="desc">Asignación y uso de recursos.</p>
+
   <div class="report-table-wrapper">
     {% if rep_presupuestos %}
     <table>

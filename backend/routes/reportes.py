@@ -94,11 +94,11 @@ def reportes():
         FROM EMPLEADO e
         JOIN `EMPLEADO-PROYECTO` ep ON e.id_empleado = ep.id_empleado
         JOIN PROYECTO p ON ep.id_proyecto = p.id_proyecto
-        ORDER BY p.nombre, e.nombre_completo;
+        ORDER BY p.nombre ASC, e.nombre_completo ASC;
     """)
     rep_proyectos = cursor.fetchall()
 
-    # 6) PRESUPUESTOS POR DEPARTAMENTO
+    # 6) PRESUPUESTOS POR DEPARTAMENTO - CORREGIDO
     cursor.execute("""
         SELECT 
             d.nombre AS departamento,
