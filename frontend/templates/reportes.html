@@ -9,53 +9,26 @@
     Módulo de consulta general de información de Recursos Humanos y Finanzas.
 </p>
 
-<form method="get" class="mb-4 p-3 bg-light rounded">
-    <div class="row g-3">
-        <div class="col-lg-3 col-md-6">
-            <label for="tipo" class="form-label fw-bold small">Tipo de Reporte</label>
-            <select name="tipo" id="tipo" class="form-select form-select-sm" onchange="this.form.submit()">
-                <option value="todos" {% if tipo=='todos' %}selected{% endif %}>Todos</option>
-                <option value="nomina" {% if tipo=='nomina' %}selected{% endif %}>Nómina</option>
-                <option value="ausencias" {% if tipo=='ausencias' %}selected{% endif %}>Ausencias</option>
-                <option value="evaluaciones" {% if tipo=='evaluaciones' %}selected{% endif %}>Evaluaciones</option>
-                <option value="capacitaciones" {% if tipo=='capacitaciones' %}selected{% endif %}>Capacitaciones</option>
-                <option value="proyectos" {% if tipo=='proyectos' %}selected{% endif %}>Proyectos</option>
-                <option value="presupuestos" {% if tipo=='presupuestos' %}selected{% endif %}>Presupuestos</option>
-            </select>
-        </div>
-        <div class="col-lg-2 col-md-6">
-            <label for="fecha_inicio" class="form-label fw-bold small">Desde</label>
-            <input type="date" name="fecha_inicio" id="fecha_inicio" class="form-control form-control-sm" value="{{ fecha_inicio }}">
-        </div>
-        <div class="col-lg-2 col-md-6">
-            <label for="fecha_fin" class="form-label fw-bold small">Hasta</label>
-            <input type="date" name="fecha_fin" id="fecha_fin" class="form-control form-control-sm" value="{{ fecha_fin }}">
-        </div>
-        <div class="col-lg-5 col-md-6 d-flex gap-2 align-items-end">
-            <button type="submit" class="btn btn-sm btn-primary flex-grow-1">
-                <i class="bi bi-search"></i> Filtrar
-            </button>
-            <a href="/reportes" class="btn btn-sm btn-outline-secondary flex-grow-1">
-                <i class="bi bi-arrow-clockwise"></i> Limpiar
-            </a>
-        </div>
-    </div>
+<form method="get" class="mb-4 text-center">
+    <label for="tipo" class="me-2 fw-bold">Ver solo:</label>
+    <select name="tipo" id="tipo" class="form-select d-inline-block w-auto" onchange="this.form.submit()">
+        <option value="todos" {% if tipo=='todos' %}selected{% endif %}>Todos</option>
+        <option value="nomina" {% if tipo=='nomina' %}selected{% endif %}>Resumen de Nómina</option>
+        <option value="ausencias" {% if tipo=='ausencias' %}selected{% endif %}>Ausencias</option>
+        <option value="evaluaciones" {% if tipo=='evaluaciones' %}selected{% endif %}>Evaluaciones</option>
+        <option value="capacitaciones" {% if tipo=='capacitaciones' %}selected{% endif %}>Capacitaciones</option>
+        <option value="proyectos" {% if tipo=='proyectos' %}selected{% endif %}>Proyectos</option>
+        <option value="presupuestos" {% if tipo=='presupuestos' %}selected{% endif %}>Presupuestos</option>
+    </select>
 </form>
 
 
-<div class="mb-3 d-flex gap-2 flex-wrap justify-content-center">
+<div class="text-center mb-3">
     <form id="csvDownloadForm" method="get" action="/reportes/descargar" style="display:inline;">
         <input type="hidden" name="tipo" value="{{ tipo }}">
         <input type="hidden" name="formato" value="csv">
-        <input type="hidden" name="fecha_inicio" value="{{ fecha_inicio }}">
-        <input type="hidden" name="fecha_fin" value="{{ fecha_fin }}">
-        <button type="submit" class="btn btn-sm btn-success">
-            <i class="bi bi-download"></i> Descargar CSV
-        </button>
+        <button type="submit" class="btn btn-sm btn-outline-primary">Descargar CSV</button>
     </form>
-    <button class="btn btn-sm btn-info" type="button" data-bs-toggle="modal" data-bs-target="#columnModal">
-        <i class="bi bi-sliders"></i> Columnas
-    </button>
 </div>
     {% if tipo == 'nomina' or tipo == 'todos' %}
     <div class="stat-card">
