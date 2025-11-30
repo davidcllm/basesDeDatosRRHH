@@ -5,34 +5,42 @@
 
 <!-- FORMULARIO AGREGAR EVALUACION -->
 <div class="form-container" style="width:520px; margin: 20px auto;">
-  <form action="{{ url_for('evaluacion.agregar_evaluacion') }}" method="POST" style="display:flex;flex-direction:column;gap:8px;">
+  <form action="{{ url_for('evaluacion.agregar_evaluacion') }}" method="POST"
+    style="display:flex;flex-direction:column;gap:8px;">
     <h2 style="text-align:center; margin:0 0 12px 0;">Agregar Evaluación</h2>
 
     <label>Empleado:</label>
-    <select name="id_empleado" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
+    <select name="id_empleado" required
+      style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
       <option value="">-- Seleccionar Empleado --</option>
       {% for emp in empleados %}
-        <option value="{{ emp.id_empleado }}">{{ emp.nombre_completo }}</option>
+      <option value="{{ emp.id_empleado }}">{{ emp.nombre_completo }}</option>
       {% endfor %}
     </select>
 
     <label style="margin-top:0;">Fecha Evaluación:</label>
-    <input type="datetime-local" name="fecha_evaluacion" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
+    <input type="datetime-local" name="fecha_evaluacion" required
+      style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
 
     <label style="margin-top:0;">Tipo:</label>
-    <input type="text" name="tipo" placeholder="Anual / Semestral..." required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
+    <input type="text" name="tipo" placeholder="Anual / Semestral..." required
+      style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
 
     <label style="margin-top:0;">Resultado:</label>
-    <input type="text" name="resultado" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
+    <input type="text" name="resultado" required
+      style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
 
     <label style="margin-top:0;">Observaciones:</label>
-    <input type="text" name="observaciones" style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
+    <input type="text" name="observaciones"
+      style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
 
     <label style="margin-top:0;">Fecha Inicio:</label>
-    <input type="datetime-local" name="fecha_inicio" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
+    <input type="datetime-local" name="fecha_inicio" required
+      style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
 
     <label style="margin-top:0;">Fecha Fin:</label>
-    <input type="datetime-local" name="fecha_fin" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
+    <input type="datetime-local" name="fecha_fin" required
+      style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
 
     <button type="submit" class="btn btn-primary" style="width:100%; margin-top:12px;">Agregar Evaluación</button>
   </form>
@@ -42,8 +50,11 @@
 <h2 style="margin-top:12px;">Evaluaciones de Desempeño</h2>
 
 <div style="width:95%;margin:20px auto;display:flex;gap:10px;align-items:center;">
-  <button type="button" id="toggle-evaluaciones" class="btn btn-primary" onclick="toggleEvaluaciones()" style="padding:8px 16px;border-radius:6px;">▼ Cargar Evaluaciones</button>
-  <input type="text" id="search-evaluaciones" placeholder="Buscar en evaluaciones..." onkeyup="filterTable('evaluaciones')" style="flex:1;padding:8px;border-radius:6px;border:1px solid #ddd;display:none;">
+  <button type="button" id="toggle-evaluaciones" class="btn btn-primary" onclick="toggleEvaluaciones()"
+    style="padding:8px 16px;border-radius:6px;">▼ Cargar Evaluaciones</button>
+  <input type="text" id="search-evaluaciones" placeholder="Buscar en evaluaciones..."
+    onkeyup="filterTable('evaluaciones')"
+    style="flex:1;padding:8px;border-radius:6px;border:1px solid #ddd;display:none;">
 </div>
 
 <div id="evaluaciones-container" style="display:none;">
@@ -71,36 +82,43 @@
 
 <!-- FORMULARIO AGREGAR CAPACITACION -->
 <div class="form-container" style="width:520px; margin: 20px auto;">
-  <form action="{{ url_for('evaluacion.agregar_capacitacion') }}" method="POST" style="display:flex;flex-direction:column;gap:8px;">
+  <form action="{{ url_for('evaluacion.agregar_capacitacion') }}" method="POST"
+    style="display:flex;flex-direction:column;gap:8px;">
     <h2 style="text-align:center; margin:0 0 12px 0;">Agregar Capacitación</h2>
 
     <label>Empleado:</label>
-    <select name="id_empleado" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
+    <select name="id_empleado" required
+      style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
       <option value="">-- Seleccionar Empleado --</option>
       {% for emp in empleados %}
-        <option value="{{ emp.id_empleado }}">{{ emp.nombre_completo }}</option>
+      <option value="{{ emp.id_empleado }}">{{ emp.nombre_completo }}</option>
       {% endfor %}
     </select>
 
     <label style="margin-top:0;">Curso:</label>
-    <select name="id_capacitacion" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
+    <select name="id_capacitacion" required
+      style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
       <option value="">-- Seleccionar Curso --</option>
       {% for cap in capacitaciones_lista %}
-        <option value="{{ cap.id_capacitacion }}">{{ cap.nombre }}</option>
+      <option value="{{ cap.id_capacitacion }}">{{ cap.nombre }}</option>
       {% endfor %}
     </select>
 
     <label style="margin-top:0;">Fecha Inicio:</label>
-    <input type="datetime-local" name="fecha_inicio" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
+    <input type="datetime-local" name="fecha_inicio" required
+      style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
 
     <label style="margin-top:0;">Fecha Fin:</label>
-    <input type="datetime-local" name="fecha_fin" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
+    <input type="datetime-local" name="fecha_fin" required
+      style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
 
     <label style="margin-top:0;">Resultado:</label>
-    <input type="number" name="resultado" placeholder="0.00" step="0.01" min="0" max="100" style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
+    <input type="number" name="resultado" placeholder="0.00" step="0.01" min="0" max="100"
+      style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
 
     <label style="margin-top:0;">Comentarios:</label>
-    <input type="text" name="comentarios" style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
+    <input type="text" name="comentarios"
+      style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
 
     <button type="submit" class="btn btn-primary" style="width:100%; margin-top:12px;">Agregar Capacitación</button>
   </form>
@@ -111,8 +129,11 @@
 <h2 style="margin-top:12px;">Capacitaciones</h2>
 
 <div style="width:95%;margin:20px auto;display:flex;gap:10px;align-items:center;">
-  <button type="button" id="toggle-capacitaciones" class="btn btn-primary" onclick="toggleCapacitaciones()" style="padding:8px 16px;border-radius:6px;">▼ Cargar Capacitaciones</button>
-  <input type="text" id="search-capacitaciones" placeholder="Buscar en capacitaciones..." onkeyup="filterTable('capacitaciones')" style="flex:1;padding:8px;border-radius:6px;border:1px solid #ddd;display:none;">
+  <button type="button" id="toggle-capacitaciones" class="btn btn-primary" onclick="toggleCapacitaciones()"
+    style="padding:8px 16px;border-radius:6px;">▼ Cargar Capacitaciones</button>
+  <input type="text" id="search-capacitaciones" placeholder="Buscar en capacitaciones..."
+    onkeyup="filterTable('capacitaciones')"
+    style="flex:1;padding:8px;border-radius:6px;border:1px solid #ddd;display:none;">
 </div>
 
 <div id="capacitaciones-container" style="display:none;">
@@ -140,28 +161,25 @@
 
 <!-- FORMULARIO AGREGAR PLAN DE CARRERA -->
 <div class="form-container" style="width:520px; margin: 20px auto;">
-  <form action="{{ url_for('evaluacion.agregar_plan_carrera') }}" method="POST" style="display:flex;flex-direction:column;gap:8px;">
+  <form action="{{ url_for('evaluacion.agregar_plan_carrera') }}" method="POST"
+    style="display:flex;flex-direction:column;gap:8px;">
     <h2 style="text-align:center; margin:0 0 12px 0;">Agregar Plan de Carrera</h2>
 
-    <label>Empleado:</label>
-    <select name="id_empleado" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
-      <option value="">-- Seleccionar Empleado (Sin plan asignado) --</option>
-      {% for emp in empleados_sin_plan %}
-        <option value="{{ emp.id_empleado }}">{{ emp.nombre_completo }}</option>
-      {% endfor %}
-    </select>
-
     <label style="margin-top:0;">Objetivo:</label>
-    <input type="text" name="objetivo" placeholder="Ej: Desarrollador Senior" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
+    <input type="text" name="objetivo" placeholder="Ej: Desarrollador Senior" required
+      style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
 
     <label style="margin-top:0;">Etapas:</label>
-    <input type="text" name="etapas" placeholder="Ej: Junior-Mid-Senior" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
+    <input type="text" name="etapas" placeholder="Ej: Junior-Mid-Senior" required
+      style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
 
     <label style="margin-top:0;">Fecha Inicio:</label>
-    <input type="datetime-local" name="fecha_inicio" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
+    <input type="datetime-local" name="fecha_inicio" required
+      style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
 
     <label style="margin-top:0;">Fecha Fin:</label>
-    <input type="datetime-local" name="fecha_fin" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
+    <input type="datetime-local" name="fecha_fin" required
+      style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
 
     <button type="submit" class="btn btn-primary" style="width:100%; margin-top:12px;">Agregar Plan de Carrera</button>
   </form>
@@ -172,8 +190,10 @@
 <h2 style="margin-top:18px;">Planes de Carrera</h2>
 
 <div style="width:95%;margin:20px auto;display:flex;gap:10px;align-items:center;">
-  <button type="button" id="toggle-planes" class="btn btn-primary" onclick="togglePlanes()" style="padding:8px 16px;border-radius:6px;">▼ Cargar Planes</button>
-  <input type="text" id="search-planes" placeholder="Buscar en planes..." onkeyup="filterTable('planes')" style="flex:1;padding:8px;border-radius:6px;border:1px solid #ddd;display:none;">
+  <button type="button" id="toggle-planes" class="btn btn-primary" onclick="togglePlanes()"
+    style="padding:8px 16px;border-radius:6px;">▼ Cargar Planes</button>
+  <input type="text" id="search-planes" placeholder="Buscar en planes..." onkeyup="filterTable('planes')"
+    style="flex:1;padding:8px;border-radius:6px;border:1px solid #ddd;display:none;">
 </div>
 
 <div id="planes-container" style="display:none;">
@@ -196,377 +216,360 @@
 </div>
 
 
+<!-- Modals for Editing -->
+<!-- Edit Evaluation Modal -->
+<div id="edit-evaluacion-modal" class="modal"
+  style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center;">
+  <div style="background:#fff;padding:20px;border-radius:8px;width:500px;max-width:90%;">
+    <h3>Editar Evaluación</h3>
+    <form id="form-edit-evaluacion" method="POST">
+      <input type="hidden" name="id_evaluacion" id="edit-eval-id">
+
+      <label>Empleado:</label>
+      <select name="id_empleado" id="edit-eval-empleado" required style="width:100%;padding:8px;margin-bottom:10px;">
+        {% for emp in empleados %}
+        <option value="{{ emp.id_empleado }}">{{ emp.nombre_completo }}</option>
+        {% endfor %}
+      </select>
+
+      <label>Fecha Evaluación:</label>
+      <input type="datetime-local" name="fecha_evaluacion" id="edit-eval-fecha" required
+        style="width:100%;padding:8px;margin-bottom:10px;">
+
+      <label>Tipo:</label>
+      <input type="text" name="tipo" id="edit-eval-tipo" required style="width:100%;padding:8px;margin-bottom:10px;">
+
+      <label>Resultado:</label>
+      <input type="text" name="resultado" id="edit-eval-resultado" required
+        style="width:100%;padding:8px;margin-bottom:10px;">
+
+      <label>Observaciones:</label>
+      <input type="text" name="observaciones" id="edit-eval-observaciones"
+        style="width:100%;padding:8px;margin-bottom:10px;">
+
+      <label>Fecha Inicio:</label>
+      <input type="datetime-local" name="fecha_inicio" id="edit-eval-inicio" required
+        style="width:100%;padding:8px;margin-bottom:10px;">
+
+      <label>Fecha Fin:</label>
+      <input type="datetime-local" name="fecha_fin" id="edit-eval-fin" required
+        style="width:100%;padding:8px;margin-bottom:10px;">
+
+      <div style="display:flex;gap:10px;justify-content:flex-end;">
+        <button type="button" onclick="closeModal('edit-evaluacion-modal')" class="btn"
+          style="background:#ccc;">Cancelar</button>
+        <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Edit Capacitacion Modal -->
+<div id="edit-capacitacion-modal" class="modal"
+  style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center;">
+  <div style="background:#fff;padding:20px;border-radius:8px;width:500px;max-width:90%;">
+    <h3>Editar Capacitación</h3>
+    <form id="form-edit-capacitacion" method="POST">
+      <input type="hidden" name="id_empleado_capacitacion" id="edit-cap-id">
+
+      <label>Empleado:</label>
+      <select name="id_empleado" id="edit-cap-empleado" required style="width:100%;padding:8px;margin-bottom:10px;">
+        {% for emp in empleados %}
+        <option value="{{ emp.id_empleado }}">{{ emp.nombre_completo }}</option>
+        {% endfor %}
+      </select>
+
+      <label>Fecha Inicio:</label>
+      <input type="datetime-local" name="fecha_inicio" id="edit-cap-inicio" required
+        style="width:100%;padding:8px;margin-bottom:10px;">
+
+      <label>Fecha Fin:</label>
+      <input type="datetime-local" name="fecha_fin" id="edit-cap-fin" required
+        style="width:100%;padding:8px;margin-bottom:10px;">
+
+      <label>Resultado:</label>
+      <input type="number" name="resultado" id="edit-cap-resultado" step="0.01" min="0" max="100"
+        style="width:100%;padding:8px;margin-bottom:10px;">
+
+      <label>Comentarios:</label>
+      <input type="text" name="comentarios" id="edit-cap-comentarios"
+        style="width:100%;padding:8px;margin-bottom:10px;">
+
+      <div style="display:flex;gap:10px;justify-content:flex-end;">
+        <button type="button" onclick="closeModal('edit-capacitacion-modal')" class="btn"
+          style="background:#ccc;">Cancelar</button>
+        <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Edit Plan Modal -->
+<div id="edit-plan-modal" class="modal"
+  style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center;">
+  <div style="background:#fff;padding:20px;border-radius:8px;width:500px;max-width:90%;">
+    <h3>Editar Plan de Carrera</h3>
+    <form id="form-edit-plan" method="POST">
+      <input type="hidden" name="id_plan_carrera" id="edit-plan-id">
+
+      <label>Objetivo:</label>
+      <input type="text" name="objetivo" id="edit-plan-objetivo" required
+        style="width:100%;padding:8px;margin-bottom:10px;">
+
+      <label>Etapas:</label>
+      <input type="text" name="etapas" id="edit-plan-etapas" required
+        style="width:100%;padding:8px;margin-bottom:10px;">
+
+      <label>Fecha Inicio:</label>
+      <input type="datetime-local" name="fecha_inicio" id="edit-plan-inicio" required
+        style="width:100%;padding:8px;margin-bottom:10px;">
+
+      <label>Fecha Fin:</label>
+      <input type="datetime-local" name="fecha_fin" id="edit-plan-fin" required
+        style="width:100%;padding:8px;margin-bottom:10px;">
+
+      <div style="display:flex;gap:10px;justify-content:flex-end;">
+        <button type="button" onclick="closeModal('edit-plan-modal')" class="btn"
+          style="background:#ccc;">Cancelar</button>
+        <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+      </div>
+    </form>
+  </div>
+</div>
+
 <script>
-let evaluacionesData = [];
-let capacitacionesData = [];
-let planesData = [];
-let evaluacionesLoaded = false;
-let capacitacionesLoaded = false;
-let planesLoaded = false;
+  let evaluacionesLoaded = false;
+  let capacitacionesLoaded = false;
+  let planesLoaded = false;
 
-// EVALUACIONES
-function toggleEvaluaciones(){
-  const container = document.getElementById('evaluaciones-container');
-  const btn = document.getElementById('toggle-evaluaciones');
-  const search = document.getElementById('search-evaluaciones');
-  
-  if(!evaluacionesLoaded){
-    loadEvaluaciones();
-    evaluacionesLoaded = true;
+  // --- EVALUACIONES ---
+  function toggleEvaluaciones() {
+    const container = document.getElementById('evaluaciones-container');
+    const btn = document.getElementById('toggle-evaluaciones');
+    const search = document.getElementById('search-evaluaciones');
+
+    if (container.style.display === 'none') {
+      if (!evaluacionesLoaded) {
+        loadEvaluaciones();
+        evaluacionesLoaded = true;
+      }
+      container.style.display = 'block';
+      search.style.display = 'block';
+      btn.textContent = '▲ Ocultar Evaluaciones';
+    } else {
+      container.style.display = 'none';
+      search.style.display = 'none';
+      btn.textContent = '▼ Cargar Evaluaciones';
+    }
   }
-  
-  if(container.style.display === 'none'){
-    container.style.display = 'block';
-    search.style.display = 'block';
-    btn.textContent = '▲ Ocultar Evaluaciones';
-  } else {
-    container.style.display = 'none';
-    search.style.display = 'none';
-    btn.textContent = '▼ Cargar Evaluaciones';
+
+  function loadEvaluaciones() {
+    fetch('{{ url_for("evaluacion.get_evaluaciones") }}')
+      .then(res => res.json())
+      .then(data => renderEvaluaciones(data))
+      .catch(err => console.error('Error loading evaluaciones:', err));
   }
-}
 
-function loadEvaluaciones(){
-  fetch('{{ url_for("evaluacion.get_evaluaciones") }}')
-    .then(response => response.json())
-    .then(data => {
-      evaluacionesData = data;
-      renderEvaluaciones(data);
-    })
-    .catch(error => console.error('Error:', error));
-}
-
-function renderEvaluaciones(data){
-  const tbody = document.getElementById('evaluaciones-tbody');
-  tbody.innerHTML = '';
-  
-  data.forEach(e => {
-    const deleteUrl = `/evaluacion/eliminar_evaluacion/${e.id_evaluacion}`;
-    const editUrl = `/evaluacion/editar_evaluacion/${e.id_evaluacion}`;
-    
-    const row = `
-      <tr id="row-eval-${e.id_evaluacion}">
-        <td>${e.id_evaluacion}</td>
-        <td>${e.id_empleado || '—'}</td>
-        <td>${e.nombre_completo || '—'}</td>
-        <td>${e.fecha_evaluacion}</td>
-        <td>${e.tipo}</td>
-        <td>${e.resultado}</td>
-        <td>${e.observaciones || '—'}</td>
-        <td>${e.fecha_inicio || '—'}</td>
-        <td>${e.fecha_fin || '—'}</td>
-        <td style="width:220px;">
-          <div style="display:flex;gap:8px;justify-content:flex-end;align-items:center;">
-            <button type="button" class="btn btn-link" onclick="openEditModal(${e.id_evaluacion})" style="padding:0 8px;">Editar</button>
-            <form action="${deleteUrl}" method="POST" style="margin:0;">
-              <button type="submit" class="btn btn-primary" style="background:#007bff;border-color:#007bff;padding:6px 18px;border-radius:6px;color:#fff;" onclick="return confirm('¿Eliminar evaluación?')">Eliminar</button>
-            </form>
-          </div>
+  function renderEvaluaciones(data) {
+    const tbody = document.getElementById('evaluaciones-tbody');
+    tbody.innerHTML = '';
+    data.forEach(item => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${item.id_evaluacion}</td>
+        <td>${item.id_empleado || '-'}</td>
+        <td>${item.nombre_completo || '-'}</td>
+        <td>${formatDate(item.fecha_evaluacion)}</td>
+        <td>${item.tipo}</td>
+        <td>${item.resultado}</td>
+        <td>${item.observaciones || ''}</td>
+        <td>${formatDate(item.fecha_inicio)}</td>
+        <td>${formatDate(item.fecha_fin)}</td>
+        <td>
+          <button class="btn btn-link" onclick='openEditEvaluacion(${JSON.stringify(item)})'>Editar</button>
+          <form action="/evaluacion/eliminar_evaluacion/${item.id_evaluacion}" method="POST" style="display:inline;" onsubmit="return confirm(\'¿Eliminar evaluación?\');">
+             <button type="submit" class="btn btn-danger" style="padding:4px 8px;font-size:12px;">Eliminar</button>
+          </form>
         </td>
-      </tr>
-
-      <div id="overlay-eval-${e.id_evaluacion}" class="modal-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.35);z-index:999;" onclick="closeEditModal(${e.id_evaluacion})"></div>
-
-      <div id="modal-eval-${e.id_evaluacion}" class="edit-modal" style="display:none;position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);width:640px;background:#fff;border-radius:8px;padding:18px;z-index:1000;box-shadow:0 8px 24px rgba(0,0,0,0.15);">
-        <h3 style="margin-top:0;">Editar Evaluación #${e.id_evaluacion}</h3>
-        <form action="${editUrl}" method="POST" style="display:flex;flex-direction:column;gap:10px;">
-          <div style="display:flex;gap:10px;">
-            <div style="flex:1;">
-              <label>Empleado</label>
-              <select name="id_empleado" style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
-                <option value="">-- Seleccionar Empleado --</option>
-                {% for emp in empleados %}
-                  <option value="{{ emp.id_empleado }}" ${e.id_empleado == {{ emp.id_empleado }} ? 'selected' : ''}>
-                    {{ emp.nombre_completo }}
-                  </option>
-                {% endfor %}
-              </select>
-            </div>
-            <div style="flex:1;">
-              <label>Fecha Evaluación</label>
-              <input type="datetime-local" name="fecha_evaluacion" value="${e.fecha_evaluacion}" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
-            </div>
-            <div style="flex:1;">
-              <label>Tipo</label>
-              <input type="text" name="tipo" value="${e.tipo}" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
-            </div>
-          </div>
-          <div style="display:flex;gap:10px;">
-            <div style="flex:1;">
-              <label>Resultado</label>
-              <input type="text" name="resultado" value="${e.resultado}" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
-            </div>
-            <div style="flex:2;">
-              <label>Observaciones</label>
-              <input type="text" name="observaciones" value="${e.observaciones || ''}" style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
-            </div>
-          </div>
-          <div style="display:flex;gap:10px;">
-            <div style="flex:1;">
-              <label>Fecha Inicio</label>
-              <input type="datetime-local" name="fecha_inicio" value="${e.fecha_inicio || ''}" style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
-            </div>
-            <div style="flex:1;">
-              <label>Fecha Fin</label>
-              <input type="datetime-local" name="fecha_fin" value="${e.fecha_fin || ''}" style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
-            </div>
-          </div>
-          <div style="display:flex;gap:8px;justify-content:flex-end;">
-            <button type="submit" style="background:#0069ff;color:#fff;padding:8px 14px;border-radius:6px;border:0;">Actualizar</button>
-            <button type="button" onclick="closeEditModal(${e.id_evaluacion})" style="background:#e9ecef;padding:8px 14px;border-radius:6px;border:0;">Cancelar</button>
-          </div>
-        </form>
-      </div>
-    `;
-    tbody.insertAdjacentHTML('beforeend', row);
-  });
-}
-
-// CAPACITACIONES
-function toggleCapacitaciones(){
-  const container = document.getElementById('capacitaciones-container');
-  const btn = document.getElementById('toggle-capacitaciones');
-  const search = document.getElementById('search-capacitaciones');
-  
-  if(!capacitacionesLoaded){
-    loadCapacitaciones();
-    capacitacionesLoaded = true;
+      `;
+      tbody.appendChild(tr);
+    });
   }
-  
-  if(container.style.display === 'none'){
-    container.style.display = 'block';
-    search.style.display = 'block';
-    btn.textContent = '▲ Ocultar Capacitaciones';
-  } else {
-    container.style.display = 'none';
-    search.style.display = 'none';
-    btn.textContent = '▼ Cargar Capacitaciones';
+
+  // --- CAPACITACIONES ---
+  function toggleCapacitaciones() {
+    const container = document.getElementById('capacitaciones-container');
+    const btn = document.getElementById('toggle-capacitaciones');
+    const search = document.getElementById('search-capacitaciones');
+
+    if (container.style.display === 'none') {
+      if (!capacitacionesLoaded) {
+        loadCapacitaciones();
+        capacitacionesLoaded = true;
+      }
+      container.style.display = 'block';
+      search.style.display = 'block';
+      btn.textContent = '▲ Ocultar Capacitaciones';
+    } else {
+      container.style.display = 'none';
+      search.style.display = 'none';
+      btn.textContent = '▼ Cargar Capacitaciones';
+    }
   }
-}
 
-function loadCapacitaciones(){
-  fetch('{{ url_for("evaluacion.get_capacitaciones") }}')
-    .then(response => response.json())
-    .then(data => {
-      capacitacionesData = data;
-      renderCapacitaciones(data);
-    })
-    .catch(error => console.error('Error:', error));
-}
+  function loadCapacitaciones() {
+    fetch('{{ url_for("evaluacion.get_capacitaciones") }}')
+      .then(res => res.json())
+      .then(data => renderCapacitaciones(data))
+      .catch(err => console.error('Error loading capacitaciones:', err));
+  }
 
-function renderCapacitaciones(data){
-  const tbody = document.getElementById('capacitaciones-tbody');
-  tbody.innerHTML = '';
-  
-  data.forEach(c => {
-    const deleteUrl = `/evaluacion/eliminar_capacitacion/${c['id_empleado-capacitacion']}`;
-    const editUrl = `/evaluacion/editar_capacitacion/${c['id_empleado-capacitacion']}`;
-    
-    const row = `
-      <tr id="row-cap-${c['id_empleado-capacitacion']}">
-        <td>${c['id_empleado-capacitacion']}</td>
-        <td>${c.nombre_completo || '—'}</td>
-        <td>${c.nombre}</td>
-        <td>${c.descripcion}</td>
-        <td>${c.fecha_inicio}</td>
-        <td>${c.fecha_fin}</td>
-        <td>${c.proveedor}</td>
-        <td>${c.resultado || '—'}</td>
-        <td>${c.comentarios || '—'}</td>
-        <td style="width:220px;">
-          <div style="display:flex;gap:8px;justify-content:flex-end;align-items:center;">
-            <button type="button" class="btn btn-link" onclick="openCapacitacionModal(${c['id_empleado-capacitacion']})" style="padding:0 8px;">Editar</button>
-            <form action="${deleteUrl}" method="POST" style="margin:0;">
-              <button type="submit" class="btn btn-primary" style="background:#007bff;border-color:#007bff;padding:6px 18px;border-radius:6px;color:#fff;" onclick="return confirm('¿Eliminar capacitación?')">Eliminar</button>
-            </form>
-          </div>
+  function renderCapacitaciones(data) {
+    const tbody = document.getElementById('capacitaciones-tbody');
+    tbody.innerHTML = '';
+    data.forEach(item => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${item['id_empleado-capacitacion']}</td>
+        <td>${item.nombre_completo}</td>
+        <td>${item.nombre}</td>
+        <td>${item.descripcion}</td>
+        <td>${formatDate(item.fecha_inicio)}</td>
+        <td>${formatDate(item.fecha_fin)}</td>
+        <td>${item.proveedor}</td>
+        <td>${item.resultado || '-'}</td>
+        <td>${item.comentarios || ''}</td>
+        <td>
+          <button class="btn btn-link" onclick='openEditCapacitacion(${JSON.stringify(item)})'>Editar</button>
+          <form action="/evaluacion/eliminar_capacitacion/${item['id_empleado-capacitacion']}" method="POST" style="display:inline;" onsubmit="return confirm(\'¿Eliminar capacitación?\');">
+             <button type="submit" class="btn btn-danger" style="padding:4px 8px;font-size:12px;">Eliminar</button>
+          </form>
         </td>
-      </tr>
-
-      <div id="overlay-cap-${c['id_empleado-capacitacion']}" class="modal-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.35);z-index:999;" onclick="closeCapacitacionModal(${c['id_empleado-capacitacion']})"></div>
-
-      <div id="modal-cap-${c['id_empleado-capacitacion']}" class="edit-modal" style="display:none;position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);width:640px;background:#fff;border-radius:8px;padding:18px;z-index:1000;box-shadow:0 8px 24px rgba(0,0,0,0.15);">
-        <h3 style="margin-top:0;">Editar Capacitación #${c['id_empleado-capacitacion']}</h3>
-        <form action="${editUrl}" method="POST" style="display:flex;flex-direction:column;gap:10px;">
-          <div style="display:flex;gap:10px;">
-            <div style="flex:1;">
-              <label>Empleado</label>
-              <select name="id_empleado" style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
-                <option value="">-- Seleccionar Empleado --</option>
-                {% for emp in empleados %}
-                  <option value="{{ emp.id_empleado }}" ${c.id_empleado == {{ emp.id_empleado }} ? 'selected' : ''}>
-                    {{ emp.nombre_completo }}
-                  </option>
-                {% endfor %}
-              </select>
-            </div>
-            <div style="flex:1;">
-              <label>Curso</label>
-              <input type="text" name="curso" value="${c.nombre}" disabled style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;background:#f5f5f5;">
-            </div>
-          </div>
-          <div style="display:flex;gap:10px;">
-            <div style="flex:1;">
-              <label>Fecha Inicio</label>
-              <input type="datetime-local" name="fecha_inicio" value="${c.fecha_inicio}" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
-            </div>
-            <div style="flex:1;">
-              <label>Fecha Fin</label>
-              <input type="datetime-local" name="fecha_fin" value="${c.fecha_fin}" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
-            </div>
-          </div>
-          <div style="display:flex;gap:10px;">
-            <div style="flex:1;">
-              <label>Resultado</label>
-              <input type="number" name="resultado" value="${c.resultado || ''}" placeholder="0.00" step="0.01" min="0" max="100" style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
-            </div>
-            <div style="flex:2;">
-              <label>Comentarios</label>
-              <input type="text" name="comentarios" value="${c.comentarios || ''}" style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
-            </div>
-          </div>
-          <div style="display:flex;gap:8px;justify-content:flex-end;">
-            <button type="submit" style="background:#0069ff;color:#fff;padding:8px 14px;border-radius:6px;border:0;">Actualizar</button>
-            <button type="button" onclick="closeCapacitacionModal(${c['id_empleado-capacitacion']})" style="background:#e9ecef;padding:8px 14px;border-radius:6px;border:0;">Cancelar</button>
-          </div>
-        </form>
-      </div>
-    `;
-    tbody.insertAdjacentHTML('beforeend', row);
-  });
-}
-
-// PLANES DE CARRERA
-function togglePlanes(){
-  const container = document.getElementById('planes-container');
-  const btn = document.getElementById('toggle-planes');
-  const search = document.getElementById('search-planes');
-  
-  if(!planesLoaded){
-    loadPlanes();
-    planesLoaded = true;
+      `;
+      tbody.appendChild(tr);
+    });
   }
-  
-  if(container.style.display === 'none'){
-    container.style.display = 'block';
-    search.style.display = 'block';
-    btn.textContent = '▲ Ocultar Planes';
-  } else {
-    container.style.display = 'none';
-    search.style.display = 'none';
-    btn.textContent = '▼ Cargar Planes';
+
+  // --- PLANES ---
+  function togglePlanes() {
+    const container = document.getElementById('planes-container');
+    const btn = document.getElementById('toggle-planes');
+    const search = document.getElementById('search-planes');
+
+    if (container.style.display === 'none') {
+      if (!planesLoaded) {
+        loadPlanes();
+        planesLoaded = true;
+      }
+      container.style.display = 'block';
+      search.style.display = 'block';
+      btn.textContent = '▲ Ocultar Planes';
+    } else {
+      container.style.display = 'none';
+      search.style.display = 'none';
+      btn.textContent = '▼ Cargar Planes';
+    }
   }
-}
 
-function loadPlanes(){
-  fetch('{{ url_for("evaluacion.get_planes_carrera") }}')
-    .then(response => response.json())
-    .then(data => {
-      planesData = data;
-      renderPlanes(data);
-    })
-    .catch(error => console.error('Error:', error));
-}
+  function loadPlanes() {
+    fetch('{{ url_for("evaluacion.get_planes_carrera") }}')
+      .then(res => res.json())
+      .then(data => renderPlanes(data))
+      .catch(err => console.error('Error loading planes de carrera:', err));
+  }
 
-function renderPlanes(data){
-  const tbody = document.getElementById('planes-tbody');
-  tbody.innerHTML = '';
-  
-  data.forEach(p => {
-    const deleteUrl = `/evaluacion/eliminar_plan_carrera/${p.id_plan_carrera}`;
-    const editUrl = `/evaluacion/editar_plan_carrera/${p.id_plan_carrera}`;
-    
-    const row = `
-      <tr id="row-plan-${p.id_plan_carrera}">
-        <td>${p.id_plan_carrera}</td>
-        <td>${p.nombre_completo || '—'}</td>
-        <td>${p.objetivo}</td>
-        <td>${p.etapas}</td>
-        <td>${p.fecha_inicio}</td>
-        <td>${p.fecha_fin}</td>
-        <td style="width:220px;">
-          <div style="display:flex;gap:8px;justify-content:flex-end;align-items:center;">
-            <button type="button" class="btn btn-link" onclick="openPlanModal(${p.id_plan_carrera})" style="padding:0 8px;">Editar</button>
-            <form action="${deleteUrl}" method="POST" style="margin:0;">
-              <button type="submit" class="btn btn-primary" style="background:#007bff;border-color:#007bff;padding:6px 18px;border-radius:6px;color:#fff;" onclick="return confirm('¿Eliminar plan de carrera?')">Eliminar</button>
-            </form>
-          </div>
+  function renderPlanes(data) {
+    const tbody = document.getElementById('planes-tbody');
+    tbody.innerHTML = '';
+    data.forEach(item => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${item.id_plan_carrera}</td>
+        <td>${item.nombre_completo || 'Sin asignar'}</td>
+        <td>${item.objetivo}</td>
+        <td>${item.etapas}</td>
+        <td>${formatDate(item.fecha_inicio)}</td>
+        <td>${formatDate(item.fecha_fin)}</td>
+        <td>
+          <button class="btn btn-link" onclick='openEditPlan(${JSON.stringify(item)})'>Editar</button>
+          <form action="/evaluacion/eliminar_plan_carrera/${item.id_plan_carrera}" method="POST" style="display:inline;" onsubmit="return confirm(\'¿Eliminar plan?\');">
+             <button type="submit" class="btn btn-danger" style="padding:4px 8px;font-size:12px;">Eliminar</button>
+          </form>
         </td>
-      </tr>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
 
-      <div id="overlay-plan-${p.id_plan_carrera}" class="modal-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.35);z-index:999;" onclick="closePlanModal(${p.id_plan_carrera})"></div>
+  // --- HELPERS ---
+  function formatDate(dateString) {
+    if (!dateString) return '';
+    const d = new Date(dateString);
+    if (isNaN(d.getTime())) return dateString;
+    return d.toLocaleDateString() + ' ' + d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  }
 
-      <div id="modal-plan-${p.id_plan_carrera}" class="edit-modal" style="display:none;position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);width:640px;background:#fff;border-radius:8px;padding:18px;z-index:1000;box-shadow:0 8px 24px rgba(0,0,0,0.15);">
-        <h3 style="margin-top:0;">Editar Plan de Carrera #${p.id_plan_carrera}</h3>
-        <form action="${editUrl}" method="POST" style="display:flex;flex-direction:column;gap:10px;">
-          <div style="display:flex;gap:10px;">
-            <div style="flex:1;">
-              <label>Objetivo</label>
-              <input type="text" name="objetivo" value="${p.objetivo}" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
-            </div>
-            <div style="flex:1;">
-              <label>Etapas</label>
-              <input type="text" name="etapas" value="${p.etapas}" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
-            </div>
-          </div>
-          <div style="display:flex;gap:10px;">
-            <div style="flex:1;">
-              <label>Fecha Inicio</label>
-              <input type="datetime-local" name="fecha_inicio" value="${p.fecha_inicio}" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
-            </div>
-            <div style="flex:1;">
-              <label>Fecha Fin</label>
-              <input type="datetime-local" name="fecha_fin" value="${p.fecha_fin}" required style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;">
-            </div>
-          </div>
-          <div style="display:flex;gap:8px;justify-content:flex-end;">
-            <button type="submit" style="background:#0069ff;color:#fff;padding:8px 14px;border-radius:6px;border:0;">Actualizar</button>
-            <button type="button" onclick="closePlanModal(${p.id_plan_carrera})" style="background:#e9ecef;padding:8px 14px;border-radius:6px;border:0;">Cancelar</button>
-          </div>
-        </form>
-      </div>
-    `;
-    tbody.insertAdjacentHTML('beforeend', row);
-  });
-}
+  function toDatetimeLocal(dateString) {
+    if (!dateString) return '';
+    const d = new Date(dateString);
+    if (isNaN(d.getTime())) return '';
+    const pad = (n) => n < 10 ? '0' + n : n;
+    return d.getFullYear() + '-' +
+      pad(d.getMonth() + 1) + '-' +
+      pad(d.getDate()) + 'T' +
+      pad(d.getHours()) + ':' +
+      pad(d.getMinutes());
+  }
 
-// FUNCIONES COMPARTIDAS
-function filterTable(type){
-  const searchInput = document.getElementById(`search-${type}`).value.toLowerCase();
-  const rows = document.querySelectorAll(`#${type}-tbody tr`);
-  
-  rows.forEach(row => {
-    const text = row.textContent.toLowerCase();
-    row.style.display = text.includes(searchInput) ? '' : 'none';
-  });
-}
+  function filterTable(type) {
+    const searchInput = document.getElementById(`search-${type}`).value.toLowerCase();
+    const rows = document.querySelectorAll(`#${type}-tbody tr`);
+    rows.forEach(row => {
+      const text = row.textContent.toLowerCase();
+      row.style.display = text.includes(searchInput) ? '' : 'none';
+    });
+  }
 
-function openEditModal(id){
-  document.getElementById('overlay-eval-' + id).style.display = 'block';
-  document.getElementById('modal-eval-' + id).style.display = 'block';
-}
-function closeEditModal(id){
-  document.getElementById('overlay-eval-' + id).style.display = 'none';
-  document.getElementById('modal-eval-' + id).style.display = 'none';
-}
+  function closeModal(id) {
+    document.getElementById(id).style.display = 'none';
+  }
 
-function openCapacitacionModal(id){
-  document.getElementById('overlay-cap-' + id).style.display = 'block';
-  document.getElementById('modal-cap-' + id).style.display = 'block';
-}
-function closeCapacitacionModal(id){
-  document.getElementById('overlay-cap-' + id).style.display = 'none';
-  document.getElementById('modal-cap-' + id).style.display = 'none';
-}
+  // --- MODAL OPENERS ---
+  function openEditEvaluacion(item) {
+    document.getElementById('edit-eval-id').value = item.id_evaluacion;
+    document.getElementById('edit-eval-empleado').value = item.id_empleado;
+    document.getElementById('edit-eval-fecha').value = toDatetimeLocal(item.fecha_evaluacion);
+    document.getElementById('edit-eval-tipo').value = item.tipo;
+    document.getElementById('edit-eval-resultado').value = item.resultado;
+    document.getElementById('edit-eval-observaciones').value = item.observaciones;
+    document.getElementById('edit-eval-inicio').value = toDatetimeLocal(item.fecha_inicio);
+    document.getElementById('edit-eval-fin').value = toDatetimeLocal(item.fecha_fin);
 
-function openPlanModal(id){
-  document.getElementById('overlay-plan-' + id).style.display = 'block';
-  document.getElementById('modal-plan-' + id).style.display = 'block';
-}
-function closePlanModal(id){
-  document.getElementById('overlay-plan-' + id).style.display = 'none';
-  document.getElementById('modal-plan-' + id).style.display = 'none';
-}
+    document.getElementById('form-edit-evaluacion').action = `/evaluacion/editar_evaluacion/${item.id_evaluacion}`;
+    document.getElementById('edit-evaluacion-modal').style.display = 'flex';
+  }
+
+  function openEditCapacitacion(item) {
+    document.getElementById('edit-cap-id').value = item['id_empleado-capacitacion'];
+    document.getElementById('edit-cap-empleado').value = item.id_empleado;
+    document.getElementById('edit-cap-inicio').value = toDatetimeLocal(item.fecha_inicio);
+    document.getElementById('edit-cap-fin').value = toDatetimeLocal(item.fecha_fin);
+    document.getElementById('edit-cap-resultado').value = item.resultado;
+    document.getElementById('edit-cap-comentarios').value = item.comentarios;
+
+    document.getElementById('form-edit-capacitacion').action = `/evaluacion/editar_capacitacion/${item['id_empleado-capacitacion']}`;
+    document.getElementById('edit-capacitacion-modal').style.display = 'flex';
+  }
+
+  function openEditPlan(item) {
+    document.getElementById('edit-plan-id').value = item.id_plan_carrera;
+    document.getElementById('edit-plan-objetivo').value = item.objetivo;
+    document.getElementById('edit-plan-etapas').value = item.etapas;
+    document.getElementById('edit-plan-inicio').value = toDatetimeLocal(item.fecha_inicio);
+    document.getElementById('edit-plan-fin').value = toDatetimeLocal(item.fecha_fin);
+
+    document.getElementById('form-edit-plan').action = `/evaluacion/editar_plan_carrera/${item.id_plan_carrera}`;
+    document.getElementById('edit-plan-modal').style.display = 'flex';
+  }
 </script>
-
 {% endblock %}

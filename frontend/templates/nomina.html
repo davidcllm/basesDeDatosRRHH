@@ -3,7 +3,7 @@
 <h1>Módulo de Nómina y Compensaciones</h1>
 
 <div class="form-container">
-  <form action="{{ url_for('nomina.agregar_nomina') }}" method="POST">
+  <form action="{{ url_for('nomina.agregar_nomina') }}" method="POST" onsubmit="return validateNomina(this)">
     <label for="id_empleado">Empleado:</label>
     <select id="id_empleado" name="id_empleado" required>
       <option value="">-- Seleccionar Empleado --</option>
@@ -29,8 +29,8 @@
       <th>Salario base</th>
       <th>Deducciones</th>
       <th>Percepciones</th>
-      <th>Total a pagar</th>
-      <th>Acciones</th>
+      < th>Total a pagar</th>
+        <th>Acciones</th>
     </tr>
   </thead>
   <tbody>
@@ -64,7 +64,8 @@
     <div id="modal-nomina-{{ n.id_nomina }}" class="edit-modal"
       style="display:none;position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);width:380px;background:#fff;border-radius:8px;padding:22px;z-index:1000;">
       <h3>Editar Nómina</h3>
-      <form action="{{ url_for('nomina.editar_nomina', id_nomina=n.id_nomina) }}" method="POST">
+      <form action="{{ url_for('nomina.editar_nomina', id_nomina=n.id_nomina) }}" method="POST"
+        onsubmit="return validateNomina(this)">
         <!-- Mostrar empleado (no editable) -->
         <div class="form-group" style="margin-bottom:12px;">
           <label>Empleado</label>
@@ -104,6 +105,77 @@
   </tbody>
 </table>
 
+<!-- CUENTAS BANCARIAS SECTION -->
+<h2 style="margin-top:40px;">Cuentas Bancarias</h2>
+
+<div class="form-container">
+  <form action="{{ url_for('nomina.agregar_cuenta_bancaria') }}" method="POST">
+    <input type="text" name="banco" placeholder="Banco" required>
+    <input type="text" name="numero_cuenta" placeholder="Número de cuenta" required pattern="[0-9]+"
+      title="Solo se permiten números enteros" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+    <input type="number" name="saldo" placeholder="Saldo" required step="0.01">
+
+    <button type="submit" class="btn btn-primary" style="width:100%;margin-top:12px;">Agregar Cuenta Bancaria</button>
+  </form>
+</div>
+
+<table class="table" style="width:95%;margin:20px auto;">
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Banco</th>
+      <th>Número de Cuenta</th>
+      <th>Saldo</th>
+      <th>Acciones</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for c in cuentas_bancarias %}
+    <tr id="row-cuenta-{{ c.id_cuenta_bancaria }}">
+      <td>{{ c.id_cuenta_bancaria }}</td>
+      <td>{{ c.banco }}</td>
+      <td>{{ c.numero_cuenta }}</td>
+      <td>{{ c.saldo | currency }}</td>
+      <td style="width:220px;">
+        <div style="display:flex;gap:8px;justify-content:flex-end;align-items:center;">
+          <button type="button" class="btn btn-link" onclick="openEditModalCuenta({{ c.id_cuenta_bancaria }})"
+            style="padding:0 8px;">Editar</button>
+          <form action="{{ url_for('nomina.eliminar_cuenta_bancaria', id_cuenta=c.id_cuenta_bancaria) }}" method="POST"
+            style="margin:0;">
+            <button type="submit" class="btn btn-primary"
+              style="background:#007bff;border-color:#007bff;padding:6px 18px;border-radius:6px;color:#fff;"
+              onclick="return confirm('¿Eliminar cuenta bancaria?')">Eliminar</button>
+          </form>
+        </div>
+      </td>
+    </tr>
+
+    <!-- Modal de edición cuenta bancaria -->
+    <div id="overlay-cuenta-{{ c.id_cuenta_bancaria }}" class="modal-overlay"
+      style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.35);z-index:999;"
+      onclick="closeEditModalCuenta({{ c.id_cuenta_bancaria }})"></div>
+
+    <div id="modal-cuenta-{{ c.id_cuenta_bancaria }}" class="edit-modal"
+      style="display:none;position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);width:380px;background:#fff;border-radius:8px;padding:22px;z-index:1000;">
+      <h3>Editar Cuenta Bancaria</h3>
+      <form action="{{ url_for('nomina.editar_cuenta_bancaria', id_cuenta=c.id_cuenta_bancaria) }}" method="POST">
+        <div class="form-group" style="margin-bottom:12px;">
+          <label for="banco-{{ c.id_cuenta_bancaria }}">Banco</label>
+        </div>
+
+        <div style="display:flex;gap:10px;margin-top:12px;">
+          <button type="submit" class="btn"
+            style="flex:1;background:#0069ff;color:#fff;padding:10px;border-radius:6px;border:0;">Actualizar</button>
+          <button type="button" class="btn"
+            style="flex:1;background:#e9ecef;color:#333;padding:10px;border-radius:6px;border:0;"
+            onclick="closeEditModalCuenta({{ c.id_cuenta_bancaria }})">Cancelar</button>
+        </div>
+      </form>
+    </div>
+    {% endfor %}
+  </tbody>
+</table>
+
 <script>
   function openEditModal(id) {
     document.getElementById('overlay-nomina-' + id).style.display = 'block';
@@ -112,6 +184,29 @@
   function closeEditModal(id) {
     document.getElementById('overlay-nomina-' + id).style.display = 'none';
     document.getElementById('modal-nomina-' + id).style.display = 'none';
+  }
+  function openEditModalCuenta(id) {
+    document.getElementById('overlay-cuenta-' + id).style.display = 'block';
+    document.getElementById('modal-cuenta-' + id).style.display = 'block';
+  }
+  function closeEditModalCuenta(id) {
+    document.getElementById('overlay-cuenta-' + id).style.display = 'none';
+    document.getElementById('modal-cuenta-' + id).style.display = 'none';
+  }
+
+  function validateNomina(form) {
+    const salarioBase = parseFloat(form.querySelector('[name="salario_base"]').value) || 0;
+    const deducciones = parseFloat(form.querySelector('[name="deducciones"]').value) || 0;
+    const percepciones = parseFloat(form.querySelector('[name="percepciones"]').value) || 0;
+
+    const totalPagar = salarioBase - deducciones + percepciones;
+
+    if (totalPagar < 0) {
+      alert('Error: El total a pagar no puede ser negativo.\n\nTotal calculado: $' + totalPagar.toFixed(2) + '\n\nPor favor ajusta los valores.');
+      return false;
+    }
+
+    return true;
   }
 </script>
 {% endblock %}
