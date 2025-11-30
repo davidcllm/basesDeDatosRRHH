@@ -1,11 +1,15 @@
+
 from flask import Blueprint, render_template
 from dp import get_connection
 import pymysql
+import logging
 
 reportes_bp = Blueprint("reportes", __name__)
 
 @reportes_bp.route("/reportes")
 def reportes():
+    cnx = None
+    cursor = None
     try:
         cnx = get_connection()
         cursor = cnx.cursor(pymysql.cursors.DictCursor)
@@ -113,7 +117,7 @@ def reportes():
         )
 
     except Exception as e:
-        print("⚠ ERROR EN REPORTES:", e)
+        logging.error("⚠ ERROR EN REPORTES:", exc_info=True)
         return render_template(
             "reportes.html",
             rep_nomina=[],
@@ -122,12 +126,17 @@ def reportes():
             rep_capacitaciones=[],
             rep_proyectos=[],
             rep_presupuestos=[],
-            error="❌ Ocurrió un error al cargar los reportes."
+            error=f"❌ Ocurrió un error al cargar los reportes. Detalle: {str(e)}"
         )
 
     finally:
-        try:
-            cursor.close()
-            cnx.close()
-        except:
-            pass
+        if cursor:
+            try:
+                cursor.close()
+            except Exception:
+                pass
+        if cnx:
+            try:
+                cnx.close()
+            except Exception:
+                pass
