@@ -22,8 +22,13 @@
     </select>
 </form>
 
+
 <div class="text-center mb-3">
-    <a id="btnCsv" class="btn btn-sm btn-outline-primary" href="/reportes/descargar?tipo={{ tipo }}&formato=csv">Descargar CSV</a>
+    <form id="csvDownloadForm" method="get" action="/reportes/descargar" style="display:inline;">
+        <input type="hidden" name="tipo" value="{{ tipo }}">
+        <input type="hidden" name="formato" value="csv">
+        <button type="submit" class="btn btn-sm btn-outline-primary">Descargar CSV</button>
+    </form>
 </div>
 
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
