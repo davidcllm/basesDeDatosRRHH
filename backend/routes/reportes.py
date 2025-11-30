@@ -18,8 +18,10 @@ def reportes():
         cnx = get_connection()
         cursor = cnx.cursor(pymysql.cursors.DictCursor)
 
-        # Obtener el tipo de reporte a mostrar
+        # Obtener parámetros
         tipo = request.args.get('tipo', 'todos')
+        fecha_inicio = request.args.get('fecha_inicio', '')
+        fecha_fin = request.args.get('fecha_fin', '')
 
         # Inicializar todos los reportes como vacíos
         rep_nomina = []
@@ -28,40 +30,66 @@ def reportes():
         rep_capacitaciones = []
         rep_proyectos = []
         rep_presupuestos = []
+        
+        # Función auxiliar para construir filtro de fecha
+        def agregar_filtro_fecha(query, fecha_field):
+            if fecha_inicio or fecha_fin:
+                if fecha_inicio and fecha_fin:
+                    return f"{query} AND {fecha_field} BETWEEN '{fecha_inicio}' AND '{fecha_fin}'"
+                elif fecha_inicio:
+                    return f"{query} AND {fecha_field} >= '{fecha_inicio}'"
+                elif fecha_fin:
+                    return f"{query} AND {fecha_field} <= '{fecha_fin}'"
+            return query
 
         if tipo == 'nomina' or tipo == 'todos':
             cursor.execute("""
                 SELECT 
                     n.id_nomina,
                     e.nombre_completo,
+                    d.nombre AS departamento,
                     n.salario_base,
                     n.deducciones,
                     n.percepciones,
                     n.total_pagar
                 FROM NOMINA n
                 JOIN EMPLEADO e ON n.id_empleado = e.id_empleado
+                LEFT JOIN DEPARTAMENTO d ON e.id_departamento = d.id_departamento
                 ORDER BY n.id_nomina DESC;
             """)
             rep_nomina = cursor.fetchall()
 
         if tipo == 'ausencias' or tipo == 'todos':
-            cursor.execute("""
+            query = """
                 SELECT 
                     e.nombre_completo,
+                    d.nombre AS departamento,
                     a.tipo,
                     a.fecha_inicio,
                     a.fecha_fin,
-                    a.motivo
+                    a.motivo,
+                    DATEDIFF(a.fecha_fin, a.fecha_inicio) + 1 AS dias_ausencia
                 FROM AUSENCIA a
                 JOIN EMPLEADO e ON a.id_empleado = e.id_empleado
-                ORDER BY a.fecha_inicio DESC;
-            """)
+                LEFT JOIN DEPARTAMENTO d ON e.id_departamento = d.id_departamento
+                WHERE 1=1
+            """
+            if fecha_inicio or fecha_fin:
+                if fecha_inicio and fecha_fin:
+                    query += f" AND a.fecha_inicio BETWEEN '{fecha_inicio}' AND '{fecha_fin}'"
+                elif fecha_inicio:
+                    query += f" AND a.fecha_inicio >= '{fecha_inicio}'"
+                elif fecha_fin:
+                    query += f" AND a.fecha_fin <= '{fecha_fin}'"
+            query += " ORDER BY a.fecha_inicio DESC"
+            cursor.execute(query)
             rep_ausencias = cursor.fetchall()
 
         if tipo == 'evaluaciones' or tipo == 'todos':
-            cursor.execute("""
+            query = """
                 SELECT 
                     e.nombre_completo,
+                    d.nombre AS departamento,
                     ev.fecha_evaluacion,
                     ev.tipo,
                     ev.resultado,
@@ -69,14 +97,25 @@ def reportes():
                 FROM EVALUACION ev
                 JOIN `EMPLEADO-EVALUACION` ee ON ev.id_evaluacion = ee.id_evaluacion
                 JOIN EMPLEADO e ON ee.id_empleado = e.id_empleado
-                ORDER BY ev.fecha_evaluacion DESC;
-            """)
+                LEFT JOIN DEPARTAMENTO d ON e.id_departamento = d.id_departamento
+                WHERE 1=1
+            """
+            if fecha_inicio or fecha_fin:
+                if fecha_inicio and fecha_fin:
+                    query += f" AND ev.fecha_evaluacion BETWEEN '{fecha_inicio}' AND '{fecha_fin}'"
+                elif fecha_inicio:
+                    query += f" AND ev.fecha_evaluacion >= '{fecha_inicio}'"
+                elif fecha_fin:
+                    query += f" AND ev.fecha_evaluacion <= '{fecha_fin}'"
+            query += " ORDER BY ev.fecha_evaluacion DESC"
+            cursor.execute(query)
             rep_evaluaciones = cursor.fetchall()
 
         if tipo == 'capacitaciones' or tipo == 'todos':
-            cursor.execute("""
+            query = """
                 SELECT 
                     e.nombre_completo,
+                    d.nombre AS departamento,
                     c.nombre AS capacitacion,
                     c.proveedor,
                     c.fecha_inicio,
@@ -86,23 +125,44 @@ def reportes():
                 FROM CAPACITACION c
                 JOIN `EMPLEADO-CAPACITACION` ec ON c.id_capacitacion = ec.id_capacitacion
                 JOIN EMPLEADO e ON ec.id_empleado = e.id_empleado
-                ORDER BY c.fecha_inicio DESC;
-            """)
+                LEFT JOIN DEPARTAMENTO d ON e.id_departamento = d.id_departamento
+                WHERE 1=1
+            """
+            if fecha_inicio or fecha_fin:
+                if fecha_inicio and fecha_fin:
+                    query += f" AND c.fecha_inicio BETWEEN '{fecha_inicio}' AND '{fecha_fin}'"
+                elif fecha_inicio:
+                    query += f" AND c.fecha_inicio >= '{fecha_inicio}'"
+                elif fecha_fin:
+                    query += f" AND c.fecha_fin <= '{fecha_fin}'"
+            query += " ORDER BY c.fecha_inicio DESC"
+            cursor.execute(query)
             rep_capacitaciones = cursor.fetchall()
 
         if tipo == 'proyectos' or tipo == 'todos':
-            cursor.execute("""
+            query = """
                 SELECT 
                     e.nombre_completo,
+                    d.nombre AS departamento,
                     p.nombre AS proyecto,
                     ep.horas_asignadas,
                     ep.fecha_asignacion,
                     ep.fecha_entrega
                 FROM `EMPLEADO-PROYECTO` ep
                 JOIN EMPLEADO e ON ep.id_empleado = e.id_empleado
+                LEFT JOIN DEPARTAMENTO d ON e.id_departamento = d.id_departamento
                 JOIN PROYECTO p ON ep.id_proyecto = p.id_proyecto
-                ORDER BY ep.fecha_asignacion DESC;
-            """)
+                WHERE 1=1
+            """
+            if fecha_inicio or fecha_fin:
+                if fecha_inicio and fecha_fin:
+                    query += f" AND ep.fecha_asignacion BETWEEN '{fecha_inicio}' AND '{fecha_fin}'"
+                elif fecha_inicio:
+                    query += f" AND ep.fecha_asignacion >= '{fecha_inicio}'"
+                elif fecha_fin:
+                    query += f" AND ep.fecha_entrega <= '{fecha_fin}'"
+            query += " ORDER BY ep.fecha_asignacion DESC"
+            cursor.execute(query)
             rep_proyectos = cursor.fetchall()
 
         if tipo == 'presupuestos' or tipo == 'todos':
@@ -119,6 +179,38 @@ def reportes():
                 ORDER BY p.id_presupuesto DESC;
             """)
             rep_presupuestos = cursor.fetchall()
+        
+        # Calcular estadísticas
+        stats = {}
+        if tipo == 'nomina' or tipo == 'todos':
+            cursor.execute("SELECT SUM(total_pagar) as total, AVG(salario_base) as promedio FROM NOMINA")
+            resultado = cursor.fetchone()
+            stats['nomina_total'] = resultado.get('total') or 0
+            stats['nomina_promedio'] = resultado.get('promedio') or 0
+        
+        if tipo == 'ausencias' or tipo == 'todos':
+            cursor.execute("SELECT COUNT(*) as cantidad FROM AUSENCIA")
+            stats['ausencias_cantidad'] = cursor.fetchone().get('cantidad') or 0
+        
+        if tipo == 'evaluaciones' or tipo == 'todos':
+            cursor.execute("SELECT COUNT(*) as cantidad FROM EVALUACION")
+            stats['evaluaciones_cantidad'] = cursor.fetchone().get('cantidad') or 0
+        
+        if tipo == 'capacitaciones' or tipo == 'todos':
+            cursor.execute("SELECT COUNT(*) as cantidad FROM CAPACITACION")
+            stats['capacitaciones_cantidad'] = cursor.fetchone().get('cantidad') or 0
+        
+        if tipo == 'proyectos' or tipo == 'todos':
+            cursor.execute("SELECT COUNT(*) as cantidad, SUM(horas_asignadas) as horas_totales FROM `EMPLEADO-PROYECTO`")
+            resultado = cursor.fetchone()
+            stats['proyectos_cantidad'] = resultado.get('cantidad') or 0
+            stats['proyectos_horas'] = resultado.get('horas_totales') or 0
+        
+        if tipo == 'presupuestos' or tipo == 'todos':
+            cursor.execute("SELECT SUM(monto_asignado) as total_asignado, SUM(monto_utilizado) as total_utilizado FROM PRESUPUESTO")
+            resultado = cursor.fetchone()
+            stats['presupuestos_asignado'] = resultado.get('total_asignado') or 0
+            stats['presupuestos_utilizado'] = resultado.get('total_utilizado') or 0
 
         return render_template(
             "reportes.html",
@@ -129,6 +221,9 @@ def reportes():
             rep_proyectos=rep_proyectos,
             rep_presupuestos=rep_presupuestos,
             tipo=tipo,
+            fecha_inicio=fecha_inicio,
+            fecha_fin=fecha_fin,
+            stats=stats,
             error=None
         )
 
@@ -142,6 +237,7 @@ def reportes():
             rep_capacitaciones=[],
             rep_proyectos=[],
             rep_presupuestos=[],
+            stats={},
             error=f"❌ Ocurrió un error al cargar los reportes. Detalle: {str(e)}"
         )
 
