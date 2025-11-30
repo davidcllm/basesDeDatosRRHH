@@ -7,6 +7,18 @@ from datetime import datetime
 
 proyectos_bp = Blueprint("proyectos", __name__)
 
+# helper: validar longitudes (se usaba antes pero no estaba definido)
+def validate_proyecto_lengths(nombre, descripcion):
+    if len(nombre) == 0:
+        return False, "El nombre no puede estar vacío."
+    if len(nombre) > 45:
+        return False, "El nombre no puede exceder 45 caracteres."
+    if len(descripcion) == 0:
+        return False, "La descripción no puede estar vacía."
+    if len(descripcion) > 145:
+        return False, "La descripción no puede exceder 145 caracteres."
+    return True, ""
+
 #Listar proyectos (renders the template)
 @proyectos_bp.route("/proyectos")
 @jwt_required()
@@ -17,7 +29,9 @@ def proyectos():
 
     # --- Proyectos --- (no cargamos aquí la tabla completa para permitir carga bajo demanda)
     cursor.execute("""
-        SELECT id_proyecto, nombre, descripcion
+        SELECT id_proyecto, nombre, descripcion,
+               DATE_FORMAT(fecha_inicio, '%Y-%m-%d') AS fecha_inicio,
+               DATE_FORMAT(fecha_fin, '%Y-%m-%d') AS fecha_fin
         FROM PROYECTO;
     """)
     proyectos = cursor.fetchall()
@@ -45,7 +59,13 @@ def proyectos():
 def get_proyectos():
     cnx = get_connection()
     cursor = cnx.cursor(pymysql.cursors.DictCursor)
-    cursor.execute("SELECT id_proyecto, nombre, descripcion FROM PROYECTO ORDER BY id_proyecto DESC;")
+    cursor.execute("""
+        SELECT id_proyecto, nombre, descripcion,
+               DATE_FORMAT(fecha_inicio, '%Y-%m-%d') AS fecha_inicio,
+               DATE_FORMAT(fecha_fin, '%Y-%m-%d') AS fecha_fin
+        FROM PROYECTO
+        ORDER BY id_proyecto DESC;
+    """)
     data = cursor.fetchall()
     cursor.close()
     cnx.close()
@@ -200,16 +220,28 @@ def eliminar_departamento(id):
 def crear_proyecto():
     nombre = request.form.get("nombre", "").strip()
     descripcion = request.form.get("descripcion", "").strip()
+    fecha_inicio = request.form.get("fecha_inicio", "").strip()
+    fecha_fin = request.form.get("fecha_fin", "").strip()
 
-    # Validar que no estén vacíos
-    if not nombre or not descripcion:
-        flash("El nombre y descripción no pueden estar vacíos.", "error")
-        return redirect(url_for("proyectos.proyectos"))
-
-    # Validar longitudes
+    # Validar que no estén vacíos y longitudes
     valid, msg = validate_proyecto_lengths(nombre, descripcion)
     if not valid:
         flash(msg, "error")
+        return redirect(url_for("proyectos.proyectos"))
+
+    # Validar fechas
+    if not fecha_inicio or not fecha_fin:
+        flash("Debe ingresar fecha de inicio y fecha de fin.", "error")
+        return redirect(url_for("proyectos.proyectos"))
+
+    try:
+        fi = datetime.strptime(fecha_inicio, "%Y-%m-%d").date()
+        ff = datetime.strptime(fecha_fin, "%Y-%m-%d").date()
+        if fi >= ff:
+            flash("La fecha de inicio debe ser anterior a la fecha de fin.", "error")
+            return redirect(url_for("proyectos.proyectos"))
+    except Exception:
+        flash("Formato de fecha inválido. Use YYYY-MM-DD.", "error")
         return redirect(url_for("proyectos.proyectos"))
 
     cnx = get_connection()
@@ -217,9 +249,9 @@ def crear_proyecto():
 
     try:
         cursor.execute("""
-            INSERT INTO PROYECTO (nombre, descripcion)
-            VALUES (%s, %s);
-        """, (nombre, descripcion))
+            INSERT INTO PROYECTO (nombre, descripcion, fecha_inicio, fecha_fin)
+            VALUES (%s, %s, %s, %s);
+        """, (nombre, descripcion, fecha_inicio, fecha_fin))
 
         cnx.commit()
         flash("Proyecto creado correctamente.", "success")
@@ -261,16 +293,27 @@ def eliminar_proyecto(id):
 def actualizar_proyecto(id):
     nombre = request.form.get("nombre", "").strip()
     descripcion = request.form.get("descripcion", "").strip()
+    fecha_inicio = request.form.get("fecha_inicio", "").strip()
+    fecha_fin = request.form.get("fecha_fin", "").strip()
 
-    # Validar que no estén vacíos
-    if not nombre or not descripcion:
-        flash("El nombre y descripción no pueden estar vacíos.", "error")
-        return redirect(url_for("proyectos.proyectos"))
-
-    # Validar longitudes
+    # Validar que no estén vacíos y longitudes
     valid, msg = validate_proyecto_lengths(nombre, descripcion)
     if not valid:
         flash(msg, "error")
+        return redirect(url_for("proyectos.proyectos"))
+
+    if not fecha_inicio or not fecha_fin:
+        flash("Debe ingresar fecha de inicio y fecha de fin.", "error")
+        return redirect(url_for("proyectos.proyectos"))
+
+    try:
+        fi = datetime.strptime(fecha_inicio, "%Y-%m-%d").date()
+        ff = datetime.strptime(fecha_fin, "%Y-%m-%d").date()
+        if fi >= ff:
+            flash("La fecha de inicio debe ser anterior a la fecha de fin.", "error")
+            return redirect(url_for("proyectos.proyectos"))
+    except Exception:
+        flash("Formato de fecha inválido. Use YYYY-MM-DD.", "error")
         return redirect(url_for("proyectos.proyectos"))
 
     cnx = get_connection()
@@ -279,9 +322,9 @@ def actualizar_proyecto(id):
     try:
         cursor.execute("""
             UPDATE PROYECTO
-            SET nombre=%s, descripcion=%s
+            SET nombre=%s, descripcion=%s, fecha_inicio=%s, fecha_fin=%s
             WHERE id_proyecto=%s
-        """, (nombre, descripcion, id))
+        """, (nombre, descripcion, fecha_inicio, fecha_fin, id))
 
         cnx.commit()
         flash("Proyecto actualizado correctamente.", "success")
@@ -320,15 +363,46 @@ def asignar_empleado():
         flash("Las horas asignadas deben ser un número válido.", "error")
         return redirect(url_for("proyectos.proyectos"))
 
-    # Validar que fecha_asignacion no sea posterior a fecha_entrega
-    if fecha_asignacion >= fecha_entrega:
-        flash("La fecha de asignación no puede ser igual o posterior a la fecha de entrega.", "error")
+    # Validar formato y orden de fechas
+    try:
+        fi = datetime.strptime(fecha_asignacion, "%Y-%m-%d").date()
+        ff = datetime.strptime(fecha_entrega, "%Y-%m-%d").date()
+        if fi >= ff:
+            flash("La fecha de asignación debe ser anterior a la fecha de entrega.", "error")
+            return redirect(url_for("proyectos.proyectos"))
+    except Exception:
+        flash("Formato de fecha inválido. Use YYYY-MM-DD.", "error")
         return redirect(url_for("proyectos.proyectos"))
 
+    # Obtener rango del proyecto y validar que las fechas estén dentro
     cnx = get_connection()
-    cursor = cnx.cursor()
+    cursor = cnx.cursor(pymysql.cursors.DictCursor)
+    cursor.execute("SELECT DATE_FORMAT(fecha_inicio, '%%Y-%%m-%%d') AS fecha_inicio, DATE_FORMAT(fecha_fin, '%%Y-%%m-%%d') AS fecha_fin FROM PROYECTO WHERE id_proyecto = %s", (id_proyecto,))
+    proj = cursor.fetchone()
+    if not proj:
+        cursor.close()
+        cnx.close()
+        flash("Proyecto no encontrado.", "error")
+        return redirect(url_for("proyectos.proyectos"))
 
     try:
+        proj_start = datetime.strptime(proj['fecha_inicio'], "%Y-%m-%d").date()
+        proj_end = datetime.strptime(proj['fecha_fin'], "%Y-%m-%d").date()
+    except Exception:
+        cursor.close()
+        cnx.close()
+        flash("Fechas del proyecto inválidas.", "error")
+        return redirect(url_for("proyectos.proyectos"))
+
+    if fi < proj_start or ff > proj_end:
+        cursor.close()
+        cnx.close()
+        flash(f"Las fechas de asignación deben estar entre {proj['fecha_inicio']} y {proj['fecha_fin']}.", "error")
+        return redirect(url_for("proyectos.proyectos"))
+
+    # insertar asignación
+    try:
+        cursor = cnx.cursor()
         cursor.execute("""
             INSERT INTO `EMPLEADO-PROYECTO` 
             (id_empleado, id_proyecto, horas_asignadas, fecha_asignacion, fecha_entrega)
@@ -358,7 +432,7 @@ def actualizar_asignacion(id):
     fecha_asignacion = request.form.get("fecha_asignacion", "").strip()
     fecha_entrega = request.form.get("fecha_entrega", "").strip()
 
-    # validaciones básicas
+    # validaciones básicas (empleado/proyecto/horas)
     if not id_empleado or not id_empleado.isdigit() or not validate_empleado(id_empleado):
         flash("Empleado inválido.", "error")
         return redirect(url_for("proyectos.proyectos"))
@@ -375,7 +449,7 @@ def actualizar_asignacion(id):
         flash("Las horas asignadas deben ser un entero positivo.", "error")
         return redirect(url_for("proyectos.proyectos"))
 
-    # validar fechas (formato YYYY-MM-DD) y orden
+    # validar fechas y orden
     try:
         fecha_a = datetime.strptime(fecha_asignacion, "%Y-%m-%d").date()
         fecha_f = datetime.strptime(fecha_entrega, "%Y-%m-%d").date()
@@ -386,22 +460,49 @@ def actualizar_asignacion(id):
         flash("Fechas inválidas.", "error")
         return redirect(url_for("proyectos.proyectos"))
 
+    # validar que fechas estén dentro del rango del proyecto
     cnx = get_connection()
-    cursor = cnx.cursor()
+    cursor = cnx.cursor(pymysql.cursors.DictCursor)
+    cursor.execute("SELECT DATE_FORMAT(fecha_inicio, '%%Y-%%m-%%d') AS fecha_inicio, DATE_FORMAT(fecha_fin, '%%Y-%%m-%%d') AS fecha_fin FROM PROYECTO WHERE id_proyecto = %s", (id_proyecto,))
+    proj = cursor.fetchone()
+    if not proj:
+        cursor.close()
+        cnx.close()
+        flash("Proyecto no encontrado.", "error")
+        return redirect(url_for("proyectos.proyectos"))
+
     try:
-        cursor.execute("""
+        proj_start = datetime.strptime(proj['fecha_inicio'], "%Y-%m-%d").date()
+        proj_end = datetime.strptime(proj['fecha_fin'], "%Y-%m-%d").date()
+    except Exception:
+        cursor.close()
+        cnx.close()
+        flash("Fechas del proyecto inválidas.", "error")
+        return redirect(url_for("proyectos.proyectos"))
+
+    if fecha_a < proj_start or fecha_f > proj_end:
+        cursor.close()
+        cnx.close()
+        flash(f"Las fechas de asignación deben estar entre {proj['fecha_inicio']} y {proj['fecha_fin']}.", "error")
+        return redirect(url_for("proyectos.proyectos"))
+
+    # Proceder a actualizar
+    cnx2 = get_connection()
+    cursor2 = cnx2.cursor()
+    try:
+        cursor2.execute("""
             UPDATE `EMPLEADO-PROYECTO`
             SET id_empleado=%s, id_proyecto=%s, horas_asignadas=%s, fecha_asignacion=%s, fecha_entrega=%s
             WHERE `id_empleado-proyecto`=%s
         """, (id_empleado, id_proyecto, horas_int, fecha_asignacion, fecha_entrega, id))
-        cnx.commit()
+        cnx2.commit()
         flash("Asignación actualizada correctamente.", "success")
     except Exception as e:
-        cnx.rollback()
+        cnx2.rollback()
         flash(f"Error al actualizar asignación: {e}", "error")
     finally:
-        cursor.close()
-        cnx.close()
+        cursor2.close()
+        cnx2.close()
 
     return redirect(url_for("proyectos.proyectos"))
 
@@ -413,12 +514,12 @@ def eliminar_asignacion(id):
     cnx = get_connection()
     cursor = cnx.cursor()
     try:
-        cursor.execute("DELETE FROM `EMPLEADO-PROYECTO` WHERE `id_empleado-proyecto`=%s", (id,))
+        cursor.execute("DELETE FROM `EMPLEADO-PROYECTO` WHERE `id_empleado-proyecto` = %s", (id,))
         cnx.commit()
         flash("Asignación eliminada correctamente.", "success")
     except Exception as e:
         cnx.rollback()
-        flash(f"Error al eliminar asignación: {e}", "error")
+        flash(f"Error al eliminar la asignación: {e}", "error")
     finally:
         cursor.close()
         cnx.close()

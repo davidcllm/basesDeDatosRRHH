@@ -25,7 +25,7 @@ def empleados():
 
 @empleados_bp.route("/empleados/agregar", methods=["POST"])
 @jwt_required()
-@roles_required('administrador','finanzas', 'recursos_humanos')
+@roles_required('administrador', 'recursos_humanos')
 def agregar_empleado():
     nombre = request.form["nombre"]
     apellido = request.form["apellido"]
@@ -81,7 +81,7 @@ def agregar_empleado():
 
 @empleados_bp.route("/empleados/eliminar/<int:id>", methods=["POST"])
 @jwt_required()
-@roles_required('administrador','finanzas', 'recursos_humanos')
+@roles_required('administrador', 'recursos_humanos')
 def eliminar_empleado(id):
     cnx = get_connection()
     cursor = cnx.cursor()
@@ -93,7 +93,7 @@ def eliminar_empleado(id):
 
 @empleados_bp.route("/empleados/editar/<int:id>", methods=["POST"])
 @jwt_required()
-@roles_required('administrador','finanzas', 'recursos_humanos')
+@roles_required('administrador', 'recursos_humanos')
 def editar_empleado(id):
     nombre = request.form["nombre"]
     apellido = request.form["apellido"]

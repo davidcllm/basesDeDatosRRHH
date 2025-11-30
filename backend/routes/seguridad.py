@@ -32,7 +32,7 @@ def seguridad():
 @roles_required('administrador')
 def modificar_rol(id_usuario):
     new_rol = request.form.get("rol")
-    ALLOWED_ROLES = ['administrador', 'finanzas', 'recursos_humanos']
+    ALLOWED_ROLES = ['administrador', 'finanzas', 'recursos_humanos', 'invitado']
     if new_rol not in ALLOWED_ROLES:
         flash("Rol inválido.", "error")
         return redirect(url_for("seguridad.seguridad"))
@@ -60,6 +60,44 @@ def modificar_rol(id_usuario):
         if cnx:
             cnx.rollback()
         flash(f"Error al actualizar rol: {e}", "error")
+    finally:
+        if cursor:
+            cursor.close()
+        if cnx:
+            cnx.close()
+
+    return redirect(url_for("seguridad.seguridad"))
+
+@seguridad_bp.route("/seguridad/eliminar/<int:id_usuario>", methods=["POST"])
+@jwt_required()
+@roles_required('administrador')
+def eliminar_usuario(id_usuario):
+    cnx = None
+    cursor = None
+    try:
+        cnx = get_connection()
+        cursor = cnx.cursor()
+        
+        # Evitar que el admin se elimine a sí mismo
+        current_email = get_jwt_identity()
+        cursor.execute("SELECT email FROM USUARIO WHERE id_usuario = %s;", (id_usuario,))
+        row = cursor.fetchone()
+        if not row:
+            flash("Usuario no encontrado.", "error")
+            return redirect(url_for("seguridad.seguridad"))
+        
+        if row.get("email") == current_email:
+            flash("No puedes eliminar tu propia cuenta.", "error")
+            return redirect(url_for("seguridad.seguridad"))
+
+        # Eliminar usuario
+        cursor.execute("DELETE FROM USUARIO WHERE id_usuario = %s;", (id_usuario,))
+        cnx.commit()
+        flash("Usuario eliminado correctamente.", "success")
+    except Exception as e:
+        if cnx:
+            cnx.rollback()
+        flash(f"Error al eliminar usuario: {e}", "error")
     finally:
         if cursor:
             cursor.close()

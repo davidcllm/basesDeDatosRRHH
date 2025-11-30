@@ -59,7 +59,7 @@ ENGINE = InnoDB;
 CREATE TABLE IF NOT EXISTS `mydb`.`EMPLEADO` (
   `id_empleado` INT NOT NULL AUTO_INCREMENT,
   `id_cuenta_bancaria` INT NOT NULL,
-  `id_plan_carrera` INT NOT NULL,
+  `id_plan_carrera` INT,
   `nombre_completo` VARCHAR(100) NOT NULL,
   `direccion` VARCHAR(110) NULL,
   `telefono` VARCHAR(25) NOT NULL,
@@ -147,14 +147,24 @@ CREATE TABLE IF NOT EXISTS `mydb`.`EMPLEADO-CAPACITACION` (
 -- -----------------------------------------------------
 -- Table `mydb`.`NOMINA`
 -- -----------------------------------------------------
+-- -----------------------------------------------------
+-- Table `mydb`.`NOMINA`
+-- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `mydb`.`NOMINA` (
   `id_nomina` INT NOT NULL AUTO_INCREMENT,
+  `id_empleado` INT NOT NULL, -- <--- CAMBIO: Agregado id_empleado
   `salario_base` DECIMAL(10,2) NOT NULL,
   `deducciones` DECIMAL(10,2) NOT NULL,
   `percepciones` DECIMAL(10,2) NOT NULL,
   `total_pagar` DECIMAL(10,2) NOT NULL,
-  PRIMARY KEY (`id_nomina`))
-ENGINE = InnoDB;
+  PRIMARY KEY (`id_nomina`),
+  INDEX `fk_id_empleado_nomina_idx` (`id_empleado` ASC) VISIBLE, -- <--- CAMBIO: Índice para FK
+  CONSTRAINT `fk_id_empleado_nomina` -- <--- CAMBIO: Clave foránea a EMPLEADO
+    FOREIGN KEY (`id_empleado`)
+    REFERENCES `mydb`.`EMPLEADO` (`id_empleado`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION
+) ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
@@ -197,7 +207,8 @@ CREATE TABLE IF NOT EXISTS `mydb`.`ASISTENCIA` (
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `mydb`.`PRESUPUESTO` (
   `id_presupuesto` INT NOT NULL AUTO_INCREMENT,
-  `periodo` DATE NOT NULL,
+  `fecha_inicio` DATE NOT NULL,
+  `fecha_fin` DATE NOT NULL,
   `monto_asignado` DECIMAL(10,2) NOT NULL,
   `monto_utilizado` DECIMAL(10,2) NOT NULL,
   `id_departamento` INT NOT NULL,
@@ -218,6 +229,8 @@ CREATE TABLE IF NOT EXISTS `mydb`.`PROYECTO` (
   `id_proyecto` INT NOT NULL AUTO_INCREMENT,
   `nombre` VARCHAR(45) NOT NULL,
   `descripcion` VARCHAR(145) NOT NULL,
+  `fecha_inicio` DATE NOT NULL,
+  `fecha_fin` DATE NOT NULL,
   PRIMARY KEY (`id_proyecto`))
 ENGINE = InnoDB;
 
@@ -378,26 +391,26 @@ ENGINE = InnoDB;
 -- -----------------------------------------------------
 -- Table `mydb`.`EMPLEADO-NOMINA`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `mydb`.`EMPLEADO-NOMINA` (
-  `id_empleado-nomina` INT NOT NULL AUTO_INCREMENT,
-  `id_empleado` INT NOT NULL,
-  `id_nomina` INT NOT NULL,
-  `fecha_inicio` DATETIME NOT NULL,
-  `fecha_fin` DATETIME NOT NULL,
-  PRIMARY KEY (`id_empleado-nomina`),
-  INDEX `id_empleado_idx` (`id_empleado` ASC) VISIBLE,
-  INDEX `id_nomina_idx` (`id_nomina` ASC) VISIBLE,
-  CONSTRAINT `foreignk_id_empleado`
-    FOREIGN KEY (`id_empleado`)
-    REFERENCES `mydb`.`EMPLEADO` (`id_empleado`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION,
-  CONSTRAINT `fk_id_nomina`
-    FOREIGN KEY (`id_nomina`)
-    REFERENCES `mydb`.`NOMINA` (`id_nomina`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION)
-ENGINE = InnoDB;
+-- CREATE TABLE IF NOT EXISTS `mydb`.`EMPLEADO-NOMINA` (
+--  `id_empleado-nomina` INT NOT NULL AUTO_INCREMENT,
+--  `id_empleado` INT NOT NULL,
+--  `id_nomina` INT NOT NULL,
+--  `fecha_inicio` DATETIME NOT NULL,
+--  `fecha_fin` DATETIME NOT NULL,
+--  PRIMARY KEY (`id_empleado-nomina`),
+--  INDEX `id_empleado_idx` (`id_empleado` ASC) VISIBLE,
+--  INDEX `id_nomina_idx` (`id_nomina` ASC) VISIBLE,
+--  CONSTRAINT `foreignk_id_empleado`
+--    FOREIGN KEY (`id_empleado`)
+--    REFERENCES `mydb`.`EMPLEADO` (`id_empleado`)
+--    ON DELETE NO ACTION
+--    ON UPDATE NO ACTION,
+--  CONSTRAINT `fk_id_nomina`
+--    FOREIGN KEY (`id_nomina`)
+--    REFERENCES `mydb`.`NOMINA` (`id_nomina`)
+--    ON DELETE NO ACTION
+--   ON UPDATE NO ACTION)
+-- ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
@@ -483,10 +496,10 @@ VALUES
 (2, 3, '2025-02-01', '2025-02-15', 92.00, 'Excelente rendimiento'),
 (3, 2, '2025-03-05', '2025-03-18', 75.25, 'Necesita reforzar algunos temas');
 
-INSERT INTO `NOMINA` (salario_base, deducciones, percepciones, total_pagar) VALUES
-(15000.00, 2000.00, 3000.00, 16000.00),
-(18000.00, 2500.00, 3200.00, 18700.00),
-(22000.00, 3000.00, 4000.00, 23000.00);
+INSERT INTO `NOMINA` (id_empleado, salario_base, deducciones, percepciones, total_pagar) VALUES 
+(1, 15000.00, 2000.00, 3000.00, 16000.00), 
+(2, 18000.00, 2500.00, 3200.00, 18700.00), 
+(3, 22000.00, 3000.00, 4000.00, 23000.00); 
 
 INSERT INTO `mydb`.`AUSENCIA` (`id_empleado`, `tipo`, `fecha_inicio`, `fecha_fin`, `motivo`) VALUES
 (1, 'Enfermedad', '2024-10-01 09:00:00', '2024-10-03 18:00:00', 'Gripe'),
@@ -498,15 +511,15 @@ INSERT INTO `mydb`.`ASISTENCIA` (`id_empleado`, `fecha_inicio`, `fecha_fin`) VAL
 (2, '2025-01-02 09:00:00', '2025-01-02 18:00:00'),
 (3, '2025-01-02 08:45:00', '2025-01-02 17:15:00');
 
-INSERT INTO `PRESUPUESTO` (periodo, monto_asignado, monto_utilizado, id_departamento) VALUES
-('2024-01-01', 500000.00, 200000.00, 1),
-('2024-01-01', 300000.00, 150000.00, 2),
-('2024-01-01', 700000.00, 500000.00, 3);
+INSERT INTO `PRESUPUESTO` (fecha_inicio, fecha_fin, monto_asignado, monto_utilizado, id_departamento) VALUES
+('2024-01-01','2024-01-31', 500000.00, 200000.00, 1),
+('2024-01-01','2024-01-31', 300000.00, 150000.00, 2),
+('2024-01-01','2024-01-31', 700000.00, 500000.00, 3);
 
-INSERT INTO `PROYECTO` (nombre, descripcion) VALUES
-('Sistema Contable', 'Desarrollo de un sistema contable interno'),
-('Portal RH', 'Plataforma web de recursos humanos'),
-('App Financiera', 'App de celular para reportes financieros');
+INSERT INTO `PROYECTO` (nombre, descripcion, fecha_inicio, fecha_fin) VALUES
+('Sistema Contable', 'Desarrollo de un sistema contable interno', '2024-01-01', '2024-06-30'),
+('Portal RH', 'Plataforma web de recursos humanos', '2024-03-01', '2024-09-30'),
+('App Financiera', 'App de celular para reportes financieros', '2024-05-15', '2024-11-15');
 
 INSERT INTO `EMPLEADO-PROYECTO` (id_empleado, id_proyecto, horas_asignadas, fecha_asignacion, fecha_entrega) VALUES
 (1, 1, 120, '2024-01-10', '2024-04-10'),
@@ -515,8 +528,8 @@ INSERT INTO `EMPLEADO-PROYECTO` (id_empleado, id_proyecto, horas_asignadas, fech
 
 INSERT INTO `CENTRO_COSTO` (nombre, descipcion, id_departamento) VALUES
 ('Infraestructura', 'Costos de hardware y redes', 1),
-('Capacitación', 'Gastos de cursos', 2),
-('Contabilidad', 'Gestión financiera', 3);
+('Capacitaciones', 'Gastos de cursos', 2),
+('Contabilidad', 'Manejo de finanzas', 3);
 
 INSERT INTO `CUENTA_CONTABLE` (banco, numero_cuenta, tipo, saldo, id_centro_costo) VALUES
 ('BBVA', 'CC1111', 'Operativa', 50000.00, 1),
@@ -524,32 +537,32 @@ INSERT INTO `CUENTA_CONTABLE` (banco, numero_cuenta, tipo, saldo, id_centro_cost
 ('Banorte', 'CC3333', 'Ahorro', 60000.00, 3),
 ('HSBC', 'CC4444', 'Operativa', 82000.00, 1);
 
-INSERT INTO `MOVIMIENTO_FINANCIERO`
-(id_cuenta_contable, fecha_hora_movimiento, tipo, monto, descripcion, id_cuenta_bancaria, tipo_cuenta)
-VALUES
-(1, '2024-02-10 10:30:00', 'Cargo', 5000.00, 'Compra de equipos', 1, 1),
-(2, '2024-03-05 14:00:00', 'Abono', 12000.00, 'Ingreso extra', 2, 1),
-(3, '2024-04-01 09:45:00', 'Cargo', 3000.00, 'Pago de servicio', 3, 1);
+-- INSERT INTO `MOVIMIENTO_FINANCIERO`
+-- (id_cuenta_contable, fecha_hora_movimiento, tipo, monto, descripcion, id_cuenta_bancaria, tipo_cuenta)
+-- VALUES
+-- (1, '2024-02-10 10:30:00', 'Cargo', 5000.00, 'Compra de equipos', 1, 1),
+-- (2, '2024-03-05 14:00:00', 'Abono', 12000.00, 'Ingreso extra', 2, 1),
+-- (3, '2024-04-01 09:45:00', 'Cargo', 3000.00, 'Pago de servicio', 3, 1);
 
-INSERT INTO `BENEFICIO` (nombre, descripcion, tipo) VALUES
-('Vales de despensa', 'Apoyo alimentario mensual', 'Monetario'),
-('Seguro Médico', 'Cobertura de salud privada', 'Salud'),
-('Bono por rendimiento', 'Recompensa por objetivos cumplidos', 'Bono');
+-- INSERT INTO `BENEFICIO` (nombre, descripcion, tipo) VALUES
+-- ('Vales de despensa', 'Apoyo alimentario mensual', 'Monetario'),
+-- ('Seguro Médico', 'Cobertura de salud privada', 'Salud'),
+-- ('Bono por rendimiento', 'Recompensa por objetivos cumplidos', 'Bono');
 
-INSERT INTO `EMPLEADO-BENEFICIO` (id_empleado, id_beneficio, fecha_asignacion) VALUES
-(1, 1, '2024-02-01'),
-(2, 2, '2024-02-10'),
-(3, 3, '2024-03-01');
+-- INSERT INTO `EMPLEADO-BENEFICIO` (id_empleado, id_beneficio, fecha_asignacion) VALUES
+-- (1, 1, '2024-02-01'),
+-- (2, 2, '2024-02-10'),
+-- (3, 3, '2024-03-01');
 
 INSERT INTO `EMPLEADO-AUSENCIA` (id_empleado, id_ausencia, fecha_inicio, fecha_final) VALUES
 (1, 1, '2024-02-01 09:00:00', '2024-02-03 18:00:00'),
 (2, 2, '2024-07-10 08:00:00', '2024-07-20 20:00:00'),
 (3, 3, '2024-04-05 10:00:00', '2024-04-06 18:00:00');
 
-INSERT INTO `EMPLEADO-NOMINA` (id_empleado, id_nomina, fecha_inicio, fecha_fin) VALUES
-(1, 1, '2024-02-01 00:00:00', '2024-02-28 23:59:59'),
-(2, 2, '2024-02-01 00:00:00', '2024-02-28 23:59:59'),
-(3, 3, '2024-02-01 00:00:00', '2024-02-28 23:59:59');
+-- INSERT INTO `EMPLEADO-NOMINA` (id_empleado, id_nomina, fecha_inicio, fecha_fin) VALUES
+-- (1, 1, '2024-02-01 00:00:00', '2024-02-28 23:59:59'),
+-- (2, 2, '2024-02-01 00:00:00', '2024-02-28 23:59:59'),
+-- (3, 3, '2024-02-01 00:00:00', '2024-02-28 23:59:59');
 
 INSERT INTO `EMPLEADO-EVALUACION` (id_empleado, id_evaluacion, fecha_inicio, fecha_fin) VALUES
 (1, 1, '2024-06-01 09:00:00', '2024-06-01 10:00:00'),
