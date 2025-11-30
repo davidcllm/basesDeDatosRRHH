@@ -170,12 +170,139 @@ def descargar_reporte():
         cnx = get_connection()
         cursor = cnx.cursor(pymysql.cursors.DictCursor)
 
-        # Determinar qué consulta ejecutar según 'tipo'
+        filename_base = f"{tipo}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+
+        # Si es "todos", descargar todas las tablas en un solo CSV
+        if tipo == 'todos':
+            tablas = [
+                {
+                    'title': 'Resumen de Nómina',
+                    'query': """
+                        SELECT 
+                            n.id_nomina,
+                            e.nombre_completo,
+                            n.salario_base,
+                            n.deducciones,
+                            n.percepciones,
+                            n.total_pagar
+                        FROM NOMINA n
+                        JOIN EMPLEADO e ON n.id_empleado = e.id_empleado
+                        ORDER BY n.id_nomina DESC;
+                    """,
+                    'headers': ['id_nomina','nombre_completo','salario_base','deducciones','percepciones','total_pagar']
+                },
+                {
+                    'title': 'Ausencias del Personal',
+                    'query': """
+                        SELECT 
+                            e.nombre_completo,
+                            a.tipo,
+                            a.fecha_inicio,
+                            a.fecha_fin,
+                            a.motivo
+                        FROM AUSENCIA a
+                        JOIN EMPLEADO e ON a.id_empleado = e.id_empleado
+                        ORDER BY a.fecha_inicio DESC;
+                    """,
+                    'headers': ['nombre_completo','tipo','fecha_inicio','fecha_fin','motivo']
+                },
+                {
+                    'title': 'Evaluaciones de Desempeño',
+                    'query': """
+                        SELECT 
+                            e.nombre_completo,
+                            ev.fecha_evaluacion,
+                            ev.tipo,
+                            ev.resultado,
+                            ev.observaciones
+                        FROM EVALUACION ev
+                        JOIN `EMPLEADO-EVALUACION` ee ON ev.id_evaluacion = ee.id_evaluacion
+                        JOIN EMPLEADO e ON ee.id_empleado = e.id_empleado
+                        ORDER BY ev.fecha_evaluacion DESC;
+                    """,
+                    'headers': ['nombre_completo','fecha_evaluacion','tipo','resultado','observaciones']
+                },
+                {
+                    'title': 'Capacitaciones por Empleado',
+                    'query': """
+                        SELECT 
+                            e.nombre_completo,
+                            c.nombre AS capacitacion,
+                            c.proveedor,
+                            c.fecha_inicio,
+                            c.fecha_fin,
+                            ec.resultado,
+                            ec.comentarios
+                        FROM CAPACITACION c
+                        JOIN `EMPLEADO-CAPACITACION` ec ON c.id_capacitacion = ec.id_capacitacion
+                        JOIN EMPLEADO e ON ec.id_empleado = e.id_empleado
+                        ORDER BY c.fecha_inicio DESC;
+                    """,
+                    'headers': ['nombre_completo','capacitacion','proveedor','fecha_inicio','fecha_fin','resultado','comentarios']
+                },
+                {
+                    'title': 'Participación en Proyectos',
+                    'query': """
+                        SELECT 
+                            e.nombre_completo,
+                            p.nombre AS proyecto,
+                            ep.horas_asignadas,
+                            ep.fecha_asignacion,
+                            ep.fecha_entrega
+                        FROM `EMPLEADO-PROYECTO` ep
+                        JOIN EMPLEADO e ON ep.id_empleado = e.id_empleado
+                        JOIN PROYECTO p ON ep.id_proyecto = p.id_proyecto
+                        ORDER BY ep.fecha_asignacion DESC;
+                    """,
+                    'headers': ['nombre_completo','proyecto','horas_asignadas','fecha_asignacion','fecha_entrega']
+                },
+                {
+                    'title': 'Presupuestos por Departamento',
+                    'query': """
+                        SELECT 
+                            d.nombre AS departamento,
+                            p.fecha_inicio,
+                            p.fecha_fin,
+                            p.monto_asignado,
+                            p.monto_utilizado,
+                            (p.monto_asignado - p.monto_utilizado) AS restante
+                        FROM PRESUPUESTO p
+                        JOIN DEPARTAMENTO d ON p.id_departamento = d.id_departamento
+                        ORDER BY p.id_presupuesto DESC;
+                    """,
+                    'headers': ['departamento','fecha_inicio','fecha_fin','monto_asignado','monto_utilizado','restante']
+                },
+            ]
+            
+            si = io.StringIO()
+            writer = csv.writer(si)
+            hay_datos = False
+            
+            for tabla in tablas:
+                cursor.execute(tabla['query'])
+                rows = cursor.fetchall()
+                if rows:
+                    hay_datos = True
+                    writer.writerow([tabla['title']])
+                    writer.writerow(tabla['headers'])
+                    for row in rows:
+                        writer.writerow([row.get(h, '') for h in tabla['headers']])
+                    writer.writerow([])  # Línea vacía entre tablas
+            
+            if not hay_datos:
+                return render_template('reportes.html', rep_nomina=[], rep_ausencias=[], rep_evaluaciones=[], rep_capacitaciones=[], rep_proyectos=[], rep_presupuestos=[], tipo=tipo, error='No hay datos para descargar')
+            
+            output = make_response(si.getvalue())
+            output.headers['Content-Disposition'] = f"attachment; filename={filename_base}.csv"
+            output.headers['Content-type'] = 'text/csv; charset=utf-8'
+            return output
+
+        # Para reportes individuales
         data = []
         headers = []
         title = tipo
 
-        if tipo == 'nomina' or tipo == 'todos':
+        if tipo == 'nomina':
             cursor.execute("""
                 SELECT 
                     n.id_nomina,
@@ -191,9 +318,8 @@ def descargar_reporte():
             rows = cursor.fetchall()
             headers = ['id_nomina','nombre_completo','salario_base','deducciones','percepciones','total_pagar']
             data = rows
-            title = 'nomina'
 
-        if tipo == 'ausencias' or tipo == 'todos':
+        elif tipo == 'ausencias':
             cursor.execute("""
                 SELECT 
                     e.nombre_completo,
@@ -208,9 +334,8 @@ def descargar_reporte():
             rows = cursor.fetchall()
             headers = ['nombre_completo','tipo','fecha_inicio','fecha_fin','motivo']
             data = rows
-            title = 'ausencias'
 
-        if tipo == 'evaluaciones' or tipo == 'todos':
+        elif tipo == 'evaluaciones':
             cursor.execute("""
                 SELECT 
                     e.nombre_completo,
@@ -226,9 +351,8 @@ def descargar_reporte():
             rows = cursor.fetchall()
             headers = ['nombre_completo','fecha_evaluacion','tipo','resultado','observaciones']
             data = rows
-            title = 'evaluaciones'
 
-        if tipo == 'capacitaciones' or tipo == 'todos':
+        elif tipo == 'capacitaciones':
             cursor.execute("""
                 SELECT 
                     e.nombre_completo,
@@ -246,9 +370,8 @@ def descargar_reporte():
             rows = cursor.fetchall()
             headers = ['nombre_completo','capacitacion','proveedor','fecha_inicio','fecha_fin','resultado','comentarios']
             data = rows
-            title = 'capacitaciones'
 
-        if tipo == 'proyectos' or tipo == 'todos':
+        elif tipo == 'proyectos':
             cursor.execute("""
                 SELECT 
                     e.nombre_completo,
@@ -264,9 +387,8 @@ def descargar_reporte():
             rows = cursor.fetchall()
             headers = ['nombre_completo','proyecto','horas_asignadas','fecha_asignacion','fecha_entrega']
             data = rows
-            title = 'proyectos'
 
-        if tipo == 'presupuestos' or tipo == 'todos':
+        elif tipo == 'presupuestos':
             cursor.execute("""
                 SELECT 
                     d.nombre AS departamento,
@@ -282,13 +404,10 @@ def descargar_reporte():
             rows = cursor.fetchall()
             headers = ['departamento','fecha_inicio','fecha_fin','monto_asignado','monto_utilizado','restante']
             data = rows
-            title = 'presupuestos'
 
         # Si no hay datos
         if not data:
             return render_template('reportes.html', rep_nomina=[], rep_ausencias=[], rep_evaluaciones=[], rep_capacitaciones=[], rep_proyectos=[], rep_presupuestos=[], tipo=tipo, error='No hay datos para descargar')
-
-        filename_base = f"{title}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
 
         if formato == 'csv':
             si = io.StringIO()
