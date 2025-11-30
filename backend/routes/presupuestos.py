@@ -341,8 +341,14 @@ def actualizar_centro_costo(id):
 def eliminar_centro_costo(id):
     cnx = get_connection()
     cursor = cnx.cursor()
-
     try:
+        # Verificar si hay cuentas contables asociadas
+        cursor.execute("SELECT 1 FROM CUENTA_CONTABLE WHERE id_centro_costo = %s LIMIT 1;", (id,))
+        if cursor.fetchone():
+            flash("No se puede eliminar el centro de costo porque tiene cuentas contables asociadas.", "error")
+            return redirect(url_for("presupuestos.presupuestos"))
+
+        # Si no hay dependencias, proceder a eliminar
         cursor.execute("DELETE FROM CENTRO_COSTO WHERE id_centro_costo=%s", (id,))
         cnx.commit()
         flash("Centro de costo eliminado correctamente.", "success")

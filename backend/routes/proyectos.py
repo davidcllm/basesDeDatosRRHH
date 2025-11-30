@@ -202,15 +202,36 @@ def eliminar_departamento(id):
     cnx = get_connection()
     cursor = cnx.cursor()
     try:
+        # Verificar si hay presupuestos asignados
+        cursor.execute("SELECT 1 FROM PRESUPUESTO WHERE id_departamento = %s LIMIT 1;", (id,))
+        if cursor.fetchone():
+            flash("No se puede eliminar el departamento porque tiene presupuestos asignados.", "error")
+            return redirect(url_for("proyectos.proyectos"))
+
+        # Verificar si hay empleados asignados
+        cursor.execute("SELECT 1 FROM EMPLEADO WHERE id_departamento = %s LIMIT 1;", (id,))
+        if cursor.fetchone():
+            flash("No se puede eliminar el departamento porque tiene empleados asignados.", "error")
+            return redirect(url_for("proyectos.proyectos"))
+        
+        # Verificar si hay centros de costo asignados
+        cursor.execute("SELECT 1 FROM CENTRO_COTO WHERE id_departamento = %s LIMIT 1;", (id,))
+        if cursor.fetchone():
+            flash("No se puede eliminar el departamento porque tiene centros de costo asignados.", "error")
+            return redirect(url_for("proyectos.proyectos"))
+
+        # Si no hay dependencias, proceder a eliminar
         cursor.execute("DELETE FROM DEPARTAMENTO WHERE id_departamento=%s", (id,))
         cnx.commit()
         flash("Departamento eliminado correctamente.", "success")
+
     except Exception as e:
         cnx.rollback()
         flash(f"Error al eliminar departamento: {e}", "error")
     finally:
         cursor.close()
         cnx.close()
+        
     return redirect(url_for("proyectos.proyectos"))
 
 #crear proyectos
@@ -269,11 +290,18 @@ def crear_proyecto():
 @jwt_required()
 @roles_required('administrador','recursos_humanos')
 def eliminar_proyecto(id):
-
     cnx = get_connection()
     cursor = cnx.cursor()
-
     try:
+        # Verificar si hay empleados asignados al proyecto
+        cursor.execute("SELECT 1 FROM `EMPLEADO-PROYECTO` WHERE id_proyecto = %s LIMIT 1;", (id,))
+        empleado_asignado = cursor.fetchone()
+
+        if empleado_asignado:
+            flash("No se puede eliminar el proyecto porque tiene empleados asignados.", "error")
+            return redirect(url_for("proyectos.proyectos"))
+
+        # Si no hay empleados, proceder a eliminar
         cursor.execute("DELETE FROM PROYECTO WHERE id_proyecto = %s;", (id,))
         cnx.commit()
         flash("Proyecto eliminado correctamente.", "success")
@@ -433,11 +461,11 @@ def actualizar_asignacion(id):
     fecha_entrega = request.form.get("fecha_entrega", "").strip()
 
     # validaciones básicas (empleado/proyecto/horas)
-    if not id_empleado or not id_empleado.isdigit() or not validate_empleado(id_empleado):
+    if not id_empleado or not id_empleado.isdigit():
         flash("Empleado inválido.", "error")
         return redirect(url_for("proyectos.proyectos"))
 
-    if not id_proyecto or not id_proyecto.isdigit() or not validate_proyecto(id_proyecto):
+    if not id_proyecto or not id_proyecto.isdigit():
         flash("Proyecto inválido.", "error")
         return redirect(url_for("proyectos.proyectos"))
 
