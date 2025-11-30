@@ -103,6 +103,50 @@
         border-color: #bbb;
     }
     
+    .accordion-header {
+        background: #f8f9fa;
+        padding: 10px;
+        border-radius: 6px;
+        cursor: pointer;
+        margin-bottom: 5px;
+        font-size: 13px;
+        font-weight: 600;
+        color: #333;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        transition: all 0.3s ease;
+    }
+    
+    .accordion-header:hover {
+        background: #e9ecef;
+    }
+    
+    .accordion-header.active {
+        background: #0066ff;
+        color: white;
+    }
+    
+    .accordion-content {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.3s ease;
+        padding-left: 10px;
+    }
+    
+    .accordion-content.active {
+        max-height: 500px;
+        margin-bottom: 10px;
+    }
+    
+    .accordion-arrow {
+        transition: transform 0.3s ease;
+    }
+    
+    .accordion-arrow.rotated {
+        transform: rotate(180deg);
+    }
+    
     .content-area {
         flex: 1;
     }
@@ -177,11 +221,14 @@
         <hr style="border: 1px solid #e0e0e0; margin: 20px 0;">
         
         <div class="filter-group">
-            <label style="font-weight: bold; color: #0066ff;">👁️ Mostrar columnas</label>
+            <label style="font-weight: bold; color: #0066ff; margin-bottom: 10px; display: block;">👁️ Mostrar columnas</label>
             
             {% if tipo == 'nomina' or tipo == 'todos' %}
-            <div style="margin-top: 10px;">
-                <label style="font-size: 12px; font-weight: 600; color: #666;">Nómina:</label>
+            <div class="accordion-header" onclick="toggleAccordion('accordionNomina')">
+                <span>Nómina</span>
+                <span class="accordion-arrow" id="arrowNomina">▼</span>
+            </div>
+            <div class="accordion-content" id="accordionNomina">
                 <label style="display: block; font-size: 12px; margin: 5px 0;">
                     <input type="checkbox" class="column-toggle" data-table="tblNomina" data-column="0" checked> ID Nómina
                 </label>
@@ -204,8 +251,11 @@
             {% endif %}
             
             {% if tipo == 'ausencias' or tipo == 'todos' %}
-            <div style="margin-top: 10px;">
-                <label style="font-size: 12px; font-weight: 600; color: #666;">Ausencias:</label>
+            <div class="accordion-header" onclick="toggleAccordion('accordionAusencias')">
+                <span>Ausencias</span>
+                <span class="accordion-arrow" id="arrowAusencias">▼</span>
+            </div>
+            <div class="accordion-content" id="accordionAusencias">
                 <label style="display: block; font-size: 12px; margin: 5px 0;">
                     <input type="checkbox" class="column-toggle" data-table="tblAusencias" data-column="0" checked> Empleado
                 </label>
@@ -225,8 +275,11 @@
             {% endif %}
             
             {% if tipo == 'evaluaciones' or tipo == 'todos' %}
-            <div style="margin-top: 10px;">
-                <label style="font-size: 12px; font-weight: 600; color: #666;">Evaluaciones:</label>
+            <div class="accordion-header" onclick="toggleAccordion('accordionEvaluaciones')">
+                <span>Evaluaciones</span>
+                <span class="accordion-arrow" id="arrowEvaluaciones">▼</span>
+            </div>
+            <div class="accordion-content" id="accordionEvaluaciones">
                 <label style="display: block; font-size: 12px; margin: 5px 0;">
                     <input type="checkbox" class="column-toggle" data-table="tblEvaluaciones" data-column="0" checked> Empleado
                 </label>
@@ -246,8 +299,11 @@
             {% endif %}
             
             {% if tipo == 'capacitaciones' or tipo == 'todos' %}
-            <div style="margin-top: 10px;">
-                <label style="font-size: 12px; font-weight: 600; color: #666;">Capacitaciones:</label>
+            <div class="accordion-header" onclick="toggleAccordion('accordionCapacitaciones')">
+                <span>Capacitaciones</span>
+                <span class="accordion-arrow" id="arrowCapacitaciones">▼</span>
+            </div>
+            <div class="accordion-content" id="accordionCapacitaciones">
                 <label style="display: block; font-size: 12px; margin: 5px 0;">
                     <input type="checkbox" class="column-toggle" data-table="tblCapacitaciones" data-column="0" checked> Empleado
                 </label>
@@ -273,8 +329,11 @@
             {% endif %}
             
             {% if tipo == 'proyectos' or tipo == 'todos' %}
-            <div style="margin-top: 10px;">
-                <label style="font-size: 12px; font-weight: 600; color: #666;">Proyectos:</label>
+            <div class="accordion-header" onclick="toggleAccordion('accordionProyectos')">
+                <span>Proyectos</span>
+                <span class="accordion-arrow" id="arrowProyectos">▼</span>
+            </div>
+            <div class="accordion-content" id="accordionProyectos">
                 <label style="display: block; font-size: 12px; margin: 5px 0;">
                     <input type="checkbox" class="column-toggle" data-table="tblProyectos" data-column="0" checked> Empleado
                 </label>
@@ -294,8 +353,11 @@
             {% endif %}
             
             {% if tipo == 'presupuestos' or tipo == 'todos' %}
-            <div style="margin-top: 10px;">
-                <label style="font-size: 12px; font-weight: 600; color: #666;">Presupuestos:</label>
+            <div class="accordion-header" onclick="toggleAccordion('accordionPresupuestos')">
+                <span>Presupuestos</span>
+                <span class="accordion-arrow" id="arrowPresupuestos">▼</span>
+            </div>
+            <div class="accordion-content" id="accordionPresupuestos">
                 <label style="display: block; font-size: 12px; margin: 5px 0;">
                     <input type="checkbox" class="column-toggle" data-table="tblPresupuestos" data-column="0" checked> Departamento
                 </label>
@@ -653,6 +715,16 @@
         tables.forEach(function(table) {
             table.search('').columns().search('').draw();
         });
+    }
+    
+    function toggleAccordion(id) {
+        var content = document.getElementById(id);
+        var arrow = document.getElementById('arrow' + id.replace('accordion', ''));
+        var header = content.previousElementSibling;
+        
+        content.classList.toggle('active');
+        arrow.classList.toggle('rotated');
+        header.classList.toggle('active');
     }
 </script>
 
