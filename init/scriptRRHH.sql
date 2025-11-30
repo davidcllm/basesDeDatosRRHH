@@ -24,7 +24,7 @@ CREATE TABLE IF NOT EXISTS `mydb`.`CUENTA_BANCARIA` (
   `id_cuenta_bancaria` INT NOT NULL AUTO_INCREMENT,
   `banco` VARCHAR(45) NOT NULL,
   `numero_cuenta` VARCHAR(45) NOT NULL,
-  `saldo` DECIMAL(10,2) NOT NULL,
+  `saldo` DECIMAL(10,2) NOT NULL,   # CONSIDERAR QUITAR ESTO
   PRIMARY KEY (`id_cuenta_bancaria`))
 ENGINE = InnoDB;
 

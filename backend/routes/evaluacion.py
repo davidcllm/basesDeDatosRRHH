@@ -473,9 +473,6 @@ def eliminar_capacitacion(id_empleado_capacitacion):
         cursor.close()
         cnx.close()
 
-    return redirect(url_for("evaluacion.evaluacion"))
-
-
 # ---------------------------
 # AGREGAR PLAN DE CARRERA
 # ---------------------------
@@ -483,16 +480,14 @@ def eliminar_capacitacion(id_empleado_capacitacion):
 @jwt_required()
 @roles_required('administrador','recursos_humanos')
 def agregar_plan_carrera():
-    id_empleado = request.form.get("id_empleado")
+    from datetime import datetime
+    
     objetivo = request.form.get("objetivo", "").strip()
     etapas = request.form.get("etapas", "").strip()
-    fecha_inicio = request.form.get("fecha_inicio")
-    fecha_fin = request.form.get("fecha_fin")
+    fecha_inicio_str = request.form.get("fecha_inicio")
+    fecha_fin_str = request.form.get("fecha_fin")
 
     errores = []
-
-    if not id_empleado:
-        errores.append("Empleado: Debe seleccionar un empleado")
 
     if not objetivo:
         errores.append("Objetivo: El objetivo es requerido")
@@ -500,10 +495,27 @@ def agregar_plan_carrera():
     if not etapas:
         errores.append("Etapas: Las etapas son requeridas")
 
+    # Convertir datetime-local a datetime object
+    fecha_inicio = None
+    fecha_fin = None
+    
+    try:
+        if fecha_inicio_str:
+            # datetime-local envía formato: "2026-03-01T10:00"
+            fecha_inicio = datetime.strptime(fecha_inicio_str, "%Y-%m-%dT%H:%M")
+    except ValueError:
+        errores.append("Fecha Inicio: Formato de fecha inválido")
+    
+    try:
+        if fecha_fin_str:
+            fecha_fin = datetime.strptime(fecha_fin_str, "%Y-%m-%dT%H:%M")
+    except ValueError:
+        errores.append("Fecha Fin: Formato de fecha inválido")
+
     # Validar fechas
-    es_valido, msg = validar_fechas(fecha_inicio, fecha_fin)
-    if not es_valido:
-        errores.append(f"Fechas: {msg}")
+    if fecha_inicio and fecha_fin:
+        if fecha_fin <= fecha_inicio:
+            errores.append("Fechas: La fecha de fin debe ser posterior a la fecha de inicio")
 
     if errores:
         for error in errores:
@@ -514,31 +526,12 @@ def agregar_plan_carrera():
     cursor = cnx.cursor()
 
     try:
-        # Verificar si el empleado ya tiene un plan de carrera
-        cursor.execute("SELECT id_plan_carrera FROM EMPLEADO WHERE id_empleado=%s;", (id_empleado,))
-        empleado = cursor.fetchone()
-
-        if empleado and empleado[0]:
-            flash(f"Este empleado ya tiene un plan de carrera asignado (ID: {empleado[0]}).", "error")
-            cursor.close()
-            cnx.close()
-            return redirect(url_for("evaluacion.evaluacion"))
-
-        # Crear el plan de carrera
+        # Crear el plan de carrera con datetime objects
         cursor.execute("""
             INSERT INTO PLAN_CARRERA (objetivo, etapas, fecha_inicio, fecha_fin)
             VALUES (%s, %s, %s, %s);
         """, (objetivo, etapas, fecha_inicio, fecha_fin))
         
-        id_plan = cursor.lastrowid
-
-        # Asignar el plan al empleado
-        cursor.execute("""
-            UPDATE EMPLEADO
-            SET id_plan_carrera=%s
-            WHERE id_empleado=%s;
-        """, (id_plan, id_empleado))
-
         cnx.commit()
         flash("Plan de Carrera agregado correctamente.", "success")
     except Exception as e:
