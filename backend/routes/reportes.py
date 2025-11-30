@@ -6,10 +6,15 @@ reportes_bp = Blueprint("reportes", __name__)
 
 @reportes_bp.route("/reportes")
 def reportes():
+    """
+    Módulo: Reportes y Estadísticas
+    Consultas basadas en la estructura real de la BD.
+    """
+
     cnx = get_connection()
     cursor = cnx.cursor(pymysql.cursors.DictCursor)
 
-    # 1) NOMINA
+    # 1) RESUMEN DE NÓMINA (sin tabla puente)
     cursor.execute("""
         SELECT 
             n.id_nomina,
@@ -24,7 +29,7 @@ def reportes():
     """)
     rep_nomina = cursor.fetchall()
 
-    # 2) AUSENCIAS
+    # 2) AUSENCIAS DEL PERSONAL
     cursor.execute("""
         SELECT 
             e.nombre_completo,
@@ -38,9 +43,9 @@ def reportes():
     """)
     rep_ausencias = cursor.fetchall()
 
-    # 3) EVALUACIONES
+    # 3) EVALUACIONES POR EMPLEADO
     cursor.execute("""
-        SELECT
+        SELECT 
             e.nombre_completo,
             ev.fecha_evaluacion,
             ev.tipo,
@@ -53,7 +58,7 @@ def reportes():
     """)
     rep_evaluaciones = cursor.fetchall()
 
-    # 4) CAPACITACIONES
+    # 4) CAPACITACIONES POR EMPLEADO
     cursor.execute("""
         SELECT 
             e.nombre_completo,
@@ -63,16 +68,16 @@ def reportes():
             c.fecha_fin,
             ec.resultado,
             ec.comentarios
-        FROM `EMPLEADO-CAPACITACION` ec
+        FROM CAPACITACION c
+        JOIN `EMPLEADO-CAPACITACION` ec ON c.id_capacitacion = ec.id_capacitacion
         JOIN EMPLEADO e ON ec.id_empleado = e.id_empleado
-        JOIN CAPACITACION c ON ec.id_capacitacion = c.id_capacitacion
         ORDER BY c.fecha_inicio DESC;
     """)
     rep_capacitaciones = cursor.fetchall()
 
-    # 5) PROYECTOS
+    # 5) PARTICIPACIÓN EN PROYECTOS
     cursor.execute("""
-        SELECT
+        SELECT 
             e.nombre_completo,
             p.nombre AS proyecto,
             ep.horas_asignadas,
@@ -81,13 +86,13 @@ def reportes():
         FROM `EMPLEADO-PROYECTO` ep
         JOIN EMPLEADO e ON ep.id_empleado = e.id_empleado
         JOIN PROYECTO p ON ep.id_proyecto = p.id_proyecto
-        ORDER BY p.nombre ASC;
+        ORDER BY ep.fecha_asignacion DESC;
     """)
     rep_proyectos = cursor.fetchall()
 
-    # 6) PRESUPUESTOS
+    # 6) PRESUPUESTOS POR DEPARTAMENTO (arreglado)
     cursor.execute("""
-        SELECT
+        SELECT 
             d.nombre AS departamento,
             p.fecha_inicio,
             p.fecha_fin,
@@ -96,7 +101,7 @@ def reportes():
             (p.monto_asignado - p.monto_utilizado) AS restante
         FROM PRESUPUESTO p
         JOIN DEPARTAMENTO d ON p.id_departamento = d.id_departamento
-        ORDER BY d.nombre ASC;
+        ORDER BY p.id_presupuesto DESC;
     """)
     rep_presupuestos = cursor.fetchall()
 
