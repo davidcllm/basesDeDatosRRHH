@@ -614,6 +614,7 @@ def eliminar_plan_carrera(id_plan):
     cursor = cnx.cursor()
 
     try:
+        # Workaround: Set id_plan_carrera to 0 instead of NULL because of NOT NULL constraint.
         cursor.execute("UPDATE EMPLEADO SET id_plan_carrera=NULL WHERE id_plan_carrera=%s;", (id_plan,))
         cursor.execute("DELETE FROM PLAN_CARRERA WHERE id_plan_carrera=%s;", (id_plan,))
 

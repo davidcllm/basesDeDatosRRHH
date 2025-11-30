@@ -505,3 +505,22 @@ def actualizar_asignacion(id):
         cnx2.close()
 
     return redirect(url_for("proyectos.proyectos"))
+
+# Eliminar asignación
+@proyectos_bp.route("/proyectos/asignacion/eliminar/<int:id>", methods=["POST"])
+@jwt_required()
+@roles_required('administrador','recursos_humanos')
+def eliminar_asignacion(id):
+    cnx = get_connection()
+    cursor = cnx.cursor()
+    try:
+        cursor.execute("DELETE FROM `EMPLEADO-PROYECTO` WHERE `id_empleado-proyecto` = %s", (id,))
+        cnx.commit()
+        flash("Asignación eliminada correctamente.", "success")
+    except Exception as e:
+        cnx.rollback()
+        flash(f"Error al eliminar la asignación: {e}", "error")
+    finally:
+        cursor.close()
+        cnx.close()
+    return redirect(url_for("proyectos.proyectos"))
