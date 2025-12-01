@@ -880,6 +880,36 @@
             updateRecordsCounter();
             saveFilters();
         });
+        // Validación en vivo mientras escribe
+        $('#filterFechaInicio, #filterFechaFin').on('input', function() {
+            var id = this.id;
+            var valor = $(this).val();
+            var errorEl = id === 'filterFechaInicio' ? $('#errorFechaInicio') : $('#errorFechaFin');
+            if (!valor) {
+                errorEl.hide().text('');
+                $(this).css('border-color', '#ddd');
+                return;
+            }
+            if (valor.length === 10) {
+                var detalleError = validarFechaDetallada(valor);
+                if (detalleError) {
+                    errorEl.text(detalleError).show();
+                    $(this).css('border-color', '#dc3545');
+                } else {
+                    errorEl.hide().text('');
+                    $(this).css('border-color', '#28a745');
+                }
+            } else {
+                var parcialRegex = /^[0-9-]*$/;
+                if (!parcialRegex.test(valor)) {
+                    errorEl.text('Carácter inválido').show();
+                    $(this).css('border-color', '#dc3545');
+                } else {
+                    errorEl.hide().text('');
+                    $(this).css('border-color', '#ddd');
+                }
+            }
+        });
     });
     
     function clearAllFilters() {
@@ -936,6 +966,27 @@
         
         // Verificar que la fecha reconstruida coincida con la entrada
         return date.toISOString().startsWith(dateString);
+    }
+    function validarFechaDetallada(dateString) {
+        var regex = /^(\d{4})-(\d{2})-(\d{2})$/;
+        var m = dateString.match(regex);
+        if (!m) return 'Formato inválido';
+        var year = parseInt(m[1], 10);
+        var month = parseInt(m[2], 10);
+        var day = parseInt(m[3], 10);
+        if (month < 1 || month > 12) return 'Mes inválido';
+        if (day < 1 || day > 31) return 'Día inválido';
+        var maxDay = daysInMonth(year, month);
+        if (day > maxDay) {
+            if (month === 2) return 'Febrero no tiene ese día';
+            return 'El mes no tiene ese día';
+        }
+        var fecha = new Date(dateString);
+        if (isNaN(fecha.getTime())) return 'Fecha inválida';
+        return null;
+    }
+    function daysInMonth(year, month) {
+        return new Date(year, month, 0).getDate();
     }
     
     function toggleAccordion(id) {
