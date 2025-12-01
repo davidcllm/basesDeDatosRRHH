@@ -935,20 +935,44 @@
                 $('#filterFechaFin').removeAttr('min');
             }
             
-            // Guardar filtros y recargar con parámetros de fecha
+            $.fn.dataTable.ext.search.push(
+                function(settings, data, dataIndex) {
+                    var fechaColumna = null;
+                    
+                    // Determinar qué columna tiene fechas según la tabla
+                    if (settings.nTable.id === 'tblAusencias') {
+                        fechaColumna = data[2]; // fecha_inicio
+                    } else if (settings.nTable.id === 'tblEvaluaciones') {
+                        fechaColumna = data[1]; // fecha_evaluacion
+                    } else if (settings.nTable.id === 'tblCapacitaciones') {
+                        fechaColumna = data[3]; // fecha_inicio
+                    } else if (settings.nTable.id === 'tblProyectos') {
+                        fechaColumna = data[3]; // fecha_asignacion
+                    } else if (settings.nTable.id === 'tblPresupuestos') {
+                        fechaColumna = data[1]; // fecha_inicio
+                    }
+                    
+                    if (!fechaColumna) return true;
+                    
+                    var fecha = new Date(fechaColumna);
+                    var inicio = fechaInicio ? new Date(fechaInicio) : null;
+                    var fin = fechaFin ? new Date(fechaFin) : null;
+                    
+                    if (inicio && fecha < inicio) return false;
+                    if (fin && fecha > fin) return false;
+                    
+                    return true;
+                }
+            );
+            
+            tables.forEach(function(table) {
+                table.draw();
+            });
+            
+            $.fn.dataTable.ext.search.pop();
+            
+            updateRecordsCounter();
             saveFilters();
-            
-            // Construir URL con parámetros de fecha
-            var url = '/reportes?tipo=' + encodeURIComponent('{{ tipo }}');
-            if (fechaInicio) {
-                url += '&fecha_inicio=' + encodeURIComponent(fechaInicio);
-            }
-            if (fechaFin) {
-                url += '&fecha_fin=' + encodeURIComponent(fechaFin);
-            }
-            
-            // Recargar la página con los nuevos parámetros
-            window.location.href = url;
         });
         // Validación en vivo mientras escribe
         $('#filterFechaInicio, #filterFechaFin').on('input', function() {
@@ -1021,10 +1045,9 @@
         $('#filterFechaFin').removeAttr('min');
         $('#errorFechaInicio, #errorFechaFin').hide().text('');
         $('#filterFechaInicio, #filterFechaFin').css('border-color', '#ddd');
+        $('#filterFechaInicio').trigger('change');
+        updateRecordsCounter();
         saveFilters();
-        
-        // Recargar sin parámetros de fecha
-        window.location.href = '/reportes?tipo=' + encodeURIComponent('{{ tipo }}');
     }
     
     function escapeHtml(text) {
