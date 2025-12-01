@@ -225,10 +225,9 @@
             <span class="accordion-arrow" id="arrowVerTablas">▼</span>
         </div>
         <div class="accordion-content active" id="accordionVerTablas">
-            <div style="display: flex; gap: 5px; margin-bottom: 10px;">
-                <button onclick="selectAllTables()" style="flex: 1; padding: 5px; font-size: 11px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 600;">✓ Todas</button>
-                <button onclick="deselectAllTables()" style="flex: 1; padding: 5px; font-size: 11px; background: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 600;">✗ Ninguna</button>
-            </div>
+            <label style="display: block; font-size: 12px; margin: 5px 0 10px 0; cursor: pointer; font-weight: bold; border-bottom: 1px solid #ddd; padding-bottom: 8px;">
+                <input type="checkbox" id="selectAllTablesCheckbox" checked onchange="toggleAllTables(this)"> Seleccionar todas
+            </label>
             <label style="display: block; font-size: 12px; margin: 5px 0; cursor: pointer;">
                 <input type="checkbox" class="table-visibility-toggle" data-target="nomina" checked> Resumen de Nómina
             </label>
@@ -716,6 +715,7 @@
         
         // Cargar filtros guardados
         loadFilters();
+        updateCsvButtonState();
         
         // Limpiar búsqueda global cuando se usa búsqueda individual
         $(document).on('keyup', '.dataTables_filter input', function() {
@@ -746,6 +746,8 @@
             updateColumnSectionVisibility();
             checkVisibleTables();
             updateRecordsCounter();
+            updateSelectAllCheckbox();
+            updateCsvButtonState();
             saveFilters();
         });
         
@@ -1043,18 +1045,57 @@
             visibleTables.push($(this).data('target'));
         });
         
-        var tipo = visibleTables.length > 0 ? visibleTables.join(',') : 'todos';
+        if (visibleTables.length === 0) {
+            return; // No hacer nada si no hay tablas seleccionadas
+        }
+        
+        var tipo = visibleTables.join(',');
         var url = '/reportes/descargar?tipo=' + tipo + '&formato=csv';
         
         window.location.href = url;
     }
     
-    function selectAllTables() {
-        $('.table-visibility-toggle').prop('checked', true).trigger('change');
+    function toggleAllTables(checkbox) {
+        var isChecked = checkbox.checked;
+        $('.table-visibility-toggle').prop('checked', isChecked).trigger('change');
     }
     
-    function deselectAllTables() {
-        $('.table-visibility-toggle').prop('checked', false).trigger('change');
+    function updateSelectAllCheckbox() {
+        var totalCheckboxes = $('.table-visibility-toggle').length;
+        var checkedCheckboxes = $('.table-visibility-toggle:checked').length;
+        var selectAllCheckbox = $('#selectAllTablesCheckbox');
+        
+        if (checkedCheckboxes === 0) {
+            selectAllCheckbox.prop('checked', false);
+            selectAllCheckbox.prop('indeterminate', false);
+        } else if (checkedCheckboxes === totalCheckboxes) {
+            selectAllCheckbox.prop('checked', true);
+            selectAllCheckbox.prop('indeterminate', false);
+        } else {
+            selectAllCheckbox.prop('checked', false);
+            selectAllCheckbox.prop('indeterminate', true);
+        }
+    }
+    
+    function updateCsvButtonState() {
+        var visibleTables = $('.table-visibility-toggle:checked').length;
+        var btnCsv = $('#btnCsv');
+        
+        if (visibleTables === 0) {
+            btnCsv.css({
+                'opacity': '0.5',
+                'pointer-events': 'none',
+                'cursor': 'not-allowed'
+            });
+            btnCsv.attr('title', 'Selecciona al menos una tabla para descargar');
+        } else {
+            btnCsv.css({
+                'opacity': '1',
+                'pointer-events': 'auto',
+                'cursor': 'pointer'
+            });
+            btnCsv.attr('title', 'Descargar CSV de las tablas seleccionadas');
+        }
     }
     
     function saveTableOrder(tableId, order) {
