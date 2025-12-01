@@ -20,6 +20,10 @@ def reportes():
         # Obtener el tipo de reporte a mostrar
         tipo = request.args.get('tipo', 'todos')
         
+        # Obtener parámetros de fecha
+        fecha_inicio = request.args.get('fecha_inicio', None)
+        fecha_fin = request.args.get('fecha_fin', None)
+        
         # Validar tipo de reporte
         tipos_validos = ['todos', 'nomina', 'ausencias', 'evaluaciones', 'capacitaciones', 'proyectos', 'presupuestos']
         if tipo not in tipos_validos:
@@ -54,7 +58,7 @@ def reportes():
 
         if tipo == 'ausencias' or tipo == 'todos':
             try:
-                cursor.execute("""
+                query = """
                     SELECT 
                         e.nombre_completo,
                         a.tipo,
@@ -63,8 +67,21 @@ def reportes():
                         a.motivo
                     FROM AUSENCIA a
                     JOIN EMPLEADO e ON a.id_empleado = e.id_empleado
-                    ORDER BY a.fecha_inicio DESC;
-                """)
+                """
+                
+                # Agregar filtro de fechas si se proporcionan
+                if fecha_inicio and fecha_fin:
+                    query += " WHERE a.fecha_inicio >= %s AND a.fecha_fin <= %s"
+                    cursor.execute(query + " ORDER BY a.fecha_inicio DESC;", (fecha_inicio, fecha_fin))
+                elif fecha_inicio:
+                    query += " WHERE a.fecha_inicio >= %s"
+                    cursor.execute(query + " ORDER BY a.fecha_inicio DESC;", (fecha_inicio,))
+                elif fecha_fin:
+                    query += " WHERE a.fecha_fin <= %s"
+                    cursor.execute(query + " ORDER BY a.fecha_inicio DESC;", (fecha_fin,))
+                else:
+                    cursor.execute(query + " ORDER BY a.fecha_inicio DESC;")
+                
                 rep_ausencias = cursor.fetchall()
             except Exception as e:
                 logging.warning(f"Error al obtener ausencias: {e}")
@@ -72,7 +89,7 @@ def reportes():
 
         if tipo == 'evaluaciones' or tipo == 'todos':
             try:
-                cursor.execute("""
+                query = """
                     SELECT 
                         e.nombre_completo,
                         ev.fecha_evaluacion,
@@ -82,8 +99,21 @@ def reportes():
                     FROM EVALUACION ev
                     JOIN `EMPLEADO-EVALUACION` ee ON ev.id_evaluacion = ee.id_evaluacion
                     JOIN EMPLEADO e ON ee.id_empleado = e.id_empleado
-                    ORDER BY ev.fecha_evaluacion DESC;
-                """)
+                """
+                
+                # Agregar filtro de fechas si se proporcionan
+                if fecha_inicio and fecha_fin:
+                    query += " WHERE ev.fecha_evaluacion BETWEEN %s AND %s"
+                    cursor.execute(query + " ORDER BY ev.fecha_evaluacion DESC;", (fecha_inicio, fecha_fin))
+                elif fecha_inicio:
+                    query += " WHERE ev.fecha_evaluacion >= %s"
+                    cursor.execute(query + " ORDER BY ev.fecha_evaluacion DESC;", (fecha_inicio,))
+                elif fecha_fin:
+                    query += " WHERE ev.fecha_evaluacion <= %s"
+                    cursor.execute(query + " ORDER BY ev.fecha_evaluacion DESC;", (fecha_fin,))
+                else:
+                    cursor.execute(query + " ORDER BY ev.fecha_evaluacion DESC;")
+                
                 rep_evaluaciones = cursor.fetchall()
             except Exception as e:
                 logging.warning(f"Error al obtener evaluaciones: {e}")
@@ -91,7 +121,7 @@ def reportes():
 
         if tipo == 'capacitaciones' or tipo == 'todos':
             try:
-                cursor.execute("""
+                query = """
                     SELECT 
                         e.nombre_completo,
                         c.nombre AS capacitacion,
@@ -103,8 +133,21 @@ def reportes():
                     FROM CAPACITACION c
                     JOIN `EMPLEADO-CAPACITACION` ec ON c.id_capacitacion = ec.id_capacitacion
                     JOIN EMPLEADO e ON ec.id_empleado = e.id_empleado
-                    ORDER BY c.fecha_inicio DESC;
-                """)
+                """
+                
+                # Agregar filtro de fechas si se proporcionan
+                if fecha_inicio and fecha_fin:
+                    query += " WHERE c.fecha_inicio >= %s AND c.fecha_fin <= %s"
+                    cursor.execute(query + " ORDER BY c.fecha_inicio DESC;", (fecha_inicio, fecha_fin))
+                elif fecha_inicio:
+                    query += " WHERE c.fecha_inicio >= %s"
+                    cursor.execute(query + " ORDER BY c.fecha_inicio DESC;", (fecha_inicio,))
+                elif fecha_fin:
+                    query += " WHERE c.fecha_fin <= %s"
+                    cursor.execute(query + " ORDER BY c.fecha_inicio DESC;", (fecha_fin,))
+                else:
+                    cursor.execute(query + " ORDER BY c.fecha_inicio DESC;")
+                
                 rep_capacitaciones = cursor.fetchall()
             except Exception as e:
                 logging.warning(f"Error al obtener capacitaciones: {e}")
@@ -112,7 +155,7 @@ def reportes():
 
         if tipo == 'proyectos' or tipo == 'todos':
             try:
-                cursor.execute("""
+                query = """
                     SELECT 
                         e.nombre_completo,
                         p.nombre AS proyecto,
@@ -122,8 +165,21 @@ def reportes():
                     FROM `EMPLEADO-PROYECTO` ep
                     JOIN EMPLEADO e ON ep.id_empleado = e.id_empleado
                     JOIN PROYECTO p ON ep.id_proyecto = p.id_proyecto
-                    ORDER BY ep.fecha_asignacion DESC;
-                """)
+                """
+                
+                # Agregar filtro de fechas si se proporcionan
+                if fecha_inicio and fecha_fin:
+                    query += " WHERE ep.fecha_asignacion >= %s AND ep.fecha_entrega <= %s"
+                    cursor.execute(query + " ORDER BY ep.fecha_asignacion DESC;", (fecha_inicio, fecha_fin))
+                elif fecha_inicio:
+                    query += " WHERE ep.fecha_asignacion >= %s"
+                    cursor.execute(query + " ORDER BY ep.fecha_asignacion DESC;", (fecha_inicio,))
+                elif fecha_fin:
+                    query += " WHERE ep.fecha_entrega <= %s"
+                    cursor.execute(query + " ORDER BY ep.fecha_asignacion DESC;", (fecha_fin,))
+                else:
+                    cursor.execute(query + " ORDER BY ep.fecha_asignacion DESC;")
+                
                 rep_proyectos = cursor.fetchall()
             except Exception as e:
                 logging.warning(f"Error al obtener proyectos: {e}")
@@ -131,7 +187,7 @@ def reportes():
 
         if tipo == 'presupuestos' or tipo == 'todos':
             try:
-                cursor.execute("""
+                query = """
                     SELECT 
                         d.nombre AS departamento,
                         p.fecha_inicio,
@@ -141,8 +197,21 @@ def reportes():
                         (p.monto_asignado - p.monto_utilizado) AS restante
                     FROM PRESUPUESTO p
                     JOIN DEPARTAMENTO d ON p.id_departamento = d.id_departamento
-                    ORDER BY p.id_presupuesto DESC;
-                """)
+                """
+                
+                # Agregar filtro de fechas si se proporcionan
+                if fecha_inicio and fecha_fin:
+                    query += " WHERE p.fecha_inicio >= %s AND p.fecha_fin <= %s"
+                    cursor.execute(query + " ORDER BY p.id_presupuesto DESC;", (fecha_inicio, fecha_fin))
+                elif fecha_inicio:
+                    query += " WHERE p.fecha_inicio >= %s"
+                    cursor.execute(query + " ORDER BY p.id_presupuesto DESC;", (fecha_inicio,))
+                elif fecha_fin:
+                    query += " WHERE p.fecha_fin <= %s"
+                    cursor.execute(query + " ORDER BY p.id_presupuesto DESC;", (fecha_fin,))
+                else:
+                    cursor.execute(query + " ORDER BY p.id_presupuesto DESC;")
+                
                 rep_presupuestos = cursor.fetchall()
             except Exception as e:
                 logging.warning(f"Error al obtener presupuestos: {e}")
@@ -157,6 +226,8 @@ def reportes():
             rep_proyectos=rep_proyectos,
             rep_presupuestos=rep_presupuestos,
             tipo=tipo,
+            fecha_inicio=fecha_inicio,
+            fecha_fin=fecha_fin,
             error=None
         )
 

@@ -57,6 +57,60 @@
         border-radius: 6px;
         font-size: 13px;
     }
+
+    .tags-container {
+        width: 100%;
+        padding: 8px;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        background: #fff;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        align-items: center;
+        min-height: 40px;
+    }
+
+    .tags-container:focus-within {
+        outline: none;
+        border-color: #0066ff;
+        box-shadow: 0 0 0 3px rgba(0, 102, 255, 0.1);
+    }
+
+    .tag {
+        background: #0066ff;
+        color: white;
+        padding: 4px 10px;
+        border-radius: 16px;
+        font-size: 12px;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        white-space: nowrap;
+    }
+
+    .tag button {
+        background: none;
+        border: none;
+        color: white;
+        cursor: pointer;
+        font-size: 14px;
+        padding: 0;
+        line-height: 1;
+    }
+
+    .tag button:hover {
+        opacity: 0.8;
+    }
+
+    .tags-input {
+        flex: 1;
+        min-width: 100px;
+        border: none;
+        outline: none;
+        font-size: 13px;
+        padding: 0;
+    }
     
     .filter-group input:focus,
     .filter-group select:focus {
@@ -184,6 +238,35 @@
         border-color: #0066ff;
         box-shadow: 0 0 0 3px rgba(0, 102, 255, 0.1);
     }
+    
+    .table-tags-container {
+        margin-bottom: 10px;
+        padding: 8px;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        background: #fff;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        align-items: center;
+        min-height: 40px;
+    }
+
+    .table-tags-container:focus-within {
+        outline: none;
+        border-color: #0066ff;
+        box-shadow: 0 0 0 3px rgba(0, 102, 255, 0.1);
+    }
+
+    .table-tags-input {
+        flex: 1;
+        min-width: 80px;
+        border: none;
+        outline: none;
+        font-size: 13px;
+        padding: 0;
+    }
+    
     .empty-msg {
         padding: 12px;
         text-align: center;
@@ -255,8 +338,10 @@
         <hr style="border: 1px solid #e0e0e0; margin: 15px 0;">
         
         <div class="filter-group">
-            <label for="globalSearch">Búsqueda global</label>
-            <input type="text" id="globalSearch" placeholder="Buscar en todas las tablas">
+            <label for="globalSearchTags">Búsqueda global</label>
+            <div class="tags-container" id="globalSearchTagsContainer">
+                <input type="text" class="tags-input" id="globalSearchTags" placeholder="Escribe y presiona Enter para agregar términos">
+            </div>
         </div>
         
         <div class="records-counter" id="recordsCounter" style="display: none;">
@@ -719,6 +804,9 @@
             });
         });
         
+        // Personalizar filtros de búsqueda individuales con tags
+        customizeTableFilters();
+        
         // Cargar filtros guardados
         loadFilters();
         updateCsvButtonState();
@@ -760,12 +848,49 @@
         // Actualizar visibilidad inicial de acordeones de columnas
         updateColumnSectionVisibility();
         
-        // Búsqueda global
-        $('#globalSearch').on('keyup', function() {
-            var searchValue = this.value;
-            tables.forEach(function(table) {
-                table.search(searchValue).draw();
-            });
+        // Array para almacenar términos de búsqueda global
+        var globalSearchTerms = [];
+        
+        // Búsqueda global con tags
+        $('#globalSearchTags').on('keydown', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                var term = $(this).val().trim();
+                if (term && !globalSearchTerms.includes(term)) {
+                    globalSearchTerms.push(term);
+                    addGlobalSearchTag(term);
+                    $(this).val('');
+                    applyGlobalSearch();
+                }
+            }
+        });
+        
+        function addGlobalSearchTag(term) {
+            var tagHtml = '<div class="tag">' + 
+                            '<span>' + escapeHtml(term) + '</span>' +
+                            '<button type="button" onclick="removeGlobalSearchTag(\'' + escapeHtml(term).replace(/'/g, "\\'") + '\')">×</button>' +
+                          '</div>';
+            $('#globalSearchTagsContainer').prepend(tagHtml);
+        }
+        
+        window.removeGlobalSearchTag = function(term) {
+            globalSearchTerms = globalSearchTerms.filter(t => t !== term);
+            $('#globalSearchTagsContainer').find('.tag').filter(function() {
+                return $(this).find('span').text().trim() === term;
+            }).remove();
+            applyGlobalSearch();
+        };
+        
+        function applyGlobalSearch() {
+            if (globalSearchTerms.length === 0) {
+                tables.forEach(function(table) {
+                    table.search('').draw();
+                });
+            } else {
+                tables.forEach(function(table) {
+                    table.search(globalSearchTerms.join('|')).draw();
+                });
+            }
             
             // Limpiar los campos de búsqueda individuales de cada tabla
             $('.dataTables_filter input').val('');
@@ -775,7 +900,7 @@
             
             // Guardar filtro
             saveFilters();
-        });
+        }
         
         // Toggle de columnas
         $('.column-toggle').on('change', function() {
@@ -913,7 +1038,11 @@
     });
     
     function clearAllFilters() {
-        $('#globalSearch').val('');
+        // Limpiar búsqueda global con tags
+        globalSearchTerms = [];
+        $('#globalSearchTagsContainer').find('.tag').remove();
+        $('#globalSearchTags').val('');
+        
         $('#filterFechaInicio').val('');
         $('#filterFechaFin').val('');
         
@@ -951,6 +1080,83 @@
         $('#filterFechaInicio').trigger('change');
         updateRecordsCounter();
         saveFilters();
+    }
+    
+    function customizeTableFilters() {
+        // Reemplazar los filtros de DataTables con inputs de tags
+        $('.dataTables_wrapper').each(function() {
+            var wrapper = $(this);
+            var filterDiv = wrapper.find('.dataTables_filter');
+            var tableId = wrapper.find('table.dataTable').attr('id');
+            
+            if (filterDiv.length > 0) {
+                var tagsContainer = $(
+                    '<div class="table-tags-container" data-table="' + tableId + '">' +
+                    '<input type="text" class="table-tags-input" placeholder="Buscar y presiona Enter">' +
+                    '</div>'
+                );
+                
+                filterDiv.html('').append(tagsContainer);
+                
+                var input = tagsContainer.find('.table-tags-input');
+                var tableTerms = {};
+                tableTerms[tableId] = [];
+                
+                input.on('keydown', function(e) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        var term = $(this).val().trim();
+                        if (term && !tableTerms[tableId].includes(term)) {
+                            tableTerms[tableId].push(term);
+                            addTableSearchTag(tagsContainer, term, tableId, tableTerms);
+                            $(this).val('');
+                            applyTableSearch(tableId, tableTerms[tableId]);
+                        }
+                    }
+                });
+            }
+        });
+    }
+    
+    function addTableSearchTag(container, term, tableId, tableTerms) {
+        var tagHtml = '<div class="tag">' + 
+                        '<span>' + escapeHtml(term) + '</span>' +
+                        '<button type="button" onclick="removeTableSearchTag(this, \'' + tableId + '\', \'' + escapeHtml(term).replace(/'/g, "\\'") + '\')">×</button>' +
+                      '</div>';
+        container.prepend(tagHtml);
+    }
+    
+    window.removeTableSearchTag = function(button, tableId, term) {
+        var container = $(button).closest('.table-tags-container');
+        $(button).closest('.tag').remove();
+        var tableTerms = [];
+        container.find('.tag span').each(function() {
+            tableTerms.push($(this).text());
+        });
+        applyTableSearch(tableId, tableTerms);
+    };
+    
+    function applyTableSearch(tableId, terms) {
+        var table = tableObjects[tableId];
+        if (table) {
+            if (terms.length === 0) {
+                table.search('').draw();
+            } else {
+                table.search(terms.join('|')).draw();
+            }
+            updateRecordsCounter();
+        }
+    }
+    
+    function escapeHtml(text) {
+        var map = {
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#039;'
+        };
+        return text.replace(/[&<>"']/g, function(m) { return map[m]; });
     }
     
     function isValidDate(dateString) {
@@ -1073,7 +1279,7 @@
     
     function saveFilters() {
         var filters = {
-            globalSearch: $('#globalSearch').val(),
+            globalSearchTerms: globalSearchTerms,
             fechaInicio: $('#filterFechaInicio').val(),
             fechaFin: $('#filterFechaFin').val(),
             visibleTables: [],
@@ -1108,12 +1314,13 @@
         try {
             var filters = JSON.parse(filtersJson);
             
-            // Restaurar búsqueda global
-            if (filters.globalSearch) {
-                $('#globalSearch').val(filters.globalSearch);
-                tables.forEach(function(table) {
-                    table.search(filters.globalSearch).draw();
+            // Restaurar búsqueda global con tags
+            if (filters.globalSearchTerms && filters.globalSearchTerms.length > 0) {
+                globalSearchTerms = filters.globalSearchTerms;
+                filters.globalSearchTerms.forEach(function(term) {
+                    addGlobalSearchTag(term);
                 });
+                applyGlobalSearch();
             }
             
             // Restaurar fechas
