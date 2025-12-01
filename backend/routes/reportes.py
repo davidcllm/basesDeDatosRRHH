@@ -71,13 +71,13 @@ def reportes():
                 
                 # Agregar filtro de fechas si se proporcionan
                 if fecha_inicio and fecha_fin:
-                    query += " WHERE a.fecha_fin >= %s AND a.fecha_inicio <= %s"
+                    query += " WHERE a.fecha_inicio >= %s AND a.fecha_fin <= %s"
                     cursor.execute(query + " ORDER BY a.fecha_inicio DESC;", (fecha_inicio, fecha_fin))
                 elif fecha_inicio:
-                    query += " WHERE a.fecha_fin >= %s"
+                    query += " WHERE a.fecha_inicio >= %s"
                     cursor.execute(query + " ORDER BY a.fecha_inicio DESC;", (fecha_inicio,))
                 elif fecha_fin:
-                    query += " WHERE a.fecha_inicio <= %s"
+                    query += " WHERE a.fecha_fin <= %s"
                     cursor.execute(query + " ORDER BY a.fecha_inicio DESC;", (fecha_fin,))
                 else:
                     cursor.execute(query + " ORDER BY a.fecha_inicio DESC;")
@@ -137,13 +137,13 @@ def reportes():
                 
                 # Agregar filtro de fechas si se proporcionan
                 if fecha_inicio and fecha_fin:
-                    query += " WHERE c.fecha_fin >= %s AND c.fecha_inicio <= %s"
+                    query += " WHERE c.fecha_inicio >= %s AND c.fecha_fin <= %s"
                     cursor.execute(query + " ORDER BY c.fecha_inicio DESC;", (fecha_inicio, fecha_fin))
                 elif fecha_inicio:
-                    query += " WHERE c.fecha_fin >= %s"
+                    query += " WHERE c.fecha_inicio >= %s"
                     cursor.execute(query + " ORDER BY c.fecha_inicio DESC;", (fecha_inicio,))
                 elif fecha_fin:
-                    query += " WHERE c.fecha_inicio <= %s"
+                    query += " WHERE c.fecha_fin <= %s"
                     cursor.execute(query + " ORDER BY c.fecha_inicio DESC;", (fecha_fin,))
                 else:
                     cursor.execute(query + " ORDER BY c.fecha_inicio DESC;")
@@ -169,13 +169,13 @@ def reportes():
                 
                 # Agregar filtro de fechas si se proporcionan
                 if fecha_inicio and fecha_fin:
-                    query += " WHERE ep.fecha_entrega >= %s AND ep.fecha_asignacion <= %s"
+                    query += " WHERE ep.fecha_asignacion >= %s AND ep.fecha_entrega <= %s"
                     cursor.execute(query + " ORDER BY ep.fecha_asignacion DESC;", (fecha_inicio, fecha_fin))
                 elif fecha_inicio:
-                    query += " WHERE ep.fecha_entrega >= %s"
+                    query += " WHERE ep.fecha_asignacion >= %s"
                     cursor.execute(query + " ORDER BY ep.fecha_asignacion DESC;", (fecha_inicio,))
                 elif fecha_fin:
-                    query += " WHERE ep.fecha_asignacion <= %s"
+                    query += " WHERE ep.fecha_entrega <= %s"
                     cursor.execute(query + " ORDER BY ep.fecha_asignacion DESC;", (fecha_fin,))
                 else:
                     cursor.execute(query + " ORDER BY ep.fecha_asignacion DESC;")
@@ -201,13 +201,13 @@ def reportes():
                 
                 # Agregar filtro de fechas si se proporcionan
                 if fecha_inicio and fecha_fin:
-                    query += " WHERE p.fecha_fin >= %s AND p.fecha_inicio <= %s"
+                    query += " WHERE p.fecha_inicio >= %s AND p.fecha_fin <= %s"
                     cursor.execute(query + " ORDER BY p.id_presupuesto DESC;", (fecha_inicio, fecha_fin))
                 elif fecha_inicio:
-                    query += " WHERE p.fecha_fin >= %s"
+                    query += " WHERE p.fecha_inicio >= %s"
                     cursor.execute(query + " ORDER BY p.id_presupuesto DESC;", (fecha_inicio,))
                 elif fecha_fin:
-                    query += " WHERE p.fecha_inicio <= %s"
+                    query += " WHERE p.fecha_fin <= %s"
                     cursor.execute(query + " ORDER BY p.id_presupuesto DESC;", (fecha_fin,))
                 else:
                     cursor.execute(query + " ORDER BY p.id_presupuesto DESC;")
