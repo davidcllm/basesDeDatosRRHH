@@ -1004,6 +1004,9 @@
                 }
             }
         });
+        
+        // Cargar filtros guardados al final
+        loadFilters();
     });
     
     function clearAllFilters() {
@@ -1233,6 +1236,10 @@
                     $('.table-visibility-toggle[data-target="' + target + '"]').prop('checked', true);
                     $('#section-' + target).show();
                 });
+            } else {
+                // Si no hay tablas guardadas, mostrar todas por defecto
+                $('.table-visibility-toggle').prop('checked', true);
+                $('.report-card').show();
             }
             
             // Restaurar columnas visibles
