@@ -650,6 +650,7 @@
         var settings = {
             pageLength: 5,
             lengthMenu: [[5, 10, 20, -1], [5, 10, 20, "Todos"]],
+            autoWidth: false,
             language: {
                 search: "Buscar:",
                 lengthMenu: "Mostrar _MENU_ registros",
@@ -716,11 +717,6 @@
             if (table) {
                 var column = table.column(columnIdx);
                 column.visible($(this).is(':checked'));
-                
-                // Ajustar el ancho de las columnas después de cambiar visibilidad
-                setTimeout(function() {
-                    table.columns.adjust().draw(false);
-                }, 50);
             }
         });
         
@@ -772,7 +768,7 @@
         $('#filterFechaInicio').val('');
         $('#filterFechaFin').val('');
         
-        // Restaurar todas las columnas sin disparar eventos múltiples
+        // Restaurar todas las columnas
         $('.column-toggle').each(function() {
             var tableId = $(this).data('table');
             var columnIdx = $(this).data('column');
@@ -785,15 +781,8 @@
         });
         
         tables.forEach(function(table) {
-            table.search('').columns().search('').draw(false);
+            table.search('').columns().search('').draw();
         });
-        
-        // Un solo ajuste al final
-        setTimeout(function() {
-            tables.forEach(function(table) {
-                table.columns.adjust().draw(false);
-            });
-        }, 50);
     }
     
     function clearTableFilters() {
