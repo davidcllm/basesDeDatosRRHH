@@ -1628,6 +1628,15 @@
         // Si solo hay una tabla, usar ese tipo; si hay varias, usar 'todos'
         var tipo = visibleTables.length === 1 ? visibleTables[0] : 'todos';
         var url = '/reportes/descargar?tipo=' + tipo + '&formato=csv';
+
+        var fechaInicio = $('#filterFechaInicio').val();
+        var fechaFin = $('#filterFechaFin').val();
+        if (fechaInicio) {
+            url += '&fecha_inicio=' + encodeURIComponent(fechaInicio);
+        }
+        if (fechaFin) {
+            url += '&fecha_fin=' + encodeURIComponent(fechaFin);
+        }
         
         // Crear un elemento temporal para forzar la descarga
         var link = document.createElement('a');
