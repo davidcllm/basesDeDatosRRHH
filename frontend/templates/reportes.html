@@ -223,6 +223,10 @@
             </label>
         </div>
         
+        <button class="btn-clear-filters" onclick="clearTableFilters()" style="margin-top: 10px;">
+            Restablecer tablas
+        </button>
+        
         <hr style="border: 1px solid #e0e0e0; margin: 15px 0;">
         
         <div class="filter-group">
@@ -763,16 +767,19 @@
         $('#filterFechaInicio').val('');
         $('#filterFechaFin').val('');
         
-        // Restaurar visibilidad de tablas
-        $('.table-visibility-toggle').prop('checked', true);
-        $('.report-card').show();
-        
         // Restaurar todas las columnas
         $('.column-toggle').prop('checked', true).trigger('change');
         
         tables.forEach(function(table) {
             table.search('').columns().search('').draw();
         });
+    }
+    
+    function clearTableFilters() {
+        // Seleccionar todas las tablas
+        $('.table-visibility-toggle').prop('checked', true);
+        $('.report-card').show();
+        updateColumnSectionVisibility();
     }
     
     function toggleAccordion(id) {
