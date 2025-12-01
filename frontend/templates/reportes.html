@@ -994,6 +994,7 @@
             // Restaurar tablas visibles
             if (filters.visibleTables && filters.visibleTables.length > 0) {
                 $('.table-visibility-toggle').prop('checked', false);
+                $('.report-card').hide();
                 filters.visibleTables.forEach(function(target) {
                     $('.table-visibility-toggle[data-target="' + target + '"]').prop('checked', true);
                     $('#section-' + target).show();
