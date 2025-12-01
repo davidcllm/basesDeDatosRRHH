@@ -865,6 +865,18 @@
             }
         });
         
+        // Mientras escribes, filtrar en tiempo real
+        $('#globalSearchTags').on('keyup', function(e) {
+            if (e.key !== 'Enter') {
+                var currentTerm = $(this).val().trim();
+                var allTerms = globalSearchTerms.slice();
+                if (currentTerm) {
+                    allTerms.push(currentTerm);
+                }
+                applyGlobalSearchWithTerms(allTerms);
+            }
+        });
+        
         function addGlobalSearchTag(term) {
             var tagHtml = '<div class="tag">' + 
                             '<span>' + escapeHtml(term) + '</span>' +
@@ -881,24 +893,23 @@
             applyGlobalSearch();
         };
         
-        function applyGlobalSearch() {
-            if (globalSearchTerms.length === 0) {
+        function applyGlobalSearchWithTerms(terms) {
+            // Usar AND lógico: todos los términos deben estar presentes
+            if (terms.length === 0) {
                 tables.forEach(function(table) {
                     table.search('').draw();
                 });
             } else {
+                var searchPattern = terms.map(t => '(?=.*' + t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')').join('');
                 tables.forEach(function(table) {
-                    table.search(globalSearchTerms.join('|')).draw();
+                    table.search(searchPattern, true, false).draw();
                 });
             }
-            
-            // Limpiar los campos de búsqueda individuales de cada tabla
-            $('.dataTables_filter input').val('');
-            
-            // Actualizar contador
             updateRecordsCounter();
-            
-            // Guardar filtro
+        }
+        
+        function applyGlobalSearch() {
+            applyGlobalSearchWithTerms(globalSearchTerms);
             saveFilters();
         }
         
@@ -1102,6 +1113,19 @@
                 var tableTerms = {};
                 tableTerms[tableId] = [];
                 
+                // Mientras escribes, filtrar en tiempo real
+                input.on('keyup', function(e) {
+                    if (e.key !== 'Enter') {
+                        var currentTerm = $(this).val().trim();
+                        var allTerms = tableTerms[tableId].slice();
+                        if (currentTerm) {
+                            allTerms.push(currentTerm);
+                        }
+                        applyTableSearchWithTerms(tableId, allTerms);
+                    }
+                });
+                
+                // Al presionar Enter, guardar el término
                 input.on('keydown', function(e) {
                     if (e.key === 'Enter') {
                         e.preventDefault();
@@ -1136,16 +1160,22 @@
         applyTableSearch(tableId, tableTerms);
     };
     
-    function applyTableSearch(tableId, terms) {
+    function applyTableSearchWithTerms(tableId, terms) {
         var table = tableObjects[tableId];
         if (table) {
             if (terms.length === 0) {
                 table.search('').draw();
             } else {
-                table.search(terms.join('|')).draw();
+                // Usar AND lógico: todos los términos deben estar presentes
+                var searchPattern = terms.map(t => '(?=.*' + t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')').join('');
+                table.search(searchPattern, true, false).draw();
             }
             updateRecordsCounter();
         }
+    }
+    
+    function applyTableSearch(tableId, terms) {
+        applyTableSearchWithTerms(tableId, terms);
     }
     
     function escapeHtml(text) {
