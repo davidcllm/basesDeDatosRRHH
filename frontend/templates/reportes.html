@@ -143,9 +143,40 @@
     .btn-clear-filters:hover {
         background: #e0e0e0;
         border-color: #bbb;
+    .search-tags-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-top: 8px;
     }
-    
-    .accordion-header {
+
+    .search-tag {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        background-color: #eaf1ff;
+        border: 1px solid #c9ddff;
+        border-radius: 999px;
+        padding: 2px 10px;
+        font-size: 12px;
+        color: #1b3d6d;
+    }
+
+    .search-tag button {
+        border: none;
+        background: transparent;
+        color: #1b3d6d;
+        font-size: 14px;
+        line-height: 1;
+        cursor: pointer;
+        padding: 0;
+    }
+
+    .custom-table-filter {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+    }
         background: #f8f9fa;
         padding: 10px;
         border-radius: 6px;
@@ -349,6 +380,7 @@
         <div class="filter-group">
             <label for="globalSearch">Búsqueda global</label>
             <input type="text" id="globalSearch" placeholder="Buscar en todas las tablas">
+            <div id="globalSearchTags" class="search-tags-container"></div>
         </div>
         
         <div class="records-counter" id="recordsCounter" style="display: none;">
@@ -781,6 +813,8 @@
 <script>
     var tables = [];
     var tableObjects = {};
+    var globalSearchTerms = [];
+    var tableSearchTerms = {};
     
     $(document).ready(function () {
         var settings = {
@@ -806,38 +840,66 @@
             var tableId = this.id;
             tables.push(table);
             tableObjects[tableId] = table;
+            tableSearchTerms[tableId] = [];
             
             // Guardar ordenamiento cuando cambia
             table.on('order.dt', function() {
                 saveTableOrder(tableId, table.order());
+            });
+
+            var filterWrapper = $('#' + tableId + '_filter');
+            var filterInput = filterWrapper.find('input');
+            filterWrapper.addClass('custom-table-filter');
+            filterInput.off('.DT').attr('placeholder', 'Buscar en esta tabla...');
+            var tableTagContainer = $('<div class="search-tags-container table-search-tags" data-table="' + tableId + '"></div>');
+            filterWrapper.append(tableTagContainer);
+
+            filterInput.on('keydown', function(event) {
+                if (event.key === 'Enter' || event.key === ',') {
+                    event.preventDefault();
+                    var term = sanitizeSearchTerm($(this).val() || '');
+                    if (term) {
+                        resetGlobalSearchState();
+                        addTableSearchTag(tableId, term);
+                        $(this).val('');
+                    }
+                }
+            });
+
+            filterInput.on('keyup', function(event) {
+                if (event.key === 'Enter' || event.key === ',') {
+                    return;
+                }
+                resetGlobalSearchState();
+                applyTableSearch(tableId);
+                saveFilters();
             });
         });
         
         // Actualizar visibilidad inicial de acordeones de columnas
         updateColumnSectionVisibility();
         
-        // Búsqueda global
-        $('#globalSearch').on('keyup', function() {
-            var searchValue = this.value;
-            tables.forEach(function(table) {
-                table.search(searchValue).draw();
-            });
-            
-            // Limpiar los campos de búsqueda individuales de cada tabla
-            $('.dataTables_filter input').val('');
-            
-            // Actualizar contador
-            updateRecordsCounter();
-            
-            // Guardar filtro
-            saveFilters();
-        });
-        
-        // Limpiar búsqueda global cuando se usa búsqueda individual
-        $(document).on('keyup', '.dataTables_filter input', function() {
-            if ($(this).val() !== '') {
-                $('#globalSearch').val('');
+        // Búsqueda global con etiquetas
+        $('#globalSearch').on('keydown', function(event) {
+            if (event.key === 'Enter' || event.key === ',') {
+                event.preventDefault();
+                var term = sanitizeSearchTerm($(this).val() || '');
+                if (!term) return;
+                resetAllTableSearchTerms();
+                addGlobalSearchTag(term);
             }
+        });
+
+        $('#globalSearch').on('keyup', function(event) {
+            if (event.key === 'Enter' || event.key === ',') {
+                return;
+            }
+            var hasValue = sanitizeSearchTerm($(this).val()).length > 0;
+            if (hasValue || globalSearchTerms.length > 0) {
+                resetAllTableSearchTerms();
+            }
+            applyGlobalSearch();
+            saveFilters();
         });
         
         // Toggle de visibilidad de tablas completas
@@ -981,14 +1043,46 @@
             }
         });
         
+        $(document).on('click', '.search-tag button', function() {
+            var source = $(this).data('source');
+            var index = $(this).data('index');
+            if (typeof index === 'undefined') return;
+            if (source === 'global') {
+                globalSearchTerms.splice(index, 1);
+                renderGlobalSearchTags();
+                applyGlobalSearch();
+            } else if (tableSearchTerms[source]) {
+                tableSearchTerms[source].splice(index, 1);
+                renderTableSearchTags(source);
+                applyTableSearch(source);
+            }
+            saveFilters();
+        });
+
         // Cargar filtros guardados al final
         loadFilters();
     });
     
     function clearAllFilters() {
         $('#globalSearch').val('');
+        globalSearchTerms = [];
+        renderGlobalSearchTags();
         $('#filterFechaInicio').val('');
         $('#filterFechaFin').val('');
+        $('#filterFechaFin').removeAttr('min');
+        $('#errorFechaInicio, #errorFechaFin').hide().text('');
+        $('#filterFechaInicio, #filterFechaFin').css('border-color', '#ddd');
+        
+        for (var tableId in tableObjects) {
+            if (!tableObjects.hasOwnProperty(tableId)) continue;
+            tableSearchTerms[tableId] = [];
+            renderTableSearchTags(tableId);
+            var input = $('#' + tableId + '_filter input');
+            if (input.length) {
+                input.val('');
+            }
+            tableObjects[tableId].search('').columns().search('').draw();
+        }
         
         // Restaurar todas las columnas
         $('.column-toggle').each(function() {
@@ -1001,10 +1095,9 @@
                 table.column(columnIdx).visible(true);
             }
         });
-        
-        tables.forEach(function(table) {
-            table.search('').columns().search('').draw();
-        });
+
+        updateRecordsCounter();
+        saveFilters();
     }
     
     function clearTableFilters() {
@@ -1028,6 +1121,152 @@
             url += '?tipo=' + encodeURIComponent(tipo);
         }
         window.location.href = url;
+    }
+
+    function sanitizeSearchTerm(term) {
+        return (term || '').trim().replace(/\s+/g, ' ');
+    }
+
+    function escapeRegexTerm(term) {
+        return term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    }
+
+    function buildSearchPattern(terms) {
+        var clean = terms
+            .map(function(t) { return sanitizeSearchTerm(t); })
+            .filter(function(t) { return t.length > 0; });
+        if (!clean.length) {
+            return { value: '', useRegex: false };
+        }
+        var unique = Array.from(new Set(clean));
+        if (unique.length === 1) {
+            return { value: unique[0], useRegex: false };
+        }
+        var pattern = unique.map(escapeRegexTerm).join('|');
+        return { value: pattern, useRegex: true };
+    }
+
+    function renderGlobalSearchTags() {
+        var container = $('#globalSearchTags');
+        container.empty();
+        globalSearchTerms.forEach(function(term, index) {
+            var tag = $('<span class="search-tag"></span>');
+            tag.append($('<span></span>').text(term));
+            var btn = $('<button type="button" aria-label="Eliminar etiqueta">&times;</button>');
+            btn.data('source', 'global');
+            btn.data('index', index);
+            tag.append(btn);
+            container.append(tag);
+        });
+    }
+
+    function renderTableSearchTags(tableId) {
+        var container = $('.table-search-tags[data-table="' + tableId + '"]');
+        container.empty();
+        var terms = tableSearchTerms[tableId] || [];
+        terms.forEach(function(term, index) {
+            var tag = $('<span class="search-tag"></span>');
+            tag.append($('<span></span>').text(term));
+            var btn = $('<button type="button" aria-label="Eliminar etiqueta">&times;</button>');
+            btn.data('source', tableId);
+            btn.data('index', index);
+            tag.append(btn);
+            container.append(tag);
+        });
+    }
+
+    function addGlobalSearchTag(term) {
+        var clean = sanitizeSearchTerm(term);
+        if (!clean) return;
+        if (globalSearchTerms.some(function(t) { return t.toLowerCase() === clean.toLowerCase(); })) {
+            return;
+        }
+        globalSearchTerms.push(clean);
+        renderGlobalSearchTags();
+        $('#globalSearch').val('');
+        applyGlobalSearch();
+        saveFilters();
+    }
+
+    function addTableSearchTag(tableId, term) {
+        var clean = sanitizeSearchTerm(term);
+        if (!clean) return;
+        if (!tableSearchTerms[tableId]) {
+            tableSearchTerms[tableId] = [];
+        }
+        var exists = tableSearchTerms[tableId].some(function(t) { return t.toLowerCase() === clean.toLowerCase(); });
+        if (exists) return;
+        tableSearchTerms[tableId].push(clean);
+        renderTableSearchTags(tableId);
+        applyTableSearch(tableId);
+        saveFilters();
+    }
+
+    function applyGlobalSearch() {
+        var activeTerms = globalSearchTerms.slice();
+        var inlineValue = sanitizeSearchTerm($('#globalSearch').val());
+        if (inlineValue) {
+            activeTerms.push(inlineValue);
+        }
+        var pattern = buildSearchPattern(activeTerms);
+        tables.forEach(function(table) {
+            table.search(pattern.value, pattern.useRegex, false).draw();
+        });
+        updateRecordsCounter();
+    }
+
+    function applyTableSearch(tableId) {
+        var table = tableObjects[tableId];
+        if (!table) return;
+        var input = $('#' + tableId + '_filter input');
+        var inlineValue = input.length ? sanitizeSearchTerm(input.val()) : '';
+        var terms = (tableSearchTerms[tableId] || []).slice();
+        if (inlineValue) {
+            terms.push(inlineValue);
+        }
+        var pattern = buildSearchPattern(terms);
+        table.search(pattern.value, pattern.useRegex, false).draw();
+        updateRecordsCounter();
+    }
+
+    function resetAllTableSearchTerms() {
+        var changed = false;
+        for (var tableId in tableObjects) {
+            if (!tableObjects.hasOwnProperty(tableId)) continue;
+            var input = $('#' + tableId + '_filter input');
+            var hadInput = input.length && input.val().length > 0;
+            if (hadInput) {
+                input.val('');
+            }
+            var hadTerms = tableSearchTerms[tableId] && tableSearchTerms[tableId].length > 0;
+            if (hadTerms) {
+                tableSearchTerms[tableId] = [];
+                renderTableSearchTags(tableId);
+            }
+            if (hadInput || hadTerms) {
+                tableObjects[tableId].search('').draw();
+                changed = true;
+            }
+        }
+        if (changed) {
+            saveFilters();
+        }
+    }
+
+    function resetGlobalSearchState() {
+        var hadInput = $('#globalSearch').val().length > 0;
+        var hadTerms = globalSearchTerms.length > 0;
+        if (!hadInput && !hadTerms) {
+            return;
+        }
+        $('#globalSearch').val('');
+        globalSearchTerms = [];
+        renderGlobalSearchTags();
+        tables.forEach(function(table) {
+            table.search('').draw();
+        });
+        updateRecordsCounter();
+        saveFilters();
     }
     
     function escapeHtml(text) {
@@ -1162,12 +1401,20 @@
     function saveFilters() {
         var filters = {
             globalSearch: $('#globalSearch').val(),
+            globalSearchTerms: globalSearchTerms.slice(),
             fechaInicio: $('#filterFechaInicio').val(),
             fechaFin: $('#filterFechaFin').val(),
             visibleTables: [],
             visibleColumns: {},
-            tableOrders: JSON.parse(localStorage.getItem('tableOrders') || '{}')
+            tableOrders: JSON.parse(localStorage.getItem('tableOrders') || '{}'),
+            tableSearchTerms: {}
         };
+
+        for (var tableId in tableSearchTerms) {
+            if (tableSearchTerms.hasOwnProperty(tableId)) {
+                filters.tableSearchTerms[tableId] = (tableSearchTerms[tableId] || []).slice();
+            }
+        }
         
         // Guardar tablas visibles
         $('.table-visibility-toggle:checked').each(function() {
@@ -1196,17 +1443,34 @@
         try {
             var filters = JSON.parse(filtersJson);
             
-            // Restaurar búsqueda global
-            if (filters.globalSearch) {
-                $('#globalSearch').val(filters.globalSearch);
-                tables.forEach(function(table) {
-                    table.search(filters.globalSearch).draw();
-                });
+            $('#globalSearch').val(filters.globalSearch || '');
+            globalSearchTerms = [];
+            if (Array.isArray(filters.globalSearchTerms)) {
+                globalSearchTerms = filters.globalSearchTerms.slice();
+            }
+            renderGlobalSearchTags();
+            if (globalSearchTerms.length || $('#globalSearch').val()) {
+                applyGlobalSearch();
+            }
+            
+            if (filters.tableSearchTerms) {
+                for (var tableId in filters.tableSearchTerms) {
+                    if (!filters.tableSearchTerms.hasOwnProperty(tableId)) continue;
+                    if (!tableSearchTerms[tableId]) {
+                        tableSearchTerms[tableId] = [];
+                    }
+                    tableSearchTerms[tableId] = (filters.tableSearchTerms[tableId] || []).slice();
+                    renderTableSearchTags(tableId);
+                    applyTableSearch(tableId);
+                }
             }
             
             // Restaurar fechas
             if (filters.fechaInicio) $('#filterFechaInicio').val(filters.fechaInicio);
             if (filters.fechaFin) $('#filterFechaFin').val(filters.fechaFin);
+            if (filters.fechaInicio || filters.fechaFin) {
+                $('#filterFechaInicio').trigger('change');
+            }
             
             // Restaurar tablas visibles
             if (filters.visibleTables && filters.visibleTables.length > 0) {
@@ -1217,7 +1481,6 @@
                     $('#section-' + target).show();
                 });
             } else {
-                // Si no hay tablas guardadas, mostrar todas por defecto
                 $('.table-visibility-toggle').prop('checked', true);
                 $('.report-card').show();
             }
@@ -1235,11 +1498,6 @@
                         }
                     });
                 }
-            }
-            
-            // Aplicar filtros de fecha si existen
-            if (filters.fechaInicio || filters.fechaFin) {
-                $('#filterFechaInicio').trigger('change');
             }
             
             // Restaurar ordenamiento de tablas
