@@ -347,10 +347,8 @@
         <hr style="border: 1px solid #e0e0e0; margin: 15px 0;">
         
         <div class="filter-group">
-            <label for="globalSearchTags">Búsqueda global</label>
-            <div class="tags-container" id="globalSearchTagsContainer">
-                <input type="text" class="tags-input" id="globalSearchTags" placeholder="Escribe y presiona Enter para agregar términos">
-            </div>
+            <label for="globalSearch">Búsqueda global</label>
+            <input type="text" id="globalSearch" placeholder="Buscar en todas las tablas">
         </div>
         
         <div class="records-counter" id="recordsCounter" style="display: none;">
@@ -813,12 +811,25 @@
             });
         });
         
-        // Personalizar filtros de búsqueda individuales con tags
-        customizeTableFilters();
+        // Actualizar visibilidad inicial de acordeones de columnas
+        updateColumnSectionVisibility();
         
-        // Cargar filtros guardados
-        loadFilters();
-        updateCsvButtonState();
+        // Búsqueda global
+        $('#globalSearch').on('keyup', function() {
+            var searchValue = this.value;
+            tables.forEach(function(table) {
+                table.search(searchValue).draw();
+            });
+            
+            // Limpiar los campos de búsqueda individuales de cada tabla
+            $('.dataTables_filter input').val('');
+            
+            // Actualizar contador
+            updateRecordsCounter();
+            
+            // Guardar filtro
+            saveFilters();
+        });
         
         // Limpiar búsqueda global cuando se usa búsqueda individual
         $(document).on('keyup', '.dataTables_filter input', function() {
@@ -857,70 +868,8 @@
         // Actualizar visibilidad inicial de acordeones de columnas
         updateColumnSectionVisibility();
         
-        // Array para almacenar términos de búsqueda global
-        var globalSearchTerms = [];
-        
-        // Búsqueda global con tags
-        $('#globalSearchTags').on('keydown', function(e) {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                var term = $(this).val().trim();
-                if (term && !globalSearchTerms.includes(term)) {
-                    globalSearchTerms.push(term);
-                    addGlobalSearchTag(term);
-                    $(this).val('');
-                    applyGlobalSearch();
-                }
-            }
-        });
-        
-        // Mientras escribes, filtrar en tiempo real
-        $('#globalSearchTags').on('keyup', function(e) {
-            if (e.key !== 'Enter') {
-                var currentTerm = $(this).val().trim();
-                var allTerms = globalSearchTerms.slice();
-                if (currentTerm) {
-                    allTerms.push(currentTerm);
-                }
-                applyGlobalSearchWithTerms(allTerms);
-            }
-        });
-        
-        function addGlobalSearchTag(term) {
-            var tagHtml = '<div class="tag">' + 
-                            '<span>' + escapeHtml(term) + '</span>' +
-                            '<button type="button" onclick="removeGlobalSearchTag(\'' + escapeHtml(term).replace(/'/g, "\\'") + '\')">×</button>' +
-                          '</div>';
-            $('#globalSearchTagsContainer').prepend(tagHtml);
-        }
-        
-        window.removeGlobalSearchTag = function(term) {
-            globalSearchTerms = globalSearchTerms.filter(t => t !== term);
-            $('#globalSearchTagsContainer').find('.tag').filter(function() {
-                return $(this).find('span').text().trim() === term;
-            }).remove();
-            applyGlobalSearch();
-        };
-        
-        function applyGlobalSearchWithTerms(terms) {
-            // Usar AND lógico: todos los términos deben estar presentes
-            if (terms.length === 0) {
-                tables.forEach(function(table) {
-                    table.search('').draw();
-                });
-            } else {
-                var searchPattern = terms.map(t => '(?=.*' + t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')').join('');
-                tables.forEach(function(table) {
-                    table.search(searchPattern, true, false).draw();
-                });
-            }
-            updateRecordsCounter();
-        }
-        
-        function applyGlobalSearch() {
-            applyGlobalSearchWithTerms(globalSearchTerms);
-            saveFilters();
-        }
+        // Actualizar visibilidad inicial de acordeones de columnas
+        updateColumnSectionVisibility();
         
         // Toggle de columnas
         $('.column-toggle').on('change', function() {
@@ -1058,11 +1007,7 @@
     });
     
     function clearAllFilters() {
-        // Limpiar búsqueda global con tags
-        globalSearchTerms = [];
-        $('#globalSearchTagsContainer').find('.tag').remove();
-        $('#globalSearchTags').val('');
-        
+        $('#globalSearch').val('');
         $('#filterFechaInicio').val('');
         $('#filterFechaFin').val('');
         
@@ -1100,148 +1045,6 @@
         $('#filterFechaInicio').trigger('change');
         updateRecordsCounter();
         saveFilters();
-    }
-    
-    function customizeTableFilters() {
-        // Reemplazar los filtros de DataTables con inputs de tags
-        var allTableTerms = {}; // Variable global para almacenar términos de cada tabla
-        
-        $('.dataTables_wrapper').each(function() {
-            var wrapper = $(this);
-            var filterDiv = wrapper.find('.dataTables_filter');
-            var tableId = wrapper.find('table.dataTable').attr('id');
-            
-            if (filterDiv.length > 0) {
-                allTableTerms[tableId] = [];
-                
-                var tagsContainer = $(
-                    '<div class="table-tags-container" data-table="' + tableId + '">' +
-                    '<input type="text" class="table-tags-input" placeholder="Buscar y presiona Enter">' +
-                    '</div>'
-                );
-                
-                filterDiv.html('').append(tagsContainer);
-                
-                var input = tagsContainer.find('.table-tags-input');
-                
-                // Mientras escribes, filtrar en tiempo real
-                input.on('keyup', function(e) {
-                    if (e.key !== 'Enter') {
-                        var currentTerm = $(this).val().trim();
-                        // Si no hay término siendo escrito, solo mostrar filtrados por términos guardados
-                        if (!currentTerm) {
-                            applyTableSearch(tableId, allTableTerms[tableId]);
-                        } else {
-                            // Si hay término siendo escrito, agregarlo temporalmente al filtro
-                            var allTerms = allTableTerms[tableId].slice();
-                            allTerms.push(currentTerm);
-                            applyTableSearchWithTerms(tableId, allTerms);
-                        }
-                    }
-                });
-                
-                // Al presionar Enter, guardar el término
-                input.on('keydown', function(e) {
-                    if (e.key === 'Enter') {
-                        e.preventDefault();
-                        var term = $(this).val().trim();
-                        if (term && !allTableTerms[tableId].includes(term)) {
-                            allTableTerms[tableId].push(term);
-                            addTableSearchTag(tagsContainer, term, tableId, allTableTerms);
-                            $(this).val('');
-                            applyTableSearch(tableId, allTableTerms[tableId]);
-                        }
-                    }
-                });
-            }
-        });
-        
-        // Hacer accesible a las funciones globales
-        window.allTableTerms = allTableTerms;
-    }
-    
-    function addTableSearchTag(container, term, tableId, allTableTerms) {
-        var tagHtml = '<div class="tag">' + 
-                        '<span>' + escapeHtml(term) + '</span>' +
-                        '<button type="button" onclick="removeTableSearchTag(this, \'' + tableId + '\', \'' + escapeHtml(term).replace(/'/g, "\\'") + '\')">×</button>' +
-                      '</div>';
-        container.prepend(tagHtml);
-    }
-    
-    window.removeTableSearchTag = function(button, tableId, term) {
-        var container = $(button).closest('.table-tags-container');
-        $(button).closest('.tag').remove();
-        
-        // Actualizar el array de términos
-        window.allTableTerms[tableId] = window.allTableTerms[tableId].filter(t => t !== term);
-        
-        applyTableSearch(tableId, window.allTableTerms[tableId]);
-    };
-    
-    function applyTableSearchWithTerms(tableId, terms) {
-        var table = tableObjects[tableId];
-        if (table) {
-            if (terms.length === 0) {
-                table.search('').draw();
-                removeHighlighting(tableId);
-            } else {
-                // Usar AND lógico: todos los términos deben estar presentes
-                var searchPattern = terms.map(t => '(?=.*' + t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')').join('');
-                table.search(searchPattern, true, false).draw();
-                
-                // Resaltar solo los términos guardados (no el que se está escribiendo)
-                if (window.allTableTerms && window.allTableTerms[tableId]) {
-                    highlightSavedTerms(tableId, window.allTableTerms[tableId]);
-                }
-            }
-            updateRecordsCounter();
-        }
-    }
-    
-    function removeHighlighting(tableId) {
-        var tableElement = $('#' + tableId);
-        tableElement.find('tbody tr').removeClass('highlighted-row');
-        tableElement.find('td').removeClass('highlighted-cell');
-    }
-    
-    function highlightSavedTerms(tableId, savedTerms) {
-        if (savedTerms.length === 0) {
-            removeHighlighting(tableId);
-            return;
-        }
-        
-        var tableElement = $('#' + tableId);
-        removeHighlighting(tableId);
-        
-        // Resaltar filas que contienen los términos guardados
-        tableElement.find('tbody tr').each(function() {
-            var row = $(this);
-            var rowText = row.text().toLowerCase();
-            var matchesAllTerms = savedTerms.every(term => 
-                rowText.indexOf(term.toLowerCase()) !== -1
-            );
-            
-            if (matchesAllTerms) {
-                row.addClass('highlighted-row');
-                
-                // Resaltar las celdas específicas que contienen los términos
-                row.find('td').each(function() {
-                    var cellText = $(this).text().toLowerCase();
-                    var hasMatch = savedTerms.some(term => 
-                        cellText.indexOf(term.toLowerCase()) !== -1
-                    );
-                    if (hasMatch) {
-                        $(this).addClass('highlighted-cell');
-                    }
-                });
-            }
-        });
-    }
-    
-    function applyTableSearch(tableId, terms) {
-        applyTableSearchWithTerms(tableId, terms);
-        removeHighlighting(tableId);
-        highlightSavedTerms(tableId, terms);
     }
     
     function escapeHtml(text) {
@@ -1375,7 +1178,7 @@
     
     function saveFilters() {
         var filters = {
-            globalSearchTerms: globalSearchTerms,
+            globalSearch: $('#globalSearch').val(),
             fechaInicio: $('#filterFechaInicio').val(),
             fechaFin: $('#filterFechaFin').val(),
             visibleTables: [],
@@ -1410,13 +1213,12 @@
         try {
             var filters = JSON.parse(filtersJson);
             
-            // Restaurar búsqueda global con tags
-            if (filters.globalSearchTerms && filters.globalSearchTerms.length > 0) {
-                globalSearchTerms = filters.globalSearchTerms;
-                filters.globalSearchTerms.forEach(function(term) {
-                    addGlobalSearchTag(term);
+            // Restaurar búsqueda global
+            if (filters.globalSearch) {
+                $('#globalSearch').val(filters.globalSearch);
+                tables.forEach(function(table) {
+                    table.search(filters.globalSearch).draw();
                 });
-                applyGlobalSearch();
             }
             
             // Restaurar fechas
