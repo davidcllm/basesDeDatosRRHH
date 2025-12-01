@@ -1047,14 +1047,22 @@
             var source = $(this).data('source');
             var index = $(this).data('index');
             if (typeof index === 'undefined') return;
+
             if (source === 'global') {
+                var globalInput = $('#globalSearch');
+                var previousPattern = buildSearchPattern(globalSearchTerms).value;
+                var ignoreInline = globalInput.val() === previousPattern;
                 globalSearchTerms.splice(index, 1);
                 renderGlobalSearchTags();
-                applyGlobalSearch();
+                applyGlobalSearch({ ignoreInline: ignoreInline });
             } else if (tableSearchTerms[source]) {
+                var tableInput = $('#' + source + '_filter input');
+                var currentTerms = tableSearchTerms[source] || [];
+                var previousTablePattern = buildSearchPattern(currentTerms).value;
+                var isAutoValue = tableInput.length && tableInput.val() === previousTablePattern;
                 tableSearchTerms[source].splice(index, 1);
                 renderTableSearchTags(source);
-                applyTableSearch(source);
+                applyTableSearch(source, { ignoreInline: isAutoValue });
             }
             saveFilters();
         });
@@ -1202,10 +1210,11 @@
         saveFilters();
     }
 
-    function applyGlobalSearch() {
+    function applyGlobalSearch(options) {
+        options = options || {};
         var activeTerms = globalSearchTerms.slice();
         var inlineValue = sanitizeSearchTerm($('#globalSearch').val());
-        if (inlineValue) {
+        if (inlineValue && !options.ignoreInline) {
             activeTerms.push(inlineValue);
         }
         var pattern = buildSearchPattern(activeTerms);
@@ -1215,13 +1224,14 @@
         updateRecordsCounter();
     }
 
-    function applyTableSearch(tableId) {
+    function applyTableSearch(tableId, options) {
+        options = options || {};
         var table = tableObjects[tableId];
         if (!table) return;
         var input = $('#' + tableId + '_filter input');
         var inlineValue = input.length ? sanitizeSearchTerm(input.val()) : '';
         var terms = (tableSearchTerms[tableId] || []).slice();
-        if (inlineValue) {
+        if (inlineValue && !options.ignoreInline) {
             terms.push(inlineValue);
         }
         var pattern = buildSearchPattern(terms);
