@@ -859,9 +859,10 @@
     
     function clearTableFilters() {
         // Seleccionar todas las tablas
-        $('.table-visibility-toggle').prop('checked', true);
-        $('.report-card').show();
+        $('.table-visibility-toggle').prop('checked', true).trigger('change');
         updateColumnSectionVisibility();
+        updateSelectAllCheckbox();
+        updateCsvButtonState();
     }
     
     function clearDateFilters() {
@@ -1059,13 +1060,19 @@
         });
         
         if (visibleTables.length === 0) {
-            return; // No hacer nada si no hay tablas seleccionadas
+            alert('Por favor, selecciona al menos una tabla para descargar.');
+            return false;
         }
         
         var tipo = visibleTables.join(',');
         var url = '/reportes/descargar?tipo=' + tipo + '&formato=csv';
         
-        window.location.href = url;
+        // Usar un pequeño timeout para asegurar que el navegador procese la descarga
+        setTimeout(function() {
+            window.location.href = url;
+        }, 100);
+        
+        return false;
     }
     
     function toggleAllTables(checkbox) {
