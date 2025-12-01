@@ -855,6 +855,7 @@
     var tableObjects = {};
     var globalSearchTerms = [];
     var tableSearchTerms = {};
+    var accordionStates = {};
     
     $(document).ready(function () {
         var settings = {
@@ -873,6 +874,8 @@
                 }
             }
         };
+        
+        initializeAccordionStates();
         
         // Inicializar todas las tablas y guardar referencias
         $('table.dataTable').each(function() {
@@ -1111,6 +1114,13 @@
         loadFilters();
     });
     
+    function initializeAccordionStates() {
+        $('.accordion-content').each(function() {
+            if (!this.id) return;
+            accordionStates[this.id] = $(this).hasClass('active');
+        });
+    }
+
     function clearAllFilters() {
         $('#globalSearch').val('');
         globalSearchTerms = [];
@@ -1366,14 +1376,39 @@
         return new Date(year, month, 0).getDate();
     }
     
-    function toggleAccordion(id) {
+    function applyAccordionState(id, shouldOpen) {
         var content = document.getElementById(id);
+        if (!content) return;
         var arrow = document.getElementById('arrow' + id.replace('accordion', ''));
         var header = content.previousElementSibling;
-        
-        content.classList.toggle('active');
-        arrow.classList.toggle('rotated');
-        header.classList.toggle('active');
+
+        if (shouldOpen) {
+            content.classList.add('active');
+            if (arrow) {
+                arrow.classList.add('rotated');
+            }
+            if (header) {
+                header.classList.add('active');
+            }
+        } else {
+            content.classList.remove('active');
+            if (arrow) {
+                arrow.classList.remove('rotated');
+            }
+            if (header) {
+                header.classList.remove('active');
+            }
+        }
+
+        accordionStates[id] = shouldOpen;
+    }
+
+    function toggleAccordion(id) {
+        var content = document.getElementById(id);
+        if (!content) return;
+        var shouldOpen = !content.classList.contains('active');
+        applyAccordionState(id, shouldOpen);
+        saveFilters();
     }
     
     function capitalizeFirst(str) {
@@ -1457,7 +1492,8 @@
             visibleTables: [],
             visibleColumns: {},
             tableOrders: JSON.parse(localStorage.getItem('tableOrders') || '{}'),
-            tableSearchTerms: {}
+            tableSearchTerms: {},
+            accordionStates: Object.assign({}, accordionStates)
         };
 
         for (var tableId in tableSearchTerms) {
@@ -1556,6 +1592,13 @@
                     if (tableObjects[tableId]) {
                         tableObjects[tableId].order(filters.tableOrders[tableId]).draw();
                     }
+                }
+            }
+            
+            if (filters.accordionStates) {
+                for (var accId in filters.accordionStates) {
+                    if (!filters.accordionStates.hasOwnProperty(accId)) continue;
+                    applyAccordionState(accId, !!filters.accordionStates[accId]);
                 }
             }
             
