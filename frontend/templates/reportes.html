@@ -143,6 +143,8 @@
     .btn-clear-filters:hover {
         background: #e0e0e0;
         border-color: #bbb;
+    }
+
     .search-tags-container {
         display: flex;
         flex-wrap: wrap;
@@ -184,27 +186,31 @@
         flex-direction: column;
         align-items: flex-start;
     }
+
+    .accordion-header {
         background: #f8f9fa;
-        padding: 10px;
-        border-radius: 6px;
+        padding: 10px 14px;
+        border-radius: 8px;
+        border: 1px solid #dfe6f2;
         cursor: pointer;
-        margin-bottom: 5px;
+        margin-bottom: 8px;
         font-size: 13px;
         font-weight: 600;
-        color: #333;
+        color: #2c3f63;
         display: flex;
         justify-content: space-between;
         align-items: center;
-        transition: all 0.3s ease;
+        transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
     }
     
     .accordion-header:hover {
-        background: #e9ecef;
+        background: #eef3fb;
     }
     
     .accordion-header.active {
         background: #0066ff;
         color: white;
+        border-color: #0052cc;
     }
     
     .accordion-content {
@@ -220,19 +226,38 @@
     }
     
     .accordion-arrow {
-        display: inline-block;
+        width: 28px;
+        height: 24px;
+        border-radius: 6px;
+        border: 1px solid #dfe6f2;
+        background: #ffffff;
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition: border-color 0.2s ease, background 0.2s ease;
+    }
+
+    .accordion-arrow::after {
+        content: '';
+        display: block;
         width: 0;
         height: 0;
-        border-left: 7px solid #333;
+        border-left: 7px solid #4a5d7f;
         border-top: 5px solid transparent;
         border-bottom: 5px solid transparent;
-        transition: transform 0.3s ease;
-        transform-origin: 50% 50%;
+        transition: transform 0.2s ease, border-left-color 0.2s ease;
     }
     
-    .accordion-header.active .accordion-arrow,
-    .accordion-arrow.rotated {
+    .accordion-header.active .accordion-arrow {
+        border-color: rgba(255, 255, 255, 0.6);
+        background: rgba(255, 255, 255, 0.2);
+    }
+
+    .accordion-header.active .accordion-arrow::after,
+    .accordion-arrow.rotated::after {
         transform: rotate(90deg);
+        border-left-color: #ffffff;
     }
     
     .content-area {
