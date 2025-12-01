@@ -1,5 +1,1252 @@
 {% extends "base.html" %}
 {% block content %}
-<h1>Reportes Financieros</h1>
-<p>En construcción...</p>
+
+
+<h1 class="text-center fw-bold mt-4 mb-3" style="font-size: 32px;">
+    Reportes y Estadísticas
+</h1>
+
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+<style>
+    .container-wrapper {
+        display: flex;
+        gap: 20px;
+        max-width: 1400px;
+        margin: 0 auto;
+        align-items: flex-start;
+    }
+    
+    .filter-panel {
+        min-width: 250px;
+        max-width: 250px;
+        background: #ffffff;
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        height: fit-content;
+        position: sticky;
+        top: 20px;
+    }
+    
+    .filter-panel h3 {
+        font-size: 18px;
+        font-weight: bold;
+        margin-bottom: 15px;
+        color: #0066ff;
+        border-bottom: 2px solid #0066ff;
+        padding-bottom: 8px;
+    }
+    
+    .filter-group {
+        margin-bottom: 15px;
+    }
+    
+    .filter-group label {
+        font-size: 13px;
+        font-weight: 600;
+        color: #333;
+        display: block;
+        margin-bottom: 5px;
+    }
+    
+    .filter-group input,
+    .filter-group select {
+        width: 100%;
+        padding: 8px;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        font-size: 13px;
+    }
+    
+    .filter-group input:focus,
+    .filter-group select:focus {
+        outline: none;
+        border-color: #0066ff;
+        box-shadow: 0 0 0 3px rgba(0, 102, 255, 0.1);
+    }
+    
+    .btn-clear-filters {
+        width: 100%;
+        padding: 8px;
+        background: #f0f0f0;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-clear-filters:hover {
+        background: #e0e0e0;
+        border-color: #bbb;
+    }
+    
+    .accordion-header {
+        background: #f8f9fa;
+        padding: 10px;
+        border-radius: 6px;
+        cursor: pointer;
+        margin-bottom: 5px;
+        font-size: 13px;
+        font-weight: 600;
+        color: #333;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        transition: all 0.3s ease;
+    }
+    
+    .accordion-header:hover {
+        background: #e9ecef;
+    }
+    
+    .accordion-header.active {
+        background: #0066ff;
+        color: white;
+    }
+    
+    .accordion-content {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.3s ease;
+        padding-left: 10px;
+    }
+    
+    .accordion-content.active {
+        max-height: 500px;
+        margin-bottom: 10px;
+    }
+    
+    .accordion-arrow {
+        transition: transform 0.3s ease;
+    }
+    
+    .accordion-arrow.rotated {
+        transform: rotate(180deg);
+    }
+    
+    .content-area {
+        flex: 1;
+    }
+    
+    .report-card {
+        max-width: 100%;
+        margin: 0 0 25px 0;
+        padding: 20px;
+        border-radius: 12px;
+        background: #ffffff;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    }
+    
+    .report-card h2 {
+        margin-bottom: 8px;
+        font-size: 22px;
+        font-weight: bold;
+    }
+    .report-card p {
+        color: #6c757d;
+        font-size: 14px;
+        margin-bottom: 16px;
+    }
+    table.dataTable {
+        width: 100%;
+        text-align: left;
+        border-collapse: collapse;
+    }
+    table.dataTable thead th {
+        background: #eaf1ff;
+        font-size: 14px;
+        padding: 10px;
+        font-weight: 600;
+        border-bottom: 2px solid #0066ff;
+    }
+    table.dataTable tbody td {
+        padding: 8px 12px;
+        font-size: 13px;
+        border-bottom: 1px solid #eaeaea;
+    }
+    table.dataTable tbody tr:hover {
+        background-color: #f5f5f5;
+    }
+    .dataTables_wrapper .dataTables_filter {
+        margin-bottom: 10px;
+    }
+    .dataTables_wrapper .dataTables_filter input {
+        margin-left: 5px;
+        padding: 5px 10px;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        font-size: 13px;
+    }
+    .dataTables_wrapper .dataTables_filter input:focus {
+        outline: none;
+        border-color: #0066ff;
+        box-shadow: 0 0 0 3px rgba(0, 102, 255, 0.1);
+    }
+    .empty-msg {
+        padding: 12px;
+        text-align: center;
+        font-size: 13px;
+        font-style: italic;
+        color: #777;
+    }
+    .no-results-message {
+        background: #fff3cd;
+        border: 1px solid #ffc107;
+        border-radius: 8px;
+        padding: 15px;
+        margin: 20px;
+        text-align: center;
+        color: #856404;
+        font-size: 14px;
+        font-weight: 600;
+    }
+    .records-counter {
+        background: #e7f3ff;
+        border: 1px solid #0066ff;
+        border-radius: 6px;
+        padding: 10px;
+        margin-bottom: 15px;
+        font-size: 12px;
+        color: #0066ff;
+        font-weight: 600;
+        text-align: center;
+    }
+</style>
+
+<div class="container-wrapper">
+    <!-- Panel de filtros lateral -->
+    <aside class="filter-panel">
+        <h3>🔍Filtros</h3>
+        
+        <div class="accordion-header" onclick="toggleAccordion('accordionVerTablas')">
+            <span>Ver tablas</span>
+            <span class="accordion-arrow" id="arrowVerTablas">▼</span>
+        </div>
+        <div class="accordion-content active" id="accordionVerTablas">
+            <label style="display: block; font-size: 12px; margin: 5px 0 10px 0; cursor: pointer; font-weight: bold; border-bottom: 1px solid #ddd; padding-bottom: 8px;">
+                <input type="checkbox" id="selectAllTablesCheckbox" checked onchange="toggleAllTables(this)"> Seleccionar todas
+            </label>
+            <label style="display: block; font-size: 12px; margin: 5px 0; cursor: pointer;">
+                <input type="checkbox" class="table-visibility-toggle" data-target="nomina" checked> Resumen de Nómina
+            </label>
+            <label style="display: block; font-size: 12px; margin: 5px 0; cursor: pointer;">
+                <input type="checkbox" class="table-visibility-toggle" data-target="ausencias" checked> Ausencias
+            </label>
+            <label style="display: block; font-size: 12px; margin: 5px 0; cursor: pointer;">
+                <input type="checkbox" class="table-visibility-toggle" data-target="evaluaciones" checked> Evaluaciones
+            </label>
+            <label style="display: block; font-size: 12px; margin: 5px 0; cursor: pointer;">
+                <input type="checkbox" class="table-visibility-toggle" data-target="capacitaciones" checked> Capacitaciones
+            </label>
+            <label style="display: block; font-size: 12px; margin: 5px 0; cursor: pointer;">
+                <input type="checkbox" class="table-visibility-toggle" data-target="proyectos" checked> Proyectos
+            </label>
+            <label style="display: block; font-size: 12px; margin: 5px 0; cursor: pointer;">
+                <input type="checkbox" class="table-visibility-toggle" data-target="presupuestos" checked> Presupuestos
+            </label>
+        </div>
+        
+        <button class="btn-clear-filters" onclick="clearTableFilters()" style="margin-top: 10px;">
+            Restablecer tablas
+        </button>
+        
+        <hr style="border: 1px solid #e0e0e0; margin: 15px 0;">
+        
+        <div class="filter-group">
+            <label for="globalSearch">Búsqueda global</label>
+            <input type="text" id="globalSearch" placeholder="Buscar en todas las tablas">
+        </div>
+        
+        <div class="records-counter" id="recordsCounter" style="display: none;">
+            <span id="recordsCountText">0 registros encontrados</span>
+        </div>
+        
+        <div class="filter-group">
+            <label for="filterFechaInicio">Fecha desde</label>
+            <input type="date" id="filterFechaInicio" max="9999-12-31">
+            <small id="errorFechaInicio" style="color: #dc3545; font-size: 11px; display: none; margin-top: 3px;"></small>
+        </div>
+        
+        <div class="filter-group">
+            <label for="filterFechaFin">Fecha hasta</label>
+            <input type="date" id="filterFechaFin" max="9999-12-31">
+            <small id="errorFechaFin" style="color: #dc3545; font-size: 11px; display: none; margin-top: 3px;"></small>
+        </div>
+        
+        <button class="btn-clear-filters" onclick="clearDateFilters()" style="margin-top: 10px;">
+            Limpiar fechas
+        </button>
+        
+        <hr style="border: 1px solid #e0e0e0; margin: 20px 0;">
+        
+        <div class="filter-group">
+            <label style="font-weight: bold; color: #0066ff; margin-bottom: 10px; display: block;">Mostrar columnas</label>
+            
+            {% if tipo == 'nomina' or tipo == 'todos' %}
+            <div class="accordion-header" onclick="toggleAccordion('accordionNomina')">
+                <span>Nómina</span>
+                <span class="accordion-arrow" id="arrowNomina">▼</span>
+            </div>
+            <div class="accordion-content" id="accordionNomina">
+                <label style="display: block; font-size: 12px; margin: 5px 0;">
+                    <input type="checkbox" class="column-toggle" data-table="tblNomina" data-column="0" checked> ID Nómina
+                </label>
+                <label style="display: block; font-size: 12px; margin: 5px 0;">
+                    <input type="checkbox" class="column-toggle" data-table="tblNomina" data-column="1" checked> Empleado
+                </label>
+                <label style="display: block; font-size: 12px; margin: 5px 0;">
+                    <input type="checkbox" class="column-toggle" data-table="tblNomina" data-column="2" checked> Salario base
+                </label>
+                <label style="display: block; font-size: 12px; margin: 5px 0;">
+                    <input type="checkbox" class="column-toggle" data-table="tblNomina" data-column="3" checked> Deducciones
+                </label>
+                <label style="display: block; font-size: 12px; margin: 5px 0;">
+                    <input type="checkbox" class="column-toggle" data-table="tblNomina" data-column="4" checked> Percepciones
+                </label>
+                <label style="display: block; font-size: 12px; margin: 5px 0;">
+                    <input type="checkbox" class="column-toggle" data-table="tblNomina" data-column="5" checked> Total a pagar
+                </label>
+            </div>
+            {% endif %}
+            
+            {% if tipo == 'ausencias' or tipo == 'todos' %}
+            <div class="accordion-header" onclick="toggleAccordion('accordionAusencias')">
+                <span>Ausencias</span>
+                <span class="accordion-arrow" id="arrowAusencias">▼</span>
+            </div>
+            <div class="accordion-content" id="accordionAusencias">
+                <label style="display: block; font-size: 12px; margin: 5px 0;">
+                    <input type="checkbox" class="column-toggle" data-table="tblAusencias" data-column="0" checked> Empleado
+                </label>
+                <label style="display: block; font-size: 12px; margin: 5px 0;">
+                    <input type="checkbox" class="column-toggle" data-table="tblAusencias" data-column="1" checked> Tipo
+                </label>
+                <label style="display: block; font-size: 12px; margin: 5px 0;">
+                    <input type="checkbox" class="column-toggle" data-table="tblAusencias" data-column="2" checked> Fecha inicio
+                </label>
+                <label style="display: block; font-size: 12px; margin: 5px 0;">
+                    <input type="checkbox" class="column-toggle" data-table="tblAusencias" data-column="3" checked> Fecha fin
+                </label>
+                <label style="display: block; font-size: 12px; margin: 5px 0;">
+                    <input type="checkbox" class="column-toggle" data-table="tblAusencias" data-column="4" checked> Motivo
+                </label>
+            </div>
+            {% endif %}
+            
+            {% if tipo == 'evaluaciones' or tipo == 'todos' %}
+            <div class="accordion-header" onclick="toggleAccordion('accordionEvaluaciones')">
+                <span>Evaluaciones</span>
+                <span class="accordion-arrow" id="arrowEvaluaciones">▼</span>
+            </div>
+            <div class="accordion-content" id="accordionEvaluaciones">
+                <label style="display: block; font-size: 12px; margin: 5px 0;">
+                    <input type="checkbox" class="column-toggle" data-table="tblEvaluaciones" data-column="0" checked> Empleado
+                </label>
+                <label style="display: block; font-size: 12px; margin: 5px 0;">
+                    <input type="checkbox" class="column-toggle" data-table="tblEvaluaciones" data-column="1" checked> Fecha evaluación
+                </label>
+                <label style="display: block; font-size: 12px; margin: 5px 0;">
+                    <input type="checkbox" class="column-toggle" data-table="tblEvaluaciones" data-column="2" checked> Tipo
+                </label>
+                <label style="display: block; font-size: 12px; margin: 5px 0;">
+                    <input type="checkbox" class="column-toggle" data-table="tblEvaluaciones" data-column="3" checked> Resultado
+                </label>
+                <label style="display: block; font-size: 12px; margin: 5px 0;">
+                    <input type="checkbox" class="column-toggle" data-table="tblEvaluaciones" data-column="4" checked> Observaciones
+                </label>
+            </div>
+            {% endif %}
+            
+            {% if tipo == 'capacitaciones' or tipo == 'todos' %}
+            <div class="accordion-header" onclick="toggleAccordion('accordionCapacitaciones')">
+                <span>Capacitaciones</span>
+                <span class="accordion-arrow" id="arrowCapacitaciones">▼</span>
+            </div>
+            <div class="accordion-content" id="accordionCapacitaciones">
+                <label style="display: block; font-size: 12px; margin: 5px 0;">
+                    <input type="checkbox" class="column-toggle" data-table="tblCapacitaciones" data-column="0" checked> Empleado
+                </label>
+                <label style="display: block; font-size: 12px; margin: 5px 0;">
+                    <input type="checkbox" class="column-toggle" data-table="tblCapacitaciones" data-column="1" checked> Capacitación
+                </label>
+                <label style="display: block; font-size: 12px; margin: 5px 0;">
+                    <input type="checkbox" class="column-toggle" data-table="tblCapacitaciones" data-column="2" checked> Proveedor
+                </label>
+                <label style="display: block; font-size: 12px; margin: 5px 0;">
+                    <input type="checkbox" class="column-toggle" data-table="tblCapacitaciones" data-column="3" checked> Fecha inicio
+                </label>
+                <label style="display: block; font-size: 12px; margin: 5px 0;">
+                    <input type="checkbox" class="column-toggle" data-table="tblCapacitaciones" data-column="4" checked> Fecha fin
+                </label>
+                <label style="display: block; font-size: 12px; margin: 5px 0;">
+                    <input type="checkbox" class="column-toggle" data-table="tblCapacitaciones" data-column="5" checked> Resultado
+                </label>
+                <label style="display: block; font-size: 12px; margin: 5px 0;">
+                    <input type="checkbox" class="column-toggle" data-table="tblCapacitaciones" data-column="6" checked> Comentarios
+                </label>
+            </div>
+            {% endif %}
+            
+            {% if tipo == 'proyectos' or tipo == 'todos' %}
+            <div class="accordion-header" onclick="toggleAccordion('accordionProyectos')">
+                <span>Proyectos</span>
+                <span class="accordion-arrow" id="arrowProyectos">▼</span>
+            </div>
+            <div class="accordion-content" id="accordionProyectos">
+                <label style="display: block; font-size: 12px; margin: 5px 0;">
+                    <input type="checkbox" class="column-toggle" data-table="tblProyectos" data-column="0" checked> Empleado
+                </label>
+                <label style="display: block; font-size: 12px; margin: 5px 0;">
+                    <input type="checkbox" class="column-toggle" data-table="tblProyectos" data-column="1" checked> Proyecto
+                </label>
+                <label style="display: block; font-size: 12px; margin: 5px 0;">
+                    <input type="checkbox" class="column-toggle" data-table="tblProyectos" data-column="2" checked> Horas asignadas
+                </label>
+                <label style="display: block; font-size: 12px; margin: 5px 0;">
+                    <input type="checkbox" class="column-toggle" data-table="tblProyectos" data-column="3" checked> Fecha asignación
+                </label>
+                <label style="display: block; font-size: 12px; margin: 5px 0;">
+                    <input type="checkbox" class="column-toggle" data-table="tblProyectos" data-column="4" checked> Fecha entrega
+                </label>
+            </div>
+            {% endif %}
+            
+            {% if tipo == 'presupuestos' or tipo == 'todos' %}
+            <div class="accordion-header" onclick="toggleAccordion('accordionPresupuestos')">
+                <span>Presupuestos</span>
+                <span class="accordion-arrow" id="arrowPresupuestos">▼</span>
+            </div>
+            <div class="accordion-content" id="accordionPresupuestos">
+                <label style="display: block; font-size: 12px; margin: 5px 0;">
+                    <input type="checkbox" class="column-toggle" data-table="tblPresupuestos" data-column="0" checked> Departamento
+                </label>
+                <label style="display: block; font-size: 12px; margin: 5px 0;">
+                    <input type="checkbox" class="column-toggle" data-table="tblPresupuestos" data-column="1" checked> Inicio
+                </label>
+                <label style="display: block; font-size: 12px; margin: 5px 0;">
+                    <input type="checkbox" class="column-toggle" data-table="tblPresupuestos" data-column="2" checked> Fin
+                </label>
+                <label style="display: block; font-size: 12px; margin: 5px 0;">
+                    <input type="checkbox" class="column-toggle" data-table="tblPresupuestos" data-column="3" checked> Monto asignado
+                </label>
+                <label style="display: block; font-size: 12px; margin: 5px 0;">
+                    <input type="checkbox" class="column-toggle" data-table="tblPresupuestos" data-column="4" checked> Monto utilizado
+                </label>
+                <label style="display: block; font-size: 12px; margin: 5px 0;">
+                    <input type="checkbox" class="column-toggle" data-table="tblPresupuestos" data-column="5" checked> Restante
+                </label>
+            </div>
+            {% endif %}
+        </div>
+        
+        <button class="btn-clear-filters" onclick="clearAllFilters()">
+            Limpiar filtros
+        </button>
+        
+        <a id="btnCsv" class="btn btn-sm" style="background: #0066ff; color: white; font-size: 12px; padding: 8px 16px; border-radius: 6px; font-weight: 600; text-decoration: none; border: none; box-shadow: 0 2px 8px rgba(0, 102, 255, 0.3); transition: all 0.3s ease; display: block; text-align: center; margin-top: 15px;" href="/reportes/descargar?tipo={{ tipo }}&formato=csv" onclick="updateCsvLink(event)" onmouseover="this.style.boxShadow='0 4px 12px rgba(0, 102, 255, 0.5)'" onmouseout="this.style.boxShadow='0 2px 8px rgba(0, 102, 255, 0.3)'">
+            Descargar CSV
+        </a>
+    </aside>
+    
+    <!-- Área de contenido principal -->
+    <div class="content-area">
+        <div id="noTablesMessage" class="no-results-message" style="display: none;">
+            ⚠️ No hay tablas seleccionadas. Selecciona al menos una tabla en el panel de filtros.
+        </div>
+        
+        <div id="noResultsMessage" class="no-results-message" style="display: none;">
+            🔍 No se encontraron resultados con los filtros aplicados.
+        </div>
+
+
+<!-- ==================== RESUMEN NÓMINA ==================== -->
+{% if tipo == 'nomina' or tipo == 'todos' %}
+<div class="report-card" id="section-nomina">
+    <h2>Resumen de Nómina</h2>
+    <p>Salarios registrados por empleado.</p>
+    {% if rep_nomina %}
+    <table class="display table dataTable" id="tblNomina">
+        <thead>
+            <tr>
+                <th>ID Nómina</th>
+                <th>Empleado</th>
+                <th>Salario base</th>
+                <th>Deducciones</th>
+                <th>Percepciones</th>
+                <th>Total a pagar</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for n in rep_nomina %}
+            <tr>
+                <td>{{ n.id_nomina }}</td>
+                <td>{{ n.nombre_completo or 'N/A' }}</td>
+                <td>{{ n.salario_base or '0' }}</td>
+                <td>{{ n.deducciones or '0' }}</td>
+                <td>{{ n.percepciones or '0' }}</td>
+                <td>{{ n.total_pagar or '0' }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="empty-msg">No hay información de nómina registrada.</div>
+    {% endif %}
+</div>
+{% endif %}
+
+
+<!-- ==================== AUSENCIAS ==================== -->
+{% if tipo == 'ausencias' or tipo == 'todos' %}
+<div class="report-card" id="section-ausencias">
+    <h2>Ausencias del Personal</h2>
+    <p>Ausencias registradas por empleado.</p>
+    {% if rep_ausencias %}
+    <table class="display table dataTable" id="tblAusencias">
+        <thead>
+            <tr>
+                <th>Empleado</th>
+                <th>Tipo</th>
+                <th>Fecha inicio</th>
+                <th>Fecha fin</th>
+                <th>Motivo</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for a in rep_ausencias %}
+            <tr>
+                <td>{{ a.nombre_completo or 'N/A' }}</td>
+                <td>{{ a.tipo or 'N/A' }}</td>
+                <td>{{ a.fecha_inicio or 'N/A' }}</td>
+                <td>{{ a.fecha_fin or 'N/A' }}</td>
+                <td>{{ a.motivo or 'N/A' }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="empty-msg">No hay ausencias registradas.</div>
+    {% endif %}
+</div>
+{% endif %}
+
+
+<!-- ==================== EVALUACIONES ==================== -->
+{% if tipo == 'evaluaciones' or tipo == 'todos' %}
+<div class="report-card" id="section-evaluaciones">
+    <h2>Evaluaciones de Desempeño</h2>
+    <p>Evaluaciones aplicadas a los empleados.</p>
+    {% if rep_evaluaciones %}
+    <table class="display table dataTable" id="tblEvaluaciones">
+        <thead>
+            <tr>
+                <th>Empleado</th>
+                <th>Fecha evaluación</th>
+                <th>Tipo</th>
+                <th>Resultado</th>
+                <th>Observaciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for ev in rep_evaluaciones %}
+            <tr>
+                <td>{{ ev.nombre_completo or 'N/A' }}</td>
+                <td>{{ ev.fecha_evaluacion or 'N/A' }}</td>
+                <td>{{ ev.tipo or 'N/A' }}</td>
+                <td>{{ ev.resultado or 'N/A' }}</td>
+                <td>{{ ev.observaciones or 'N/A' }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="empty-msg">No hay evaluaciones registradas.</div>
+    {% endif %}
+</div>
+{% endif %}
+
+
+<!-- ==================== CAPACITACIONES ==================== -->
+{% if tipo == 'capacitaciones' or tipo == 'todos' %}
+<div class="report-card" id="section-capacitaciones">
+    <h2>Capacitaciones por Empleado</h2>
+    <p>Listado de cursos realizados.</p>
+    {% if rep_capacitaciones %}
+    <table class="display table dataTable" id="tblCapacitaciones">
+        <thead>
+            <tr>
+                <th>Empleado</th>
+                <th>Capacitación</th>
+                <th>Proveedor</th>
+                <th>Fecha inicio</th>
+                <th>Fecha fin</th>
+                <th>Resultado</th>
+                <th>Comentarios</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for c in rep_capacitaciones %}
+            <tr>
+                <td>{{ c.nombre_completo or 'N/A' }}</td>
+                <td>{{ c.capacitacion or 'N/A' }}</td>
+                <td>{{ c.proveedor or 'N/A' }}</td>
+                <td>{{ c.fecha_inicio or 'N/A' }}</td>
+                <td>{{ c.fecha_fin or 'N/A' }}</td>
+                <td>{{ c.resultado or 'N/A' }}</td>
+                <td>{{ c.comentarios or 'N/A' }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="empty-msg">No hay capacitaciones registradas.</div>
+    {% endif %}
+</div>
+{% endif %}
+
+
+<!-- ==================== PROYECTOS ==================== -->
+{% if tipo == 'proyectos' or tipo == 'todos' %}
+<div class="report-card" id="section-proyectos">
+    <h2>Participación en Proyectos</h2>
+    <p>Asignaciones por cada empleado.</p>
+    {% if rep_proyectos %}
+    <table class="display table dataTable" id="tblProyectos">
+        <thead>
+            <tr>
+                <th>Empleado</th>
+                <th>Proyecto</th>
+                <th>Horas asignadas</th>
+                <th>Fecha asignación</th>
+                <th>Fecha entrega</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for p in rep_proyectos %}
+            <tr>
+                <td>{{ p.nombre_completo or 'N/A' }}</td>
+                <td>{{ p.proyecto or 'N/A' }}</td>
+                <td>{{ p.horas_asignadas or '0' }}</td>
+                <td>{{ p.fecha_asignacion or 'N/A' }}</td>
+                <td>{{ p.fecha_entrega or 'N/A' }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="empty-msg">No hay asignaciones de proyectos.</div>
+    {% endif %}
+</div>
+{% endif %}
+
+
+<!-- ==================== PRESUPUESTOS ==================== -->
+{% if tipo == 'presupuestos' or tipo == 'todos' %}
+<div class="report-card" id="section-presupuestos">
+    <h2>Presupuestos por Departamento</h2>
+    <p>Asignación y uso de recursos.</p>
+    {% if rep_presupuestos %}
+    <table class="display table dataTable" id="tblPresupuestos">
+        <thead>
+            <tr>
+                <th>Departamento</th>
+                <th>Inicio</th>
+                <th>Fin</th>
+                <th>Monto asignado</th>
+                <th>Monto utilizado</th>
+                <th>Restante</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for pr in rep_presupuestos %}
+            <tr>
+                <td>{{ pr.departamento or 'N/A' }}</td>
+                <td>{{ pr.fecha_inicio or 'N/A' }}</td>
+                <td>{{ pr.fecha_fin or 'N/A' }}</td>
+                <td>{{ pr.monto_asignado or '0' }}</td>
+                <td>{{ pr.monto_utilizado or '0' }}</td>
+                <td>{{ pr.restante or '0' }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="empty-msg">No hay presupuestos registrados.</div>
+    {% endif %}
+</div>
+{% endif %}
+
+    </div>
+</div>
+
+<!-- ==================== ACTIVAR DATATABLES ==================== -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<script>
+    var tables = [];
+    var tableObjects = {};
+    
+    $(document).ready(function () {
+        var settings = {
+            pageLength: 5,
+            lengthMenu: [[5, 10, 20, -1], [5, 10, 20, "Todos"]],
+            autoWidth: false,
+            language: {
+                search: "Buscar:",
+                lengthMenu: "Mostrar _MENU_ registros",
+                info: "Mostrando _START_ a _END_ de _TOTAL_",
+                infoEmpty: "Sin resultados",
+                zeroRecords: "No se encontraron resultados",
+                paginate: {
+                    next: "Siguiente",
+                    previous: "Anterior"
+                }
+            }
+        };
+        
+        // Inicializar todas las tablas y guardar referencias
+        $('table.dataTable').each(function() {
+            var table = $(this).DataTable(settings);
+            var tableId = this.id;
+            tables.push(table);
+            tableObjects[tableId] = table;
+            
+            // Guardar ordenamiento cuando cambia
+            table.on('order.dt', function() {
+                saveTableOrder(tableId, table.order());
+            });
+        });
+        
+        // Cargar filtros guardados
+        loadFilters();
+        updateCsvButtonState();
+        
+        // Limpiar búsqueda global cuando se usa búsqueda individual
+        $(document).on('keyup', '.dataTables_filter input', function() {
+            if ($(this).val() !== '') {
+                $('#globalSearch').val('');
+            }
+        });
+        
+        // Toggle de visibilidad de tablas completas
+        $('.table-visibility-toggle').on('change', function() {
+            var target = $(this).data('target');
+            var reportCard = $('#section-' + target);
+            
+            if ($(this).is(':checked')) {
+                reportCard.show();
+                // Mostrar el acordeón de columnas correspondiente
+                $('#accordion' + capitalizeFirst(target)).parent().find('.accordion-header').show();
+            } else {
+                reportCard.hide();
+                // Ocultar el acordeón de columnas correspondiente
+                $('#accordion' + capitalizeFirst(target)).parent().find('.accordion-header').hide();
+                // Cerrar el acordeón si está abierto
+                $('#accordion' + capitalizeFirst(target)).removeClass('active');
+                $('#arrow' + capitalizeFirst(target)).removeClass('rotated');
+                $('#accordion' + capitalizeFirst(target)).prev('.accordion-header').removeClass('active');
+            }
+            
+            updateColumnSectionVisibility();
+            checkVisibleTables();
+            updateRecordsCounter();
+            updateSelectAllCheckbox();
+            updateCsvButtonState();
+            saveFilters();
+        });
+        
+        // Actualizar visibilidad inicial de acordeones de columnas
+        updateColumnSectionVisibility();
+        
+        // Búsqueda global
+        $('#globalSearch').on('keyup', function() {
+            var searchValue = this.value;
+            tables.forEach(function(table) {
+                table.search(searchValue).draw();
+            });
+            
+            // Limpiar los campos de búsqueda individuales de cada tabla
+            $('.dataTables_filter input').val('');
+            
+            // Actualizar contador
+            updateRecordsCounter();
+            
+            // Guardar filtro
+            saveFilters();
+        });
+        
+        // Toggle de columnas
+        $('.column-toggle').on('change', function() {
+            var tableId = $(this).data('table');
+            var columnIdx = $(this).data('column');
+            var table = tableObjects[tableId];
+            
+            if (table) {
+                var column = table.column(columnIdx);
+                column.visible($(this).is(':checked'));
+            }
+            
+            saveFilters();
+        });
+        
+        // Validación y filtros de fecha
+        $('#filterFechaInicio, #filterFechaFin').on('change', function() {
+            var fechaInicio = $('#filterFechaInicio').val();
+            var fechaFin = $('#filterFechaFin').val();
+            
+            // Limpiar errores previos
+            $('#errorFechaInicio, #errorFechaFin').hide().text('');
+            $('#filterFechaInicio, #filterFechaFin').css('border-color', '#ddd');
+            
+            // Validar que la fecha de inicio no sea posterior a la fecha fin
+            if (fechaInicio && fechaFin) {
+                var inicio = new Date(fechaInicio);
+                var fin = new Date(fechaFin);
+                
+                if (inicio > fin) {
+                    $('#errorFechaInicio').text('La fecha desde no puede ser posterior a la fecha hasta').show();
+                    $('#filterFechaInicio').css('border-color', '#dc3545');
+                    return;
+                }
+                
+                // Validar rango máximo (opcional: por ejemplo, máximo 5 años)
+                var diffTime = Math.abs(fin - inicio);
+                var diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                if (diffDays > 1825) { // 5 años aproximadamente
+                    $('#errorFechaFin').text('El rango no puede superar 5 años').show();
+                    $('#filterFechaFin').css('border-color', '#dc3545');
+                    return;
+                }
+            }
+            
+            // Validar formato de fecha
+            if (fechaInicio && !isValidDate(fechaInicio)) {
+                $('#errorFechaInicio').text('Formato de fecha inválido').show();
+                $('#filterFechaInicio').css('border-color', '#dc3545');
+                return;
+            }
+            
+            if (fechaFin && !isValidDate(fechaFin)) {
+                $('#errorFechaFin').text('Formato de fecha inválido').show();
+                $('#filterFechaFin').css('border-color', '#dc3545');
+                return;
+            }
+            
+            // Actualizar el atributo min del campo "Fecha hasta" basado en "Fecha desde"
+            if (fechaInicio) {
+                $('#filterFechaFin').attr('min', fechaInicio);
+            } else {
+                $('#filterFechaFin').removeAttr('min');
+            }
+            
+            $.fn.dataTable.ext.search.push(
+                function(settings, data, dataIndex) {
+                    var fechaColumna = null;
+                    
+                    // Determinar qué columna tiene fechas según la tabla
+                    if (settings.nTable.id === 'tblAusencias') {
+                        fechaColumna = data[2]; // fecha_inicio
+                    } else if (settings.nTable.id === 'tblEvaluaciones') {
+                        fechaColumna = data[1]; // fecha_evaluacion
+                    } else if (settings.nTable.id === 'tblCapacitaciones') {
+                        fechaColumna = data[3]; // fecha_inicio
+                    } else if (settings.nTable.id === 'tblProyectos') {
+                        fechaColumna = data[3]; // fecha_asignacion
+                    } else if (settings.nTable.id === 'tblPresupuestos') {
+                        fechaColumna = data[1]; // fecha_inicio
+                    }
+                    
+                    if (!fechaColumna) return true;
+                    
+                    var fecha = new Date(fechaColumna);
+                    var inicio = fechaInicio ? new Date(fechaInicio) : null;
+                    var fin = fechaFin ? new Date(fechaFin) : null;
+                    
+                    if (inicio && fecha < inicio) return false;
+                    if (fin && fecha > fin) return false;
+                    
+                    return true;
+                }
+            );
+            
+            tables.forEach(function(table) {
+                table.draw();
+            });
+            
+            $.fn.dataTable.ext.search.pop();
+            
+            updateRecordsCounter();
+            saveFilters();
+        });
+        // Validación en vivo mientras escribe
+        $('#filterFechaInicio, #filterFechaFin').on('input', function() {
+            var id = this.id;
+            var valor = $(this).val();
+            var errorEl = id === 'filterFechaInicio' ? $('#errorFechaInicio') : $('#errorFechaFin');
+            if (!valor) {
+                errorEl.hide().text('');
+                $(this).css('border-color', '#ddd');
+                return;
+            }
+            if (valor.length === 10) {
+                var detalleError = validarFechaDetallada(valor);
+                if (detalleError) {
+                    errorEl.text(detalleError).show();
+                    $(this).css('border-color', '#dc3545');
+                } else {
+                    errorEl.hide().text('');
+                    $(this).css('border-color', '#28a745');
+                }
+            } else {
+                var parcialRegex = /^[0-9-]*$/;
+                if (!parcialRegex.test(valor)) {
+                    errorEl.text('Carácter inválido').show();
+                    $(this).css('border-color', '#dc3545');
+                } else {
+                    errorEl.hide().text('');
+                    $(this).css('border-color', '#ddd');
+                }
+            }
+        });
+    });
+    
+    function clearAllFilters() {
+        $('#globalSearch').val('');
+        $('#filterFechaInicio').val('');
+        $('#filterFechaFin').val('');
+        
+        // Restaurar todas las columnas
+        $('.column-toggle').each(function() {
+            var tableId = $(this).data('table');
+            var columnIdx = $(this).data('column');
+            var table = tableObjects[tableId];
+            
+            if (table && !$(this).is(':checked')) {
+                $(this).prop('checked', true);
+                table.column(columnIdx).visible(true);
+            }
+        });
+        
+        tables.forEach(function(table) {
+            table.search('').columns().search('').draw();
+        });
+    }
+    
+    function clearTableFilters() {
+        // Seleccionar todas las tablas
+        $('.table-visibility-toggle').prop('checked', true).trigger('change');
+        updateColumnSectionVisibility();
+        updateSelectAllCheckbox();
+        updateCsvButtonState();
+    }
+    
+    function clearDateFilters() {
+        $('#filterFechaInicio').val('');
+        $('#filterFechaFin').val('');
+        $('#filterFechaFin').removeAttr('min');
+        $('#errorFechaInicio, #errorFechaFin').hide().text('');
+        $('#filterFechaInicio, #filterFechaFin').css('border-color', '#ddd');
+        $('#filterFechaInicio').trigger('change');
+        updateRecordsCounter();
+        saveFilters();
+    }
+    
+    function isValidDate(dateString) {
+        // Validar formato YYYY-MM-DD
+        var regex = /^\d{4}-\d{2}-\d{2}$/;
+        if (!regex.test(dateString)) return false;
+        
+        var date = new Date(dateString);
+        var timestamp = date.getTime();
+        
+        // Verificar que sea una fecha válida
+        if (typeof timestamp !== 'number' || Number.isNaN(timestamp)) return false;
+        
+        // Verificar que la fecha reconstruida coincida con la entrada
+        return date.toISOString().startsWith(dateString);
+    }
+    function validarFechaDetallada(dateString) {
+        var regex = /^(\d{4})-(\d{2})-(\d{2})$/;
+        var m = dateString.match(regex);
+        if (!m) return 'Formato inválido';
+        var year = parseInt(m[1], 10);
+        var month = parseInt(m[2], 10);
+        var day = parseInt(m[3], 10);
+        if (month < 1 || month > 12) return 'Mes inválido';
+        if (day < 1 || day > 31) return 'Día inválido';
+        var maxDay = daysInMonth(year, month);
+        if (day > maxDay) {
+            if (month === 2) return 'Febrero no tiene ese día';
+            return 'El mes no tiene ese día';
+        }
+        var fecha = new Date(dateString);
+        if (isNaN(fecha.getTime())) return 'Fecha inválida';
+        return null;
+    }
+    function daysInMonth(year, month) {
+        return new Date(year, month, 0).getDate();
+    }
+    
+    function toggleAccordion(id) {
+        var content = document.getElementById(id);
+        var arrow = document.getElementById('arrow' + id.replace('accordion', ''));
+        var header = content.previousElementSibling;
+        
+        content.classList.toggle('active');
+        arrow.classList.toggle('rotated');
+        header.classList.toggle('active');
+    }
+    
+    function capitalizeFirst(str) {
+        if (!str) return '';
+        if (str === 'nomina') return 'Nomina';
+        if (str === 'ausencias') return 'Ausencias';
+        if (str === 'evaluaciones') return 'Evaluaciones';
+        if (str === 'capacitaciones') return 'Capacitaciones';
+        if (str === 'proyectos') return 'Proyectos';
+        if (str === 'presupuestos') return 'Presupuestos';
+        return str.charAt(0).toUpperCase() + str.slice(1);
+    }
+    
+    function updateColumnSectionVisibility() {
+        // Ocultar todas las secciones de columnas primero
+        $('.accordion-header').each(function() {
+            var nextElement = $(this).next('.accordion-content');
+            if (nextElement.length > 0 && nextElement.attr('id') && nextElement.attr('id').startsWith('accordion')) {
+                var accordionId = nextElement.attr('id');
+                var tableName = accordionId.replace('accordion', '').toLowerCase();
+                
+                // Verificar si hay un checkbox correspondiente
+                var checkbox = $('.table-visibility-toggle[data-target="' + tableName + '"]');
+                if (checkbox.length > 0) {
+                    if (checkbox.is(':checked')) {
+                        $(this).show();
+                    } else {
+                        $(this).hide();
+                    }
+                }
+            }
+        });
+    }
+    
+    function checkVisibleTables() {
+        var visibleTables = $('.table-visibility-toggle:checked').length;
+        if (visibleTables === 0) {
+            $('#noTablesMessage').show();
+        } else {
+            $('#noTablesMessage').hide();
+        }
+    }
+    
+    function updateRecordsCounter() {
+        var totalRecords = 0;
+        var visibleRecords = 0;
+        
+        tables.forEach(function(table) {
+            var tableElement = $(table.table().node());
+            if (tableElement.closest('.report-card').is(':visible')) {
+                totalRecords += table.data().length;
+                visibleRecords += table.rows({ search: 'applied' }).data().length;
+            }
+        });
+        
+        if (totalRecords > 0) {
+            $('#recordsCounter').show();
+            if (visibleRecords === totalRecords) {
+                $('#recordsCountText').text(totalRecords + ' registros totales');
+                $('#noResultsMessage').hide();
+            } else {
+                $('#recordsCountText').text(visibleRecords + ' de ' + totalRecords + ' registros');
+                if (visibleRecords === 0) {
+                    $('#noResultsMessage').show();
+                } else {
+                    $('#noResultsMessage').hide();
+                }
+            }
+        } else {
+            $('#recordsCounter').hide();
+            $('#noResultsMessage').hide();
+        }
+    }
+    
+    function saveFilters() {
+        var filters = {
+            globalSearch: $('#globalSearch').val(),
+            fechaInicio: $('#filterFechaInicio').val(),
+            fechaFin: $('#filterFechaFin').val(),
+            visibleTables: [],
+            visibleColumns: {},
+            tableOrders: JSON.parse(localStorage.getItem('tableOrders') || '{}')
+        };
+        
+        // Guardar tablas visibles
+        $('.table-visibility-toggle:checked').each(function() {
+            filters.visibleTables.push($(this).data('target'));
+        });
+        
+        // Guardar columnas visibles
+        $('.column-toggle').each(function() {
+            var tableId = $(this).data('table');
+            var columnIdx = $(this).data('column');
+            if (!filters.visibleColumns[tableId]) {
+                filters.visibleColumns[tableId] = [];
+            }
+            if ($(this).is(':checked')) {
+                filters.visibleColumns[tableId].push(columnIdx);
+            }
+        });
+        
+        localStorage.setItem('reportesFilters', JSON.stringify(filters));
+    }
+    
+    function loadFilters() {
+        var filtersJson = localStorage.getItem('reportesFilters');
+        if (!filtersJson) return;
+        
+        try {
+            var filters = JSON.parse(filtersJson);
+            
+            // Restaurar búsqueda global
+            if (filters.globalSearch) {
+                $('#globalSearch').val(filters.globalSearch);
+                tables.forEach(function(table) {
+                    table.search(filters.globalSearch).draw();
+                });
+            }
+            
+            // Restaurar fechas
+            if (filters.fechaInicio) $('#filterFechaInicio').val(filters.fechaInicio);
+            if (filters.fechaFin) $('#filterFechaFin').val(filters.fechaFin);
+            
+            // Restaurar tablas visibles
+            if (filters.visibleTables && filters.visibleTables.length > 0) {
+                $('.table-visibility-toggle').prop('checked', false);
+                $('.report-card').hide();
+                filters.visibleTables.forEach(function(target) {
+                    $('.table-visibility-toggle[data-target="' + target + '"]').prop('checked', true);
+                    $('#section-' + target).show();
+                });
+            }
+            
+            // Restaurar columnas visibles
+            if (filters.visibleColumns) {
+                for (var tableId in filters.visibleColumns) {
+                    var visibleCols = filters.visibleColumns[tableId];
+                    $('.column-toggle[data-table="' + tableId + '"]').each(function() {
+                        var columnIdx = $(this).data('column');
+                        var isVisible = visibleCols.indexOf(columnIdx) !== -1;
+                        $(this).prop('checked', isVisible);
+                        if (tableObjects[tableId]) {
+                            tableObjects[tableId].column(columnIdx).visible(isVisible);
+                        }
+                    });
+                }
+            }
+            
+            // Aplicar filtros de fecha si existen
+            if (filters.fechaInicio || filters.fechaFin) {
+                $('#filterFechaInicio').trigger('change');
+            }
+            
+            // Restaurar ordenamiento de tablas
+            if (filters.tableOrders) {
+                for (var tableId in filters.tableOrders) {
+                    if (tableObjects[tableId]) {
+                        tableObjects[tableId].order(filters.tableOrders[tableId]).draw();
+                    }
+                }
+            }
+            
+            updateColumnSectionVisibility();
+            checkVisibleTables();
+            updateRecordsCounter();
+        } catch (e) {
+            console.error('Error al cargar filtros:', e);
+        }
+    }
+    
+    function updateCsvLink(event) {
+        event.preventDefault();
+        event.stopPropagation();
+        
+        var visibleTables = [];
+        
+        $('.table-visibility-toggle:checked').each(function() {
+            visibleTables.push($(this).data('target'));
+        });
+        
+        if (visibleTables.length === 0) {
+            alert('Por favor, selecciona al menos una tabla para descargar.');
+            return false;
+        }
+        
+        // Si solo hay una tabla, usar ese tipo; si hay varias, usar 'todos'
+        var tipo = visibleTables.length === 1 ? visibleTables[0] : 'todos';
+        var url = '/reportes/descargar?tipo=' + tipo + '&formato=csv';
+        
+        // Crear un elemento temporal para forzar la descarga
+        var link = document.createElement('a');
+        link.href = url;
+        link.download = 'reportes.csv';
+        link.style.display = 'none';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        return false;
+    }
+    
+    function toggleAllTables(checkbox) {
+        var isChecked = checkbox.checked;
+        $('.table-visibility-toggle').prop('checked', isChecked).trigger('change');
+    }
+    
+    function updateSelectAllCheckbox() {
+        var totalCheckboxes = $('.table-visibility-toggle').length;
+        var checkedCheckboxes = $('.table-visibility-toggle:checked').length;
+        var selectAllCheckbox = $('#selectAllTablesCheckbox');
+        
+        if (checkedCheckboxes === 0) {
+            selectAllCheckbox.prop('checked', false);
+            selectAllCheckbox.prop('indeterminate', false);
+        } else if (checkedCheckboxes === totalCheckboxes) {
+            selectAllCheckbox.prop('checked', true);
+            selectAllCheckbox.prop('indeterminate', false);
+        } else {
+            selectAllCheckbox.prop('checked', false);
+            selectAllCheckbox.prop('indeterminate', true);
+        }
+    }
+    
+    function updateCsvButtonState() {
+        var visibleTables = $('.table-visibility-toggle:checked').length;
+        var btnCsv = $('#btnCsv');
+        
+        if (visibleTables === 0) {
+            btnCsv.css({
+                'opacity': '0.5',
+                'pointer-events': 'none',
+                'cursor': 'not-allowed'
+            });
+            btnCsv.attr('title', 'Selecciona al menos una tabla para descargar');
+        } else {
+            btnCsv.css({
+                'opacity': '1',
+                'pointer-events': 'auto',
+                'cursor': 'pointer'
+            });
+            btnCsv.attr('title', 'Descargar CSV de las tablas seleccionadas');
+        }
+    }
+    
+    function saveTableOrder(tableId, order) {
+        var tableOrders = JSON.parse(localStorage.getItem('tableOrders') || '{}');
+        tableOrders[tableId] = order;
+        localStorage.setItem('tableOrders', JSON.stringify(tableOrders));
+    }
+
+</script>
+
 {% endblock %}
