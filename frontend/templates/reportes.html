@@ -674,10 +674,23 @@
             
             if ($(this).is(':checked')) {
                 reportCard.show();
+                // Mostrar el acordeón de columnas correspondiente
+                $('#accordion' + capitalizeFirst(target)).parent().find('.accordion-header').show();
             } else {
                 reportCard.hide();
+                // Ocultar el acordeón de columnas correspondiente
+                $('#accordion' + capitalizeFirst(target)).parent().find('.accordion-header').hide();
+                // Cerrar el acordeón si está abierto
+                $('#accordion' + capitalizeFirst(target)).removeClass('active');
+                $('#arrow' + capitalizeFirst(target)).removeClass('rotated');
+                $('#accordion' + capitalizeFirst(target)).prev('.accordion-header').removeClass('active');
             }
+            
+            updateColumnSectionVisibility();
         });
+        
+        // Actualizar visibilidad inicial de acordeones de columnas
+        updateColumnSectionVisibility();
         
         // Búsqueda global
         $('#globalSearch').on('keyup', function() {
@@ -771,6 +784,39 @@
         arrow.classList.toggle('rotated');
         header.classList.toggle('active');
     }
+    
+    function capitalizeFirst(str) {
+        if (!str) return '';
+        if (str === 'nomina') return 'Nomina';
+        if (str === 'ausencias') return 'Ausencias';
+        if (str === 'evaluaciones') return 'Evaluaciones';
+        if (str === 'capacitaciones') return 'Capacitaciones';
+        if (str === 'proyectos') return 'Proyectos';
+        if (str === 'presupuestos') return 'Presupuestos';
+        return str.charAt(0).toUpperCase() + str.slice(1);
+    }
+    
+    function updateColumnSectionVisibility() {
+        // Ocultar todas las secciones de columnas primero
+        $('.accordion-header').each(function() {
+            var nextElement = $(this).next('.accordion-content');
+            if (nextElement.length > 0 && nextElement.attr('id') && nextElement.attr('id').startsWith('accordion')) {
+                var accordionId = nextElement.attr('id');
+                var tableName = accordionId.replace('accordion', '').toLowerCase();
+                
+                // Verificar si hay un checkbox correspondiente
+                var checkbox = $('.table-visibility-toggle[data-target="' + tableName + '"]');
+                if (checkbox.length > 0) {
+                    if (checkbox.is(':checked')) {
+                        $(this).show();
+                    } else {
+                        $(this).hide();
+                    }
+                }
+            }
+        });
+    }
+
 </script>
 
 {% endblock %}
