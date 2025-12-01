@@ -34,95 +34,119 @@ def reportes():
         rep_presupuestos = []
 
         if tipo == 'nomina' or tipo == 'todos':
-            cursor.execute("""
-                SELECT 
-                    n.id_nomina,
-                    e.nombre_completo,
-                    n.salario_base,
-                    n.deducciones,
-                    n.percepciones,
-                    n.total_pagar
-                FROM NOMINA n
-                JOIN EMPLEADO e ON n.id_empleado = e.id_empleado
-                ORDER BY n.id_nomina DESC;
-            """)
-            rep_nomina = cursor.fetchall()
+            try:
+                cursor.execute("""
+                    SELECT 
+                        n.id_nomina,
+                        e.nombre_completo,
+                        n.salario_base,
+                        n.deducciones,
+                        n.percepciones,
+                        n.total_pagar
+                    FROM NOMINA n
+                    JOIN EMPLEADO e ON n.id_empleado = e.id_empleado
+                    ORDER BY n.id_nomina DESC;
+                """)
+                rep_nomina = cursor.fetchall()
+            except Exception as e:
+                logging.warning(f"Error al obtener nómina: {e}")
+                rep_nomina = []
 
         if tipo == 'ausencias' or tipo == 'todos':
-            cursor.execute("""
-                SELECT 
-                    e.nombre_completo,
-                    a.tipo,
-                    a.fecha_inicio,
-                    a.fecha_fin,
-                    a.motivo
-                FROM AUSENCIA a
-                JOIN EMPLEADO e ON a.id_empleado = e.id_empleado
-                ORDER BY a.fecha_inicio DESC;
-            """)
-            rep_ausencias = cursor.fetchall()
+            try:
+                cursor.execute("""
+                    SELECT 
+                        e.nombre_completo,
+                        a.tipo,
+                        a.fecha_inicio,
+                        a.fecha_fin,
+                        a.motivo
+                    FROM AUSENCIA a
+                    JOIN EMPLEADO e ON a.id_empleado = e.id_empleado
+                    ORDER BY a.fecha_inicio DESC;
+                """)
+                rep_ausencias = cursor.fetchall()
+            except Exception as e:
+                logging.warning(f"Error al obtener ausencias: {e}")
+                rep_ausencias = []
 
         if tipo == 'evaluaciones' or tipo == 'todos':
-            cursor.execute("""
-                SELECT 
-                    e.nombre_completo,
-                    ev.fecha_evaluacion,
-                    ev.tipo,
-                    ev.resultado,
-                    ev.observaciones
-                FROM EVALUACION ev
-                JOIN `EMPLEADO-EVALUACION` ee ON ev.id_evaluacion = ee.id_evaluacion
-                JOIN EMPLEADO e ON ee.id_empleado = e.id_empleado
-                ORDER BY ev.fecha_evaluacion DESC;
-            """)
-            rep_evaluaciones = cursor.fetchall()
+            try:
+                cursor.execute("""
+                    SELECT 
+                        e.nombre_completo,
+                        ev.fecha_evaluacion,
+                        ev.tipo,
+                        ev.resultado,
+                        ev.observaciones
+                    FROM EVALUACION ev
+                    JOIN `EMPLEADO-EVALUACION` ee ON ev.id_evaluacion = ee.id_evaluacion
+                    JOIN EMPLEADO e ON ee.id_empleado = e.id_empleado
+                    ORDER BY ev.fecha_evaluacion DESC;
+                """)
+                rep_evaluaciones = cursor.fetchall()
+            except Exception as e:
+                logging.warning(f"Error al obtener evaluaciones: {e}")
+                rep_evaluaciones = []
 
         if tipo == 'capacitaciones' or tipo == 'todos':
-            cursor.execute("""
-                SELECT 
-                    e.nombre_completo,
-                    c.nombre AS capacitacion,
-                    c.proveedor,
-                    c.fecha_inicio,
-                    c.fecha_fin,
-                    ec.resultado,
-                    ec.comentarios
-                FROM CAPACITACION c
-                JOIN `EMPLEADO-CAPACITACION` ec ON c.id_capacitacion = ec.id_capacitacion
-                JOIN EMPLEADO e ON ec.id_empleado = e.id_empleado
-                ORDER BY c.fecha_inicio DESC;
-            """)
-            rep_capacitaciones = cursor.fetchall()
+            try:
+                cursor.execute("""
+                    SELECT 
+                        e.nombre_completo,
+                        c.nombre AS capacitacion,
+                        c.proveedor,
+                        c.fecha_inicio,
+                        c.fecha_fin,
+                        ec.resultado,
+                        ec.comentarios
+                    FROM CAPACITACION c
+                    JOIN `EMPLEADO-CAPACITACION` ec ON c.id_capacitacion = ec.id_capacitacion
+                    JOIN EMPLEADO e ON ec.id_empleado = e.id_empleado
+                    ORDER BY c.fecha_inicio DESC;
+                """)
+                rep_capacitaciones = cursor.fetchall()
+            except Exception as e:
+                logging.warning(f"Error al obtener capacitaciones: {e}")
+                rep_capacitaciones = []
 
         if tipo == 'proyectos' or tipo == 'todos':
-            cursor.execute("""
-                SELECT 
-                    e.nombre_completo,
-                    p.nombre AS proyecto,
-                    ep.horas_asignadas,
-                    ep.fecha_asignacion,
-                    ep.fecha_entrega
-                FROM `EMPLEADO-PROYECTO` ep
-                JOIN EMPLEADO e ON ep.id_empleado = e.id_empleado
-                JOIN PROYECTO p ON ep.id_proyecto = p.id_proyecto
-                ORDER BY ep.fecha_asignacion DESC;
-            """)
-            rep_proyectos = cursor.fetchall()
+            try:
+                cursor.execute("""
+                    SELECT 
+                        e.nombre_completo,
+                        p.nombre AS proyecto,
+                        ep.horas_asignadas,
+                        ep.fecha_asignacion,
+                        ep.fecha_entrega
+                    FROM `EMPLEADO-PROYECTO` ep
+                    JOIN EMPLEADO e ON ep.id_empleado = e.id_empleado
+                    JOIN PROYECTO p ON ep.id_proyecto = p.id_proyecto
+                    ORDER BY ep.fecha_asignacion DESC;
+                """)
+                rep_proyectos = cursor.fetchall()
+            except Exception as e:
+                logging.warning(f"Error al obtener proyectos: {e}")
+                rep_proyectos = []
 
         if tipo == 'presupuestos' or tipo == 'todos':
-            cursor.execute("""
-                SELECT 
-                    d.nombre AS departamento,
-                    p.fecha_inicio,
-                    p.fecha_fin,
-                    p.monto_asignado,
-                    p.monto_utilizado,
-                    (p.monto_asignado - p.monto_utilizado) AS restante
-                FROM PRESUPUESTO p
-                JOIN DEPARTAMENTO d ON p.id_departamento = d.id_departamento
-                ORDER BY p.id_presupuesto DESC;
-            """)
-            rep_presupuestos = cursor.fetchall()
+            try:
+                cursor.execute("""
+                    SELECT 
+                        d.nombre AS departamento,
+                        p.fecha_inicio,
+                        p.fecha_fin,
+                        p.monto_asignado,
+                        p.monto_utilizado,
+                        (p.monto_asignado - p.monto_utilizado) AS restante
+                    FROM PRESUPUESTO p
+                    JOIN DEPARTAMENTO d ON p.id_departamento = d.id_departamento
+                    ORDER BY p.id_presupuesto DESC;
+                """)
+                rep_presupuestos = cursor.fetchall()
+            except Exception as e:
+                logging.warning(f"Error al obtener presupuestos: {e}")
+                rep_presupuestos = []
 
         return render_template(
             "reportes.html",
@@ -186,6 +210,11 @@ def descargar_reporte():
     cursor = None
     try:
         cnx = get_connection()
+        if not cnx:
+            return render_template('reportes.html', rep_nomina=[], rep_ausencias=[], rep_evaluaciones=[], 
+                                 rep_capacitaciones=[], rep_proyectos=[], rep_presupuestos=[], 
+                                 tipo=tipo, error='❌ No se pudo establecer conexión con la base de datos')
+        
         cursor = cnx.cursor(pymysql.cursors.DictCursor)
 
         # Nombre del archivo según el tipo
@@ -301,18 +330,36 @@ def descargar_reporte():
             hay_datos = False
             
             for tabla in tablas:
-                cursor.execute(tabla['query'])
-                rows = cursor.fetchall()
-                if rows:
-                    hay_datos = True
-                    writer.writerow([tabla['title']])
-                    writer.writerow(tabla['headers'])
-                    for row in rows:
-                        writer.writerow([row.get(h, '') for h in tabla['headers']])
-                    writer.writerow([])  # Línea vacía entre tablas
+                try:
+                    cursor.execute(tabla['query'])
+                    rows = cursor.fetchall()
+                    if rows:
+                        hay_datos = True
+                        writer.writerow([tabla['title']])
+                        writer.writerow(tabla['headers'])
+                        for row in rows:
+                            writer.writerow([row.get(h, '') for h in tabla['headers']])
+                        writer.writerow([])  # Línea vacía entre tablas
+                except Exception as e:
+                    logging.warning(f"Error al obtener datos de {tabla['title']}: {e}")
+                    continue
             
             if not hay_datos:
                 return render_template('reportes.html', rep_nomina=[], rep_ausencias=[], rep_evaluaciones=[], rep_capacitaciones=[], rep_proyectos=[], rep_presupuestos=[], tipo=tipo, error='No hay datos para descargar')
+            
+            # Validar tamaño del archivo (máximo 50MB)
+            csv_size = len(si.getvalue())
+            if csv_size > 50 * 1024 * 1024:  # 50MB
+                return render_template('reportes.html', rep_nomina=[], rep_ausencias=[], rep_evaluaciones=[], 
+                                     rep_capacitaciones=[], rep_proyectos=[], rep_presupuestos=[], 
+                                     tipo=tipo, error='El archivo es demasiado grande. Intenta filtrar los datos.')
+            
+            # Agregar BOM UTF-8 para que Excel reconozca los acentos
+            csv_size = len(si.getvalue())
+            if csv_size > 50 * 1024 * 1024:  # 50MB
+                return render_template('reportes.html', rep_nomina=[], rep_ausencias=[], rep_evaluaciones=[], 
+                                     rep_capacitaciones=[], rep_proyectos=[], rep_presupuestos=[], 
+                                     tipo=tipo, error='El archivo es demasiado grande. Intenta filtrar los datos.')
             
             # Agregar BOM UTF-8 para que Excel reconozca los acentos
             csv_content = '\ufeff' + si.getvalue()
