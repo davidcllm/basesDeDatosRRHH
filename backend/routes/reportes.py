@@ -170,7 +170,11 @@ def descargar_reporte():
         cnx = get_connection()
         cursor = cnx.cursor(pymysql.cursors.DictCursor)
 
-        filename_base = f"{tipo}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+        # Nombre del archivo según el tipo
+        if tipo == 'todos':
+            filename_base = f"reporte_completo_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+        else:
+            filename_base = f"{tipo}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
 
         # Si es "todos", descargar todas las tablas en un solo CSV
         if tipo == 'todos':
@@ -292,9 +296,11 @@ def descargar_reporte():
             if not hay_datos:
                 return render_template('reportes.html', rep_nomina=[], rep_ausencias=[], rep_evaluaciones=[], rep_capacitaciones=[], rep_proyectos=[], rep_presupuestos=[], tipo=tipo, error='No hay datos para descargar')
             
-            output = make_response(si.getvalue())
+            # Agregar BOM UTF-8 para que Excel reconozca los acentos
+            csv_content = '\ufeff' + si.getvalue()
+            output = make_response(csv_content)
             output.headers['Content-Disposition'] = f"attachment; filename={filename_base}.csv"
-            output.headers['Content-type'] = 'text/csv; charset=utf-8'
+            output.headers['Content-type'] = 'text/csv; charset=utf-8-sig'
             return output
 
         # Para reportes individuales
@@ -415,9 +421,12 @@ def descargar_reporte():
             writer.writerow(headers)
             for row in data:
                 writer.writerow([row.get(h, '') for h in headers])
-            output = make_response(si.getvalue())
+            
+            # Agregar BOM UTF-8 para que Excel reconozca los acentos
+            csv_content = '\ufeff' + si.getvalue()
+            output = make_response(csv_content)
             output.headers['Content-Disposition'] = f"attachment; filename={filename_base}.csv"
-            output.headers['Content-type'] = 'text/csv; charset=utf-8'
+            output.headers['Content-type'] = 'text/csv; charset=utf-8-sig'
             return output
         else:
             return render_template('reportes.html', rep_nomina=[], rep_ausencias=[], rep_evaluaciones=[], rep_capacitaciones=[], rep_proyectos=[], rep_presupuestos=[], tipo=tipo, error='Formato no soportado')
