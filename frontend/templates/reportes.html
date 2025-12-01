@@ -937,47 +937,29 @@
             
             $.fn.dataTable.ext.search.push(
                 function(settings, data, dataIndex) {
-                    var fechaInicio = $('#filterFechaInicio').val();
-                    var fechaFin = $('#filterFechaFin').val();
-                    var fechaColumnaInicio = null;
-                    var fechaColumnaFin = null;
+                    var fechaColumna = null;
                     
-                    // Determinar qué columnas tienen fechas según la tabla
+                    // Determinar qué columna tiene fechas según la tabla
                     if (settings.nTable.id === 'tblAusencias') {
-                        fechaColumnaInicio = data[2]; // fecha_inicio
-                        fechaColumnaFin = data[3];    // fecha_fin
+                        fechaColumna = data[2]; // fecha_inicio
                     } else if (settings.nTable.id === 'tblEvaluaciones') {
-                        fechaColumnaInicio = data[1]; // fecha_evaluacion
-                        fechaColumnaFin = data[1];    // fecha_evaluacion (misma)
+                        fechaColumna = data[1]; // fecha_evaluacion
                     } else if (settings.nTable.id === 'tblCapacitaciones') {
-                        fechaColumnaInicio = data[3]; // fecha_inicio
-                        fechaColumnaFin = data[4];    // fecha_fin
+                        fechaColumna = data[3]; // fecha_inicio
                     } else if (settings.nTable.id === 'tblProyectos') {
-                        fechaColumnaInicio = data[3]; // fecha_asignacion
-                        fechaColumnaFin = data[4];    // fecha_entrega
+                        fechaColumna = data[3]; // fecha_asignacion
                     } else if (settings.nTable.id === 'tblPresupuestos') {
-                        fechaColumnaInicio = data[1]; // fecha_inicio
-                        fechaColumnaFin = data[2];    // fecha_fin
+                        fechaColumna = data[1]; // fecha_inicio
                     }
                     
-                    if (!fechaColumnaInicio || !fechaColumnaFin) return true;
+                    if (!fechaColumna) return true;
                     
-                    var fechaInicio_obj = new Date(fechaColumnaInicio);
-                    var fechaFin_obj = new Date(fechaColumnaFin);
+                    var fecha = new Date(fechaColumna);
                     var inicio = fechaInicio ? new Date(fechaInicio) : null;
                     var fin = fechaFin ? new Date(fechaFin) : null;
                     
-                    // Filtro de rango: mostrar si se superpone
-                    if (inicio && fin) {
-                        // Ambas fechas del filtro: mostrar si el rango se superpone
-                        if (fechaFin_obj < inicio || fechaInicio_obj > fin) return false;
-                    } else if (inicio) {
-                        // Solo fecha inicio del filtro
-                        if (fechaFin_obj < inicio) return false;
-                    } else if (fin) {
-                        // Solo fecha fin del filtro
-                        if (fechaInicio_obj > fin) return false;
-                    }
+                    if (inicio && fecha < inicio) return false;
+                    if (fin && fecha > fin) return false;
                     
                     return true;
                 }
