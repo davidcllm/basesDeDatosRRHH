@@ -183,8 +183,11 @@
     <aside class="filter-panel">
         <h3>🔍Filtros</h3>
         
-        <div class="filter-group">
-            <label style="font-size: 13px; font-weight: 600; color: #333; margin-bottom: 8px; display: block;">Ver tablas:</label>
+        <div class="accordion-header" onclick="toggleAccordion('accordionVerTablas')">
+            <span>Ver tablas</span>
+            <span class="accordion-arrow" id="arrowVerTablas">▼</span>
+        </div>
+        <div class="accordion-content active" id="accordionVerTablas">
             <label style="display: block; font-size: 12px; margin: 5px 0; cursor: pointer;">
                 <input type="checkbox" class="table-visibility-toggle" data-target="nomina" checked> Resumen de Nómina
             </label>
