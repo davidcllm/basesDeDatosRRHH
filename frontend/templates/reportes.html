@@ -1053,6 +1053,8 @@
     
     function updateCsvLink(event) {
         event.preventDefault();
+        event.stopPropagation();
+        
         var visibleTables = [];
         
         $('.table-visibility-toggle:checked').each(function() {
@@ -1064,13 +1066,18 @@
             return false;
         }
         
-        var tipo = visibleTables.join(',');
+        // Si solo hay una tabla, usar ese tipo; si hay varias, usar 'todos'
+        var tipo = visibleTables.length === 1 ? visibleTables[0] : 'todos';
         var url = '/reportes/descargar?tipo=' + tipo + '&formato=csv';
         
-        // Usar un pequeño timeout para asegurar que el navegador procese la descarga
-        setTimeout(function() {
-            window.location.href = url;
-        }, 100);
+        // Crear un elemento temporal para forzar la descarga
+        var link = document.createElement('a');
+        link.href = url;
+        link.download = 'reportes.csv';
+        link.style.display = 'none';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
         
         return false;
     }
