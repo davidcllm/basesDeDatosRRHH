@@ -273,6 +273,10 @@
             <input type="date" id="filterFechaFin">
         </div>
         
+        <button class="btn-clear-filters" onclick="clearDateFilters()" style="margin-top: 10px;">
+            Limpiar fechas
+        </button>
+        
         <hr style="border: 1px solid #e0e0e0; margin: 20px 0;">
         
         <div class="filter-group">
@@ -858,6 +862,14 @@
         $('.table-visibility-toggle').prop('checked', true);
         $('.report-card').show();
         updateColumnSectionVisibility();
+    }
+    
+    function clearDateFilters() {
+        $('#filterFechaInicio').val('');
+        $('#filterFechaFin').val('');
+        $('#filterFechaInicio').trigger('change');
+        updateRecordsCounter();
+        saveFilters();
     }
     
     function toggleAccordion(id) {
