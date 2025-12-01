@@ -355,21 +355,23 @@
             <span id="recordsCountText">0 registros encontrados</span>
         </div>
         
-        <div class="filter-group">
+        <form id="dateFilterForm" class="filter-group" method="get" action="/reportes">
+            <input type="hidden" name="tipo" id="filterTipo" value="{{ tipo }}">
             <label for="filterFechaInicio">Fecha desde</label>
-            <input type="date" id="filterFechaInicio" max="9999-12-31">
+            <input type="date" id="filterFechaInicio" name="fecha_inicio" value="{{ fecha_inicio or '' }}" max="9999-12-31">
             <small id="errorFechaInicio" style="color: #dc3545; font-size: 11px; display: none; margin-top: 3px;"></small>
-        </div>
         
-        <div class="filter-group">
-            <label for="filterFechaFin">Fecha hasta</label>
-            <input type="date" id="filterFechaFin" max="9999-12-31">
+            <label for="filterFechaFin" style="margin-top: 12px; display: block;">Fecha hasta</label>
+            <input type="date" id="filterFechaFin" name="fecha_fin" value="{{ fecha_fin or '' }}" max="9999-12-31">
             <small id="errorFechaFin" style="color: #dc3545; font-size: 11px; display: none; margin-top: 3px;"></small>
-        </div>
-        
-        <button class="btn-clear-filters" onclick="clearDateFilters()" style="margin-top: 10px;">
-            Limpiar fechas
-        </button>
+
+            <button type="submit" class="btn-clear-filters" style="margin-top: 12px; background-color: #0066ff; color: #fff;">
+                Aplicar fechas
+            </button>
+            <button type="button" class="btn-clear-filters" onclick="clearDateFilters()" style="margin-top: 10px;">
+                Limpiar fechas
+            </button>
+        </form>
         
         <hr style="border: 1px solid #e0e0e0; margin: 20px 0;">
         
@@ -885,16 +887,14 @@
             saveFilters();
         });
         
-        // Validación y filtros de fecha
-        $('#filterFechaInicio, #filterFechaFin').on('change', function() {
+        function validateDateRange() {
             var fechaInicio = $('#filterFechaInicio').val();
             var fechaFin = $('#filterFechaFin').val();
+            var isValid = true;
             
-            // Limpiar errores previos
             $('#errorFechaInicio, #errorFechaFin').hide().text('');
             $('#filterFechaInicio, #filterFechaFin').css('border-color', '#ddd');
             
-            // Validar que la fecha de inicio no sea posterior a la fecha fin
             if (fechaInicio && fechaFin) {
                 var inicio = new Date(fechaInicio);
                 var fin = new Date(fechaFin);
@@ -902,78 +902,54 @@
                 if (inicio > fin) {
                     $('#errorFechaInicio').text('La fecha desde no puede ser posterior a la fecha hasta').show();
                     $('#filterFechaInicio').css('border-color', '#dc3545');
-                    return;
+                    isValid = false;
                 }
                 
-                // Validar rango máximo (opcional: por ejemplo, máximo 5 años)
                 var diffTime = Math.abs(fin - inicio);
                 var diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                if (diffDays > 1825) { // 5 años aproximadamente
+                if (diffDays > 1825) {
                     $('#errorFechaFin').text('El rango no puede superar 5 años').show();
                     $('#filterFechaFin').css('border-color', '#dc3545');
-                    return;
+                    isValid = false;
                 }
             }
             
-            // Validar formato de fecha
             if (fechaInicio && !isValidDate(fechaInicio)) {
                 $('#errorFechaInicio').text('Formato de fecha inválido').show();
                 $('#filterFechaInicio').css('border-color', '#dc3545');
-                return;
+                isValid = false;
             }
             
             if (fechaFin && !isValidDate(fechaFin)) {
                 $('#errorFechaFin').text('Formato de fecha inválido').show();
                 $('#filterFechaFin').css('border-color', '#dc3545');
-                return;
+                isValid = false;
             }
             
-            // Actualizar el atributo min del campo "Fecha hasta" basado en "Fecha desde"
             if (fechaInicio) {
                 $('#filterFechaFin').attr('min', fechaInicio);
             } else {
                 $('#filterFechaFin').removeAttr('min');
             }
             
-            $.fn.dataTable.ext.search.push(
-                function(settings, data, dataIndex) {
-                    var fechaColumna = null;
-                    
-                    // Determinar qué columna tiene fechas según la tabla
-                    if (settings.nTable.id === 'tblAusencias') {
-                        fechaColumna = data[2]; // fecha_inicio
-                    } else if (settings.nTable.id === 'tblEvaluaciones') {
-                        fechaColumna = data[1]; // fecha_evaluacion
-                    } else if (settings.nTable.id === 'tblCapacitaciones') {
-                        fechaColumna = data[3]; // fecha_inicio
-                    } else if (settings.nTable.id === 'tblProyectos') {
-                        fechaColumna = data[3]; // fecha_asignacion
-                    } else if (settings.nTable.id === 'tblPresupuestos') {
-                        fechaColumna = data[1]; // fecha_inicio
-                    }
-                    
-                    if (!fechaColumna) return true;
-                    
-                    var fecha = new Date(fechaColumna);
-                    var inicio = fechaInicio ? new Date(fechaInicio) : null;
-                    var fin = fechaFin ? new Date(fechaFin) : null;
-                    
-                    if (inicio && fecha < inicio) return false;
-                    if (fin && fecha > fin) return false;
-                    
-                    return true;
-                }
-            );
-            
-            tables.forEach(function(table) {
-                table.draw();
-            });
-            
-            $.fn.dataTable.ext.search.pop();
-            
-            updateRecordsCounter();
+            return isValid;
+        }
+
+        $('#filterFechaInicio, #filterFechaFin').on('change', function() {
+            validateDateRange();
             saveFilters();
         });
+
+        $('#dateFilterForm').on('submit', function(e) {
+            if (!validateDateRange()) {
+                e.preventDefault();
+                return;
+            }
+            saveFilters();
+        });
+
+        // Ajustar el estado inicial de los campos de fecha
+        validateDateRange();
         // Validación en vivo mientras escribe
         $('#filterFechaInicio, #filterFechaFin').on('input', function() {
             var id = this.id;
@@ -1045,9 +1021,13 @@
         $('#filterFechaFin').removeAttr('min');
         $('#errorFechaInicio, #errorFechaFin').hide().text('');
         $('#filterFechaInicio, #filterFechaFin').css('border-color', '#ddd');
-        $('#filterFechaInicio').trigger('change');
-        updateRecordsCounter();
         saveFilters();
+        var tipo = $('#filterTipo').val() || '{{ tipo }}';
+        var url = '/reportes';
+        if (tipo && tipo !== 'todos') {
+            url += '?tipo=' + encodeURIComponent(tipo);
+        }
+        window.location.href = url;
     }
     
     function escapeHtml(text) {

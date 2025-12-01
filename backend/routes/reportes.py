@@ -21,8 +21,22 @@ def reportes():
         tipo = request.args.get('tipo', 'todos')
         
         # Obtener parámetros de fecha
-        fecha_inicio = request.args.get('fecha_inicio', None)
-        fecha_fin = request.args.get('fecha_fin', None)
+        def _parse_date(param_name):
+            value = request.args.get(param_name, None)
+            if not value:
+                return None
+            value = value.strip()
+            if not value:
+                return None
+            try:
+                datetime.strptime(value, "%Y-%m-%d")
+                return value
+            except ValueError:
+                logging.warning("Fecha inválida recibida para %s: %s", param_name, value)
+                return None
+
+        fecha_inicio = _parse_date('fecha_inicio')
+        fecha_fin = _parse_date('fecha_fin')
         
         # Validar tipo de reporte
         tipos_validos = ['todos', 'nomina', 'ausencias', 'evaluaciones', 'capacitaciones', 'proyectos', 'presupuestos']
