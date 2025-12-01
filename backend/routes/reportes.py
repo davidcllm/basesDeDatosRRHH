@@ -39,18 +39,32 @@ def reportes():
 
         if tipo == 'nomina' or tipo == 'todos':
             try:
-                cursor.execute("""
+                query = """
                     SELECT 
                         n.id_nomina,
                         e.nombre_completo,
                         n.salario_base,
                         n.deducciones,
                         n.percepciones,
-                        n.total_pagar
+                        n.total_pagar,
+                        n.fecha_pago
                     FROM NOMINA n
                     JOIN EMPLEADO e ON n.id_empleado = e.id_empleado
-                    ORDER BY n.id_nomina DESC;
-                """)
+                """
+                
+                # Agregar filtro de fechas si se proporcionan
+                if fecha_inicio and fecha_fin:
+                    query += " WHERE n.fecha_pago >= %s AND n.fecha_pago <= %s"
+                    cursor.execute(query + " ORDER BY n.id_nomina DESC;", (fecha_inicio, fecha_fin))
+                elif fecha_inicio:
+                    query += " WHERE n.fecha_pago >= %s"
+                    cursor.execute(query + " ORDER BY n.id_nomina DESC;", (fecha_inicio,))
+                elif fecha_fin:
+                    query += " WHERE n.fecha_pago <= %s"
+                    cursor.execute(query + " ORDER BY n.id_nomina DESC;", (fecha_fin,))
+                else:
+                    cursor.execute(query + " ORDER BY n.id_nomina DESC;")
+                
                 rep_nomina = cursor.fetchall()
             except Exception as e:
                 logging.warning(f"Error al obtener nómina: {e}")
@@ -75,10 +89,10 @@ def reportes():
                     query += " WHERE a.fecha_inicio >= %s AND a.fecha_fin <= %s"
                     cursor.execute(query + " ORDER BY a.fecha_inicio DESC;", (fecha_inicio, fecha_fin))
                 elif fecha_inicio:
-                    query += " WHERE a.fecha_fin >= %s"
+                    query += " WHERE a.fecha_inicio >= %s"
                     cursor.execute(query + " ORDER BY a.fecha_inicio DESC;", (fecha_inicio,))
                 elif fecha_fin:
-                    query += " WHERE a.fecha_inicio <= %s"
+                    query += " WHERE a.fecha_fin <= %s"
                     cursor.execute(query + " ORDER BY a.fecha_inicio DESC;", (fecha_fin,))
                 else:
                     cursor.execute(query + " ORDER BY a.fecha_inicio DESC;")
@@ -142,10 +156,10 @@ def reportes():
                     query += " WHERE c.fecha_inicio >= %s AND c.fecha_fin <= %s"
                     cursor.execute(query + " ORDER BY c.fecha_inicio DESC;", (fecha_inicio, fecha_fin))
                 elif fecha_inicio:
-                    query += " WHERE c.fecha_fin >= %s"
+                    query += " WHERE c.fecha_inicio >= %s"
                     cursor.execute(query + " ORDER BY c.fecha_inicio DESC;", (fecha_inicio,))
                 elif fecha_fin:
-                    query += " WHERE c.fecha_inicio <= %s"
+                    query += " WHERE c.fecha_fin <= %s"
                     cursor.execute(query + " ORDER BY c.fecha_inicio DESC;", (fecha_fin,))
                 else:
                     cursor.execute(query + " ORDER BY c.fecha_inicio DESC;")
@@ -175,10 +189,10 @@ def reportes():
                     query += " WHERE ep.fecha_asignacion >= %s AND ep.fecha_entrega <= %s"
                     cursor.execute(query + " ORDER BY ep.fecha_asignacion DESC;", (fecha_inicio, fecha_fin))
                 elif fecha_inicio:
-                    query += " WHERE ep.fecha_entrega >= %s"
+                    query += " WHERE ep.fecha_asignacion >= %s"
                     cursor.execute(query + " ORDER BY ep.fecha_asignacion DESC;", (fecha_inicio,))
                 elif fecha_fin:
-                    query += " WHERE ep.fecha_asignacion <= %s"
+                    query += " WHERE ep.fecha_entrega <= %s"
                     cursor.execute(query + " ORDER BY ep.fecha_asignacion DESC;", (fecha_fin,))
                 else:
                     cursor.execute(query + " ORDER BY ep.fecha_asignacion DESC;")
@@ -208,10 +222,10 @@ def reportes():
                     query += " WHERE p.fecha_inicio >= %s AND p.fecha_fin <= %s"
                     cursor.execute(query + " ORDER BY p.id_presupuesto DESC;", (fecha_inicio, fecha_fin))
                 elif fecha_inicio:
-                    query += " WHERE p.fecha_fin >= %s"
+                    query += " WHERE p.fecha_inicio >= %s"
                     cursor.execute(query + " ORDER BY p.id_presupuesto DESC;", (fecha_inicio,))
                 elif fecha_fin:
-                    query += " WHERE p.fecha_inicio <= %s"
+                    query += " WHERE p.fecha_fin <= %s"
                     cursor.execute(query + " ORDER BY p.id_presupuesto DESC;", (fecha_fin,))
                 else:
                     cursor.execute(query + " ORDER BY p.id_presupuesto DESC;")
