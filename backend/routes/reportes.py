@@ -441,6 +441,7 @@ def descargar_reporte():
     formato = request.args.get('formato', 'csv')
     fecha_inicio = _parse_date_param(request.args.get('fecha_inicio'), 'fecha_inicio')
     fecha_fin = _parse_date_param(request.args.get('fecha_fin'), 'fecha_fin')
+    tablas_param = request.args.get('tablas')
     
     # Validar parámetros
     tipos_validos = ['todos', 'nomina', 'ausencias', 'evaluaciones', 'capacitaciones', 'proyectos', 'presupuestos']
@@ -475,7 +476,15 @@ def descargar_reporte():
 
         # Si es "todos", descargar todas las tablas en un solo CSV
         if tipo == 'todos':
-            tablas_tipo = ['nomina','ausencias','evaluaciones','capacitaciones','proyectos','presupuestos']
+            filtered_tables = []
+            if tablas_param:
+                parts = [p.strip().lower() for p in tablas_param.split(',') if p.strip()]
+                seen = set()
+                for part in parts:
+                    if part in tipos_validos and part != 'todos' and part not in seen:
+                        filtered_tables.append(part)
+                        seen.add(part)
+            tablas_tipo = filtered_tables if filtered_tables else ['nomina','ausencias','evaluaciones','capacitaciones','proyectos','presupuestos']
             si = io.StringIO()
             writer = csv.writer(si)
             hay_datos = False

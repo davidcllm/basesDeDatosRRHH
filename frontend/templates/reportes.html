@@ -1629,6 +1629,10 @@
         var tipo = visibleTables.length === 1 ? visibleTables[0] : 'todos';
         var url = '/reportes/descargar?tipo=' + tipo + '&formato=csv';
 
+        if (visibleTables.length > 1) {
+            url += '&tablas=' + encodeURIComponent(visibleTables.join(','));
+        }
+
         var fechaInicio = $('#filterFechaInicio').val();
         var fechaFin = $('#filterFechaFin').val();
         if (fechaInicio) {
