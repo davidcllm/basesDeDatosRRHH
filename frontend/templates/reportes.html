@@ -265,12 +265,14 @@
         
         <div class="filter-group">
             <label for="filterFechaInicio">Fecha desde</label>
-            <input type="date" id="filterFechaInicio">
+            <input type="date" id="filterFechaInicio" max="9999-12-31">
+            <small id="errorFechaInicio" style="color: #dc3545; font-size: 11px; display: none; margin-top: 3px;"></small>
         </div>
         
         <div class="filter-group">
             <label for="filterFechaFin">Fecha hasta</label>
-            <input type="date" id="filterFechaFin">
+            <input type="date" id="filterFechaFin" max="9999-12-31">
+            <small id="errorFechaFin" style="color: #dc3545; font-size: 11px; display: none; margin-top: 3px;"></small>
         </div>
         
         <button class="btn-clear-filters" onclick="clearDateFilters()" style="margin-top: 10px;">
@@ -789,10 +791,55 @@
             saveFilters();
         });
         
-        // Filtros de fecha
+        // Validación y filtros de fecha
         $('#filterFechaInicio, #filterFechaFin').on('change', function() {
             var fechaInicio = $('#filterFechaInicio').val();
             var fechaFin = $('#filterFechaFin').val();
+            
+            // Limpiar errores previos
+            $('#errorFechaInicio, #errorFechaFin').hide().text('');
+            $('#filterFechaInicio, #filterFechaFin').css('border-color', '#ddd');
+            
+            // Validar que la fecha de inicio no sea posterior a la fecha fin
+            if (fechaInicio && fechaFin) {
+                var inicio = new Date(fechaInicio);
+                var fin = new Date(fechaFin);
+                
+                if (inicio > fin) {
+                    $('#errorFechaInicio').text('La fecha desde no puede ser posterior a la fecha hasta').show();
+                    $('#filterFechaInicio').css('border-color', '#dc3545');
+                    return;
+                }
+                
+                // Validar rango máximo (opcional: por ejemplo, máximo 5 años)
+                var diffTime = Math.abs(fin - inicio);
+                var diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                if (diffDays > 1825) { // 5 años aproximadamente
+                    $('#errorFechaFin').text('El rango no puede superar 5 años').show();
+                    $('#filterFechaFin').css('border-color', '#dc3545');
+                    return;
+                }
+            }
+            
+            // Validar formato de fecha
+            if (fechaInicio && !isValidDate(fechaInicio)) {
+                $('#errorFechaInicio').text('Formato de fecha inválido').show();
+                $('#filterFechaInicio').css('border-color', '#dc3545');
+                return;
+            }
+            
+            if (fechaFin && !isValidDate(fechaFin)) {
+                $('#errorFechaFin').text('Formato de fecha inválido').show();
+                $('#filterFechaFin').css('border-color', '#dc3545');
+                return;
+            }
+            
+            // Actualizar el atributo min del campo "Fecha hasta" basado en "Fecha desde"
+            if (fechaInicio) {
+                $('#filterFechaFin').attr('min', fechaInicio);
+            } else {
+                $('#filterFechaFin').removeAttr('min');
+            }
             
             $.fn.dataTable.ext.search.push(
                 function(settings, data, dataIndex) {
@@ -868,9 +915,27 @@
     function clearDateFilters() {
         $('#filterFechaInicio').val('');
         $('#filterFechaFin').val('');
+        $('#filterFechaFin').removeAttr('min');
+        $('#errorFechaInicio, #errorFechaFin').hide().text('');
+        $('#filterFechaInicio, #filterFechaFin').css('border-color', '#ddd');
         $('#filterFechaInicio').trigger('change');
         updateRecordsCounter();
         saveFilters();
+    }
+    
+    function isValidDate(dateString) {
+        // Validar formato YYYY-MM-DD
+        var regex = /^\d{4}-\d{2}-\d{2}$/;
+        if (!regex.test(dateString)) return false;
+        
+        var date = new Date(dateString);
+        var timestamp = date.getTime();
+        
+        // Verificar que sea una fecha válida
+        if (typeof timestamp !== 'number' || Number.isNaN(timestamp)) return false;
+        
+        // Verificar que la fecha reconstruida coincida con la entrada
+        return date.toISOString().startsWith(dateString);
     }
     
     function toggleAccordion(id) {

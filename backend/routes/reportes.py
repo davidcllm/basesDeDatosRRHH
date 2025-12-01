@@ -1,4 +1,3 @@
-from flask import Blueprint, render_template, request
 from flask import Blueprint, render_template, request, make_response
 from dp import get_connection
 import pymysql
@@ -20,6 +19,11 @@ def reportes():
 
         # Obtener el tipo de reporte a mostrar
         tipo = request.args.get('tipo', 'todos')
+        
+        # Validar tipo de reporte
+        tipos_validos = ['todos', 'nomina', 'ausencias', 'evaluaciones', 'capacitaciones', 'proyectos', 'presupuestos']
+        if tipo not in tipos_validos:
+            tipo = 'todos'
 
         # Inicializar todos los reportes como vacíos
         rep_nomina = []
@@ -163,6 +167,20 @@ def descargar_reporte():
     """Descarga un reporte en formato CSV o PDF. Parámetros: tipo, formato (csv|pdf)."""
     tipo = request.args.get('tipo', 'todos')
     formato = request.args.get('formato', 'csv')
+    
+    # Validar parámetros
+    tipos_validos = ['todos', 'nomina', 'ausencias', 'evaluaciones', 'capacitaciones', 'proyectos', 'presupuestos']
+    formatos_validos = ['csv']
+    
+    if tipo not in tipos_validos:
+        return render_template('reportes.html', rep_nomina=[], rep_ausencias=[], rep_evaluaciones=[], 
+                             rep_capacitaciones=[], rep_proyectos=[], rep_presupuestos=[], 
+                             tipo='todos', error='Tipo de reporte no válido')
+    
+    if formato not in formatos_validos:
+        return render_template('reportes.html', rep_nomina=[], rep_ausencias=[], rep_evaluaciones=[], 
+                             rep_capacitaciones=[], rep_proyectos=[], rep_presupuestos=[], 
+                             tipo=tipo, error='Formato no soportado. Solo se admite CSV.')
 
     cnx = None
     cursor = None
@@ -410,6 +428,12 @@ def descargar_reporte():
             rows = cursor.fetchall()
             headers = ['departamento','fecha_inicio','fecha_fin','monto_asignado','monto_utilizado','restante']
             data = rows
+        
+        else:
+            # Tipo no reconocido (no debería llegar aquí por la validación previa)
+            return render_template('reportes.html', rep_nomina=[], rep_ausencias=[], rep_evaluaciones=[], 
+                                 rep_capacitaciones=[], rep_proyectos=[], rep_presupuestos=[], 
+                                 tipo='todos', error='Tipo de reporte no válido')
 
         # Si no hay datos
         if not data:
