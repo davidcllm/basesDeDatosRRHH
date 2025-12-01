@@ -773,6 +773,13 @@
         tables.forEach(function(table) {
             table.search('').columns().search('').draw();
         });
+        
+        // Recalcular el ancho de las columnas después de restaurar
+        setTimeout(function() {
+            tables.forEach(function(table) {
+                table.columns.adjust().draw();
+            });
+        }, 100);
     }
     
     function clearTableFilters() {
