@@ -111,6 +111,15 @@
         font-size: 13px;
         padding: 0;
     }
+
+    .highlighted-row {
+        background-color: #fff3cd !important;
+    }
+
+    .highlighted-cell {
+        background-color: #fffacd;
+        font-weight: 600;
+    }
     
     .filter-group input:focus,
     .filter-group select:focus {
@@ -1095,12 +1104,16 @@
     
     function customizeTableFilters() {
         // Reemplazar los filtros de DataTables con inputs de tags
+        var allTableTerms = {}; // Variable global para almacenar términos de cada tabla
+        
         $('.dataTables_wrapper').each(function() {
             var wrapper = $(this);
             var filterDiv = wrapper.find('.dataTables_filter');
             var tableId = wrapper.find('table.dataTable').attr('id');
             
             if (filterDiv.length > 0) {
+                allTableTerms[tableId] = [];
+                
                 var tagsContainer = $(
                     '<div class="table-tags-container" data-table="' + tableId + '">' +
                     '<input type="text" class="table-tags-input" placeholder="Buscar y presiona Enter">' +
@@ -1110,18 +1123,20 @@
                 filterDiv.html('').append(tagsContainer);
                 
                 var input = tagsContainer.find('.table-tags-input');
-                var tableTerms = {};
-                tableTerms[tableId] = [];
                 
                 // Mientras escribes, filtrar en tiempo real
                 input.on('keyup', function(e) {
                     if (e.key !== 'Enter') {
                         var currentTerm = $(this).val().trim();
-                        var allTerms = tableTerms[tableId].slice();
-                        if (currentTerm) {
+                        // Si no hay término siendo escrito, solo mostrar filtrados por términos guardados
+                        if (!currentTerm) {
+                            applyTableSearch(tableId, allTableTerms[tableId]);
+                        } else {
+                            // Si hay término siendo escrito, agregarlo temporalmente al filtro
+                            var allTerms = allTableTerms[tableId].slice();
                             allTerms.push(currentTerm);
+                            applyTableSearchWithTerms(tableId, allTerms);
                         }
-                        applyTableSearchWithTerms(tableId, allTerms);
                     }
                 });
                 
@@ -1130,19 +1145,22 @@
                     if (e.key === 'Enter') {
                         e.preventDefault();
                         var term = $(this).val().trim();
-                        if (term && !tableTerms[tableId].includes(term)) {
-                            tableTerms[tableId].push(term);
-                            addTableSearchTag(tagsContainer, term, tableId, tableTerms);
+                        if (term && !allTableTerms[tableId].includes(term)) {
+                            allTableTerms[tableId].push(term);
+                            addTableSearchTag(tagsContainer, term, tableId, allTableTerms);
                             $(this).val('');
-                            applyTableSearch(tableId, tableTerms[tableId]);
+                            applyTableSearch(tableId, allTableTerms[tableId]);
                         }
                     }
                 });
             }
         });
+        
+        // Hacer accesible a las funciones globales
+        window.allTableTerms = allTableTerms;
     }
     
-    function addTableSearchTag(container, term, tableId, tableTerms) {
+    function addTableSearchTag(container, term, tableId, allTableTerms) {
         var tagHtml = '<div class="tag">' + 
                         '<span>' + escapeHtml(term) + '</span>' +
                         '<button type="button" onclick="removeTableSearchTag(this, \'' + tableId + '\', \'' + escapeHtml(term).replace(/'/g, "\\'") + '\')">×</button>' +
@@ -1153,11 +1171,11 @@
     window.removeTableSearchTag = function(button, tableId, term) {
         var container = $(button).closest('.table-tags-container');
         $(button).closest('.tag').remove();
-        var tableTerms = [];
-        container.find('.tag span').each(function() {
-            tableTerms.push($(this).text());
-        });
-        applyTableSearch(tableId, tableTerms);
+        
+        // Actualizar el array de términos
+        window.allTableTerms[tableId] = window.allTableTerms[tableId].filter(t => t !== term);
+        
+        applyTableSearch(tableId, window.allTableTerms[tableId]);
     };
     
     function applyTableSearchWithTerms(tableId, terms) {
@@ -1165,17 +1183,65 @@
         if (table) {
             if (terms.length === 0) {
                 table.search('').draw();
+                removeHighlighting(tableId);
             } else {
                 // Usar AND lógico: todos los términos deben estar presentes
                 var searchPattern = terms.map(t => '(?=.*' + t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')').join('');
                 table.search(searchPattern, true, false).draw();
+                
+                // Resaltar solo los términos guardados (no el que se está escribiendo)
+                if (window.allTableTerms && window.allTableTerms[tableId]) {
+                    highlightSavedTerms(tableId, window.allTableTerms[tableId]);
+                }
             }
             updateRecordsCounter();
         }
     }
     
+    function removeHighlighting(tableId) {
+        var tableElement = $('#' + tableId);
+        tableElement.find('tbody tr').removeClass('highlighted-row');
+        tableElement.find('td').removeClass('highlighted-cell');
+    }
+    
+    function highlightSavedTerms(tableId, savedTerms) {
+        if (savedTerms.length === 0) {
+            removeHighlighting(tableId);
+            return;
+        }
+        
+        var tableElement = $('#' + tableId);
+        removeHighlighting(tableId);
+        
+        // Resaltar filas que contienen los términos guardados
+        tableElement.find('tbody tr').each(function() {
+            var row = $(this);
+            var rowText = row.text().toLowerCase();
+            var matchesAllTerms = savedTerms.every(term => 
+                rowText.indexOf(term.toLowerCase()) !== -1
+            );
+            
+            if (matchesAllTerms) {
+                row.addClass('highlighted-row');
+                
+                // Resaltar las celdas específicas que contienen los términos
+                row.find('td').each(function() {
+                    var cellText = $(this).text().toLowerCase();
+                    var hasMatch = savedTerms.some(term => 
+                        cellText.indexOf(term.toLowerCase()) !== -1
+                    );
+                    if (hasMatch) {
+                        $(this).addClass('highlighted-cell');
+                    }
+                });
+            }
+        });
+    }
+    
     function applyTableSearch(tableId, terms) {
         applyTableSearchWithTerms(tableId, terms);
+        removeHighlighting(tableId);
+        highlightSavedTerms(tableId, terms);
     }
     
     function escapeHtml(text) {
