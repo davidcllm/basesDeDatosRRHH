@@ -716,6 +716,11 @@
             if (table) {
                 var column = table.column(columnIdx);
                 column.visible($(this).is(':checked'));
+                
+                // Ajustar el ancho de las columnas después de cambiar visibilidad
+                setTimeout(function() {
+                    table.columns.adjust().draw(false);
+                }, 50);
             }
         });
         
@@ -767,19 +772,28 @@
         $('#filterFechaInicio').val('');
         $('#filterFechaFin').val('');
         
-        // Restaurar todas las columnas
-        $('.column-toggle').prop('checked', true).trigger('change');
-        
-        tables.forEach(function(table) {
-            table.search('').columns().search('').draw();
+        // Restaurar todas las columnas sin disparar eventos múltiples
+        $('.column-toggle').each(function() {
+            var tableId = $(this).data('table');
+            var columnIdx = $(this).data('column');
+            var table = tableObjects[tableId];
+            
+            if (table && !$(this).is(':checked')) {
+                $(this).prop('checked', true);
+                table.column(columnIdx).visible(true);
+            }
         });
         
-        // Recalcular el ancho de las columnas después de restaurar
+        tables.forEach(function(table) {
+            table.search('').columns().search('').draw(false);
+        });
+        
+        // Un solo ajuste al final
         setTimeout(function() {
             tables.forEach(function(table) {
-                table.columns.adjust().draw();
+                table.columns.adjust().draw(false);
             });
-        }, 100);
+        }, 50);
     }
     
     function clearTableFilters() {
