@@ -61,7 +61,7 @@ Otra opción para solucionarlo, es que se puede eliminar el contendor que esté 
 <img width="1573" height="891" alt="imagen" src="https://github.com/user-attachments/assets/73f7daea-81cd-4fb8-abca-c743d9823d71" />
 <br>
 <br>
-Después de cambiar el puerto o eliminar el contenedor que esté ocupando ese puerto, volvemos a ejecutar "docker compose up --build" en la misma ruta del archivo extraído del .zip.
+Otro posible error, pero poco probable que suceda, es que se tenga un contenedor con el mismo nombre que alguno o varios de los nuestros, si es el caso, favor de eliminar los otros contenedores. Después de cambiar el puerto o eliminar el contenedor que esté ocupando ese puerto, volvemos a ejecutar "docker compose up --build" en la misma ruta del archivo extraído del .zip. 
 <br>
 <br>
 Posteriormente, el contenedor de docker se habrá creado y podremos ingresar a la aplicación por medio del navegador. En la barra de búsqueda ingresamos a "http://localhost:5000/". Para poder ingresar, se creó una cuenta
@@ -72,7 +72,18 @@ Email: admin@gmail.com
 Contraseña: basesDeDatos123
 <br>
 <br>
-Si se siguieron estos pasos correctamente, la aplicación podrá ser usada.
+Si se siguieron estos pasos correctamente, la aplicación podrá ser usada. Para detener la ejecución, pulsar Ctrl+C en la terminal si es ejecución en primer plano, o ingresar el comando "docker compose stop" si se está ejecutando en segundo plano. Para ejecutar la aplicación en segundo plano el comando es "docker compose up -d", en primer plano "docker compose up". Para eliminar los contenedores se usa "docker compose down", si se desea eliminar los contenedores, redes y volúmenes de datos se ingresa "docker compose down -v". Todo esto también se puede hacer con el GUI de Docker Desktop, en la sección de "Contenedores". Para detener la aplicación está el ícono del cuadrado, para eliminar el contenedor está el botón rojo. Ambos señalados a continuación:
+<br>
+<br>
+<img width="1186" height="153" alt="imagen" src="https://github.com/user-attachments/assets/e843196d-981b-40b4-81ab-3882b434bc4f" />
+<br>
+<br>
+Para ejecutar la aplicación desde el GUI, se pulsa el botón de "Play" señalado a continuación:
+<br>
+<br>
+<img width="1198" height="158" alt="imagen" src="https://github.com/user-attachments/assets/fb2207e6-cee6-4a4b-876c-1350a7b39f44" />
+
+
 
 
 
