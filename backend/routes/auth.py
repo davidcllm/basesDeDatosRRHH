@@ -1,3 +1,6 @@
+# Este archivo fue creado con ayuda de la Inteligencia Artificial de OpenAI. 
+# OpenAI. (2025). ChatGPT [Modelo de lenguaje de gran tamaño]. https://chat.openai.com/chat
+
 import pymysql
 from flask import Blueprint, request, jsonify, render_template, redirect, url_for, flash, session
 from flask_jwt_extended import (
