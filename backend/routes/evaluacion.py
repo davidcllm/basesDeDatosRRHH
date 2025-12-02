@@ -130,8 +130,8 @@ def get_capacitaciones():
                c.id_capacitacion,
                c.nombre,
                c.descripcion,
-               c.fecha_inicio,
-               c.fecha_fin,
+               ec.fecha_inicio,
+               ec.fecha_fin,
                c.proveedor,
                ec.id_empleado,
                emp.nombre_completo,
@@ -354,17 +354,24 @@ def eliminar_evaluacion(id_eval):
 def agregar_capacitacion():
     id_empleado = request.form.get("id_empleado") or None
     id_capacitacion = request.form.get("id_capacitacion")
-    fecha_inicio = request.form.get("fecha_inicio")
-    fecha_fin = request.form.get("fecha_fin")
+    fecha_inicio = parsear_fecha_local(request.form.get("fecha_inicio"))
+    fecha_fin = parsear_fecha_local(request.form.get("fecha_fin"))
     resultado = request.form.get("resultado", "").strip()
     comentarios = request.form.get("comentarios", "").strip()
 
     errores = []
 
-    # Validar fechas
-    es_valido, msg = validar_fechas(fecha_inicio, fecha_fin)
-    if not es_valido:
-        errores.append(f"Fechas: {msg}")
+    # Validar que las fechas no sean None
+    if not fecha_inicio:
+        errores.append("Fecha de inicio: campo requerido")
+    if not fecha_fin:
+        errores.append("Fecha fin: campo requerido")
+
+    # Validar fechas (solo si ambas existen)
+    if fecha_inicio and fecha_fin:
+        es_valido, msg = validar_fechas(fecha_inicio, fecha_fin)
+        if not es_valido:
+            errores.append(f"Fechas: {msg}")
 
     # Validar resultado
     es_valido, msg = validar_resultado_capacitacion(resultado)
@@ -401,22 +408,40 @@ def agregar_capacitacion():
 # ---------------------------
 # EDITAR CAPACITACION
 # ---------------------------
+
+def parsear_fecha_local(fecha_string):
+    """Convierte fecha local sin afectar por timezone"""
+    if not fecha_string:
+        return None
+    try:
+        # Toma la fecha como está, sin conversión de timezone
+        return datetime.fromisoformat(fecha_string)
+    except:
+        return None
+
 @evaluacion_bp.route("/evaluacion/editar_capacitacion/<int:id_empleado_capacitacion>", methods=["POST"])
 @jwt_required()
 @roles_required('administrador','recursos_humanos')
 def editar_capacitacion(id_empleado_capacitacion):
     id_empleado = request.form.get("id_empleado") or None
-    fecha_inicio = request.form.get("fecha_inicio")
-    fecha_fin = request.form.get("fecha_fin")
+    fecha_inicio = parsear_fecha_local(request.form.get("fecha_inicio"))
+    fecha_fin = parsear_fecha_local(request.form.get("fecha_fin"))
     resultado = request.form.get("resultado", "").strip()
     comentarios = request.form.get("comentarios", "").strip()
 
     errores = []
 
-    # Validar fechas
-    es_valido, msg = validar_fechas(fecha_inicio, fecha_fin)
-    if not es_valido:
-        errores.append(f"Fechas: {msg}")
+    # Validar que las fechas no sean None
+    if not fecha_inicio:
+        errores.append("Fecha de inicio: campo requerido")
+    if not fecha_fin:
+        errores.append("Fecha fin: campo requerido")
+
+    # Validar fechas (solo si ambas existen)
+    if fecha_inicio and fecha_fin:
+        es_valido, msg = validar_fechas(fecha_inicio, fecha_fin)
+        if not es_valido:
+            errores.append(f"Fechas: {msg}")
 
     # Validar resultado
     es_valido, msg = validar_resultado_capacitacion(resultado)
