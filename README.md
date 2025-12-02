@@ -1,5 +1,5 @@
 Nota: Antes de empezar a seguir los pasos, favor de leer todo, ya que vienen varias formas de hacerlo. Proceda con la que desee, si alguna falla, puede seguir con la otra. Para pasar los archivos del repositorio a su
-máquina, se recomienda seguir los pasos del .zip por su sencillez.
+máquina, se recomienda seguir los pasos del .zip por su sencillez. Requisitos previos: tener docker instalado y que el equipo de cómputo tenga soporte de virtualización.   
 <br>
 <br>
 Crea una carpeta en la ruta en donde se desee guardar el proyecto, en este caso, yo elegí "C:\Users\davcm". Lo nombraremos RRHH.
