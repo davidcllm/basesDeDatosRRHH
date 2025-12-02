@@ -57,6 +57,69 @@
         border-radius: 6px;
         font-size: 13px;
     }
+
+    .tags-container {
+        width: 100%;
+        padding: 8px;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        background: #fff;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        align-items: center;
+        min-height: 40px;
+    }
+
+    .tags-container:focus-within {
+        outline: none;
+        border-color: #0066ff;
+        box-shadow: 0 0 0 3px rgba(0, 102, 255, 0.1);
+    }
+
+    .tag {
+        background: #0066ff;
+        color: white;
+        padding: 4px 10px;
+        border-radius: 16px;
+        font-size: 12px;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        white-space: nowrap;
+    }
+
+    .tag button {
+        background: none;
+        border: none;
+        color: white;
+        cursor: pointer;
+        font-size: 14px;
+        padding: 0;
+        line-height: 1;
+    }
+
+    .tag button:hover {
+        opacity: 0.8;
+    }
+
+    .tags-input {
+        flex: 1;
+        min-width: 100px;
+        border: none;
+        outline: none;
+        font-size: 13px;
+        padding: 0;
+    }
+
+    .highlighted-row {
+        background-color: #fff3cd !important;
+    }
+
+    .highlighted-cell {
+        background-color: #fffacd;
+        font-weight: 600;
+    }
     
     .filter-group input:focus,
     .filter-group select:focus {
@@ -81,29 +144,73 @@
         background: #e0e0e0;
         border-color: #bbb;
     }
-    
+
+    .search-tags-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-top: 8px;
+    }
+
+    .search-tag {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: #1d6bff;
+        border: 1px solid #1a55d1;
+        border-radius: 999px;
+        padding: 4px 12px;
+        font-size: 12px;
+        color: #fff;
+        font-weight: 600;
+        box-shadow: 0 2px 6px rgba(0, 86, 179, 0.25);
+    }
+
+    .search-tag span:first-child {
+        letter-spacing: 0.3px;
+    }
+
+    .search-tag button {
+        border: none;
+        background: rgba(255, 255, 255, 0.2);
+        color: #fff;
+        font-size: 14px;
+        line-height: 1;
+        cursor: pointer;
+        padding: 2px 6px;
+        border-radius: 50%;
+    }
+
+    .custom-table-filter {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
     .accordion-header {
         background: #f8f9fa;
-        padding: 10px;
-        border-radius: 6px;
+        padding: 10px 14px;
+        border-radius: 8px;
+        border: 1px solid #dfe6f2;
         cursor: pointer;
-        margin-bottom: 5px;
+        margin-bottom: 8px;
         font-size: 13px;
         font-weight: 600;
-        color: #333;
+        color: #2c3f63;
         display: flex;
         justify-content: space-between;
         align-items: center;
-        transition: all 0.3s ease;
+        transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
     }
     
     .accordion-header:hover {
-        background: #e9ecef;
+        background: #eef3fb;
     }
     
     .accordion-header.active {
         background: #0066ff;
         color: white;
+        border-color: #0052cc;
     }
     
     .accordion-content {
@@ -119,11 +226,38 @@
     }
     
     .accordion-arrow {
-        transition: transform 0.3s ease;
+        width: 28px;
+        height: 24px;
+        border-radius: 6px;
+        border: 1px solid #dfe6f2;
+        background: #ffffff;
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition: border-color 0.2s ease, background 0.2s ease;
+    }
+
+    .accordion-arrow::after {
+        content: '';
+        display: block;
+        width: 0;
+        height: 0;
+        border-left: 7px solid #4a5d7f;
+        border-top: 5px solid transparent;
+        border-bottom: 5px solid transparent;
+        transition: transform 0.2s ease, border-left-color 0.2s ease;
     }
     
-    .accordion-arrow.rotated {
-        transform: rotate(180deg);
+    .accordion-header.active .accordion-arrow {
+        border-color: rgba(255, 255, 255, 0.6);
+        background: rgba(255, 255, 255, 0.2);
+    }
+
+    .accordion-header.active .accordion-arrow::after,
+    .accordion-arrow.rotated::after {
+        transform: rotate(90deg);
+        border-left-color: #ffffff;
     }
     
     .content-area {
@@ -184,6 +318,35 @@
         border-color: #0066ff;
         box-shadow: 0 0 0 3px rgba(0, 102, 255, 0.1);
     }
+    
+    .table-tags-container {
+        margin-bottom: 10px;
+        padding: 8px;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        background: #fff;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        align-items: center;
+        min-height: 40px;
+    }
+
+    .table-tags-container:focus-within {
+        outline: none;
+        border-color: #0066ff;
+        box-shadow: 0 0 0 3px rgba(0, 102, 255, 0.1);
+    }
+
+    .table-tags-input {
+        flex: 1;
+        min-width: 80px;
+        border: none;
+        outline: none;
+        font-size: 13px;
+        padding: 0;
+    }
+    
     .empty-msg {
         padding: 12px;
         text-align: center;
@@ -222,7 +385,7 @@
         
         <div class="accordion-header" onclick="toggleAccordion('accordionVerTablas')">
             <span>Ver tablas</span>
-            <span class="accordion-arrow" id="arrowVerTablas">▼</span>
+            <span class="accordion-arrow" id="arrowVerTablas" aria-hidden="true"></span>
         </div>
         <div class="accordion-content active" id="accordionVerTablas">
             <label style="display: block; font-size: 12px; margin: 5px 0 10px 0; cursor: pointer; font-weight: bold; border-bottom: 1px solid #ddd; padding-bottom: 8px;">
@@ -257,27 +420,30 @@
         <div class="filter-group">
             <label for="globalSearch">Búsqueda global</label>
             <input type="text" id="globalSearch" placeholder="Buscar en todas las tablas">
+            <div id="globalSearchTags" class="search-tags-container"></div>
         </div>
         
         <div class="records-counter" id="recordsCounter" style="display: none;">
             <span id="recordsCountText">0 registros encontrados</span>
         </div>
         
-        <div class="filter-group">
+        <form id="dateFilterForm" class="filter-group" method="get" action="/reportes">
+            <input type="hidden" name="tipo" id="filterTipo" value="{{ tipo }}">
             <label for="filterFechaInicio">Fecha desde</label>
-            <input type="date" id="filterFechaInicio" max="9999-12-31">
+            <input type="date" id="filterFechaInicio" name="fecha_inicio" value="{{ fecha_inicio or '' }}" max="9999-12-31">
             <small id="errorFechaInicio" style="color: #dc3545; font-size: 11px; display: none; margin-top: 3px;"></small>
-        </div>
         
-        <div class="filter-group">
-            <label for="filterFechaFin">Fecha hasta</label>
-            <input type="date" id="filterFechaFin" max="9999-12-31">
+            <label for="filterFechaFin" style="margin-top: 12px; display: block;">Fecha hasta</label>
+            <input type="date" id="filterFechaFin" name="fecha_fin" value="{{ fecha_fin or '' }}" max="9999-12-31">
             <small id="errorFechaFin" style="color: #dc3545; font-size: 11px; display: none; margin-top: 3px;"></small>
-        </div>
-        
-        <button class="btn-clear-filters" onclick="clearDateFilters()" style="margin-top: 10px;">
-            Limpiar fechas
-        </button>
+
+            <button type="submit" class="btn-clear-filters" style="margin-top: 12px; background-color: #0066ff; color: #fff;">
+                Aplicar fechas
+            </button>
+            <button type="button" class="btn-clear-filters" onclick="clearDateFilters()" style="margin-top: 10px;">
+                Limpiar fechas
+            </button>
+        </form>
         
         <hr style="border: 1px solid #e0e0e0; margin: 20px 0;">
         
@@ -287,7 +453,7 @@
             {% if tipo == 'nomina' or tipo == 'todos' %}
             <div class="accordion-header" onclick="toggleAccordion('accordionNomina')">
                 <span>Nómina</span>
-                <span class="accordion-arrow" id="arrowNomina">▼</span>
+                <span class="accordion-arrow" id="arrowNomina" aria-hidden="true"></span>
             </div>
             <div class="accordion-content" id="accordionNomina">
                 <label style="display: block; font-size: 12px; margin: 5px 0;">
@@ -314,7 +480,7 @@
             {% if tipo == 'ausencias' or tipo == 'todos' %}
             <div class="accordion-header" onclick="toggleAccordion('accordionAusencias')">
                 <span>Ausencias</span>
-                <span class="accordion-arrow" id="arrowAusencias">▼</span>
+                <span class="accordion-arrow" id="arrowAusencias" aria-hidden="true"></span>
             </div>
             <div class="accordion-content" id="accordionAusencias">
                 <label style="display: block; font-size: 12px; margin: 5px 0;">
@@ -338,7 +504,7 @@
             {% if tipo == 'evaluaciones' or tipo == 'todos' %}
             <div class="accordion-header" onclick="toggleAccordion('accordionEvaluaciones')">
                 <span>Evaluaciones</span>
-                <span class="accordion-arrow" id="arrowEvaluaciones">▼</span>
+                <span class="accordion-arrow" id="arrowEvaluaciones" aria-hidden="true"></span>
             </div>
             <div class="accordion-content" id="accordionEvaluaciones">
                 <label style="display: block; font-size: 12px; margin: 5px 0;">
@@ -362,7 +528,7 @@
             {% if tipo == 'capacitaciones' or tipo == 'todos' %}
             <div class="accordion-header" onclick="toggleAccordion('accordionCapacitaciones')">
                 <span>Capacitaciones</span>
-                <span class="accordion-arrow" id="arrowCapacitaciones">▼</span>
+                <span class="accordion-arrow" id="arrowCapacitaciones" aria-hidden="true"></span>
             </div>
             <div class="accordion-content" id="accordionCapacitaciones">
                 <label style="display: block; font-size: 12px; margin: 5px 0;">
@@ -392,7 +558,7 @@
             {% if tipo == 'proyectos' or tipo == 'todos' %}
             <div class="accordion-header" onclick="toggleAccordion('accordionProyectos')">
                 <span>Proyectos</span>
-                <span class="accordion-arrow" id="arrowProyectos">▼</span>
+                <span class="accordion-arrow" id="arrowProyectos" aria-hidden="true"></span>
             </div>
             <div class="accordion-content" id="accordionProyectos">
                 <label style="display: block; font-size: 12px; margin: 5px 0;">
@@ -416,7 +582,7 @@
             {% if tipo == 'presupuestos' or tipo == 'todos' %}
             <div class="accordion-header" onclick="toggleAccordion('accordionPresupuestos')">
                 <span>Presupuestos</span>
-                <span class="accordion-arrow" id="arrowPresupuestos">▼</span>
+                <span class="accordion-arrow" id="arrowPresupuestos" aria-hidden="true"></span>
             </div>
             <div class="accordion-content" id="accordionPresupuestos">
                 <label style="display: block; font-size: 12px; margin: 5px 0;">
@@ -687,6 +853,9 @@
 <script>
     var tables = [];
     var tableObjects = {};
+    var globalSearchTerms = [];
+    var tableSearchTerms = {};
+    var accordionStates = {};
     
     $(document).ready(function () {
         var settings = {
@@ -706,28 +875,74 @@
             }
         };
         
+        initializeAccordionStates();
+        
         // Inicializar todas las tablas y guardar referencias
         $('table.dataTable').each(function() {
             var table = $(this).DataTable(settings);
             var tableId = this.id;
             tables.push(table);
             tableObjects[tableId] = table;
+            tableSearchTerms[tableId] = [];
             
             // Guardar ordenamiento cuando cambia
             table.on('order.dt', function() {
                 saveTableOrder(tableId, table.order());
             });
+
+            var filterWrapper = $('#' + tableId + '_filter');
+            var filterInput = filterWrapper.find('input');
+            filterWrapper.addClass('custom-table-filter');
+            filterInput.off('.DT').attr('placeholder', 'Buscar en esta tabla...');
+            var tableTagContainer = $('<div class="search-tags-container table-search-tags" data-table="' + tableId + '"></div>');
+            filterWrapper.append(tableTagContainer);
+
+            filterInput.on('keydown', function(event) {
+                if (event.key === 'Enter' || event.key === ',') {
+                    event.preventDefault();
+                    var term = sanitizeSearchTerm($(this).val() || '');
+                    if (term) {
+                        resetGlobalSearchState();
+                        addTableSearchTag(tableId, term);
+                        $(this).val('');
+                    }
+                }
+            });
+
+            filterInput.on('keyup', function(event) {
+                if (event.key === 'Enter' || event.key === ',') {
+                    return;
+                }
+                resetGlobalSearchState();
+                applyTableSearch(tableId);
+                saveFilters();
+            });
         });
         
-        // Cargar filtros guardados
-        loadFilters();
-        updateCsvButtonState();
+        // Actualizar visibilidad inicial de acordeones de columnas
+        updateColumnSectionVisibility();
         
-        // Limpiar búsqueda global cuando se usa búsqueda individual
-        $(document).on('keyup', '.dataTables_filter input', function() {
-            if ($(this).val() !== '') {
-                $('#globalSearch').val('');
+        // Búsqueda global con etiquetas
+        $('#globalSearch').on('keydown', function(event) {
+            if (event.key === 'Enter' || event.key === ',') {
+                event.preventDefault();
+                var term = sanitizeSearchTerm($(this).val() || '');
+                if (!term) return;
+                resetAllTableSearchTerms();
+                addGlobalSearchTag(term);
             }
+        });
+
+        $('#globalSearch').on('keyup', function(event) {
+            if (event.key === 'Enter' || event.key === ',') {
+                return;
+            }
+            var hasValue = sanitizeSearchTerm($(this).val()).length > 0;
+            if (hasValue || globalSearchTerms.length > 0) {
+                resetAllTableSearchTerms();
+            }
+            applyGlobalSearch();
+            saveFilters();
         });
         
         // Toggle de visibilidad de tablas completas
@@ -760,22 +975,8 @@
         // Actualizar visibilidad inicial de acordeones de columnas
         updateColumnSectionVisibility();
         
-        // Búsqueda global
-        $('#globalSearch').on('keyup', function() {
-            var searchValue = this.value;
-            tables.forEach(function(table) {
-                table.search(searchValue).draw();
-            });
-            
-            // Limpiar los campos de búsqueda individuales de cada tabla
-            $('.dataTables_filter input').val('');
-            
-            // Actualizar contador
-            updateRecordsCounter();
-            
-            // Guardar filtro
-            saveFilters();
-        });
+        // Actualizar visibilidad inicial de acordeones de columnas
+        updateColumnSectionVisibility();
         
         // Toggle de columnas
         $('.column-toggle').on('change', function() {
@@ -791,16 +992,14 @@
             saveFilters();
         });
         
-        // Validación y filtros de fecha
-        $('#filterFechaInicio, #filterFechaFin').on('change', function() {
+        function validateDateRange() {
             var fechaInicio = $('#filterFechaInicio').val();
             var fechaFin = $('#filterFechaFin').val();
+            var isValid = true;
             
-            // Limpiar errores previos
             $('#errorFechaInicio, #errorFechaFin').hide().text('');
             $('#filterFechaInicio, #filterFechaFin').css('border-color', '#ddd');
             
-            // Validar que la fecha de inicio no sea posterior a la fecha fin
             if (fechaInicio && fechaFin) {
                 var inicio = new Date(fechaInicio);
                 var fin = new Date(fechaFin);
@@ -808,78 +1007,54 @@
                 if (inicio > fin) {
                     $('#errorFechaInicio').text('La fecha desde no puede ser posterior a la fecha hasta').show();
                     $('#filterFechaInicio').css('border-color', '#dc3545');
-                    return;
+                    isValid = false;
                 }
                 
-                // Validar rango máximo (opcional: por ejemplo, máximo 5 años)
                 var diffTime = Math.abs(fin - inicio);
                 var diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                if (diffDays > 1825) { // 5 años aproximadamente
+                if (diffDays > 1825) {
                     $('#errorFechaFin').text('El rango no puede superar 5 años').show();
                     $('#filterFechaFin').css('border-color', '#dc3545');
-                    return;
+                    isValid = false;
                 }
             }
             
-            // Validar formato de fecha
             if (fechaInicio && !isValidDate(fechaInicio)) {
                 $('#errorFechaInicio').text('Formato de fecha inválido').show();
                 $('#filterFechaInicio').css('border-color', '#dc3545');
-                return;
+                isValid = false;
             }
             
             if (fechaFin && !isValidDate(fechaFin)) {
                 $('#errorFechaFin').text('Formato de fecha inválido').show();
                 $('#filterFechaFin').css('border-color', '#dc3545');
-                return;
+                isValid = false;
             }
             
-            // Actualizar el atributo min del campo "Fecha hasta" basado en "Fecha desde"
             if (fechaInicio) {
                 $('#filterFechaFin').attr('min', fechaInicio);
             } else {
                 $('#filterFechaFin').removeAttr('min');
             }
             
-            $.fn.dataTable.ext.search.push(
-                function(settings, data, dataIndex) {
-                    var fechaColumna = null;
-                    
-                    // Determinar qué columna tiene fechas según la tabla
-                    if (settings.nTable.id === 'tblAusencias') {
-                        fechaColumna = data[2]; // fecha_inicio
-                    } else if (settings.nTable.id === 'tblEvaluaciones') {
-                        fechaColumna = data[1]; // fecha_evaluacion
-                    } else if (settings.nTable.id === 'tblCapacitaciones') {
-                        fechaColumna = data[3]; // fecha_inicio
-                    } else if (settings.nTable.id === 'tblProyectos') {
-                        fechaColumna = data[3]; // fecha_asignacion
-                    } else if (settings.nTable.id === 'tblPresupuestos') {
-                        fechaColumna = data[1]; // fecha_inicio
-                    }
-                    
-                    if (!fechaColumna) return true;
-                    
-                    var fecha = new Date(fechaColumna);
-                    var inicio = fechaInicio ? new Date(fechaInicio) : null;
-                    var fin = fechaFin ? new Date(fechaFin) : null;
-                    
-                    if (inicio && fecha < inicio) return false;
-                    if (fin && fecha > fin) return false;
-                    
-                    return true;
-                }
-            );
-            
-            tables.forEach(function(table) {
-                table.draw();
-            });
-            
-            $.fn.dataTable.ext.search.pop();
-            
-            updateRecordsCounter();
+            return isValid;
+        }
+
+        $('#filterFechaInicio, #filterFechaFin').on('change', function() {
+            validateDateRange();
             saveFilters();
         });
+
+        $('#dateFilterForm').on('submit', function(e) {
+            if (!validateDateRange()) {
+                e.preventDefault();
+                return;
+            }
+            saveFilters();
+        });
+
+        // Ajustar el estado inicial de los campos de fecha
+        validateDateRange();
         // Validación en vivo mientras escribe
         $('#filterFechaInicio, #filterFechaFin').on('input', function() {
             var id = this.id;
@@ -910,12 +1085,62 @@
                 }
             }
         });
+        
+        $(document).on('click', '.search-tag button', function() {
+            var source = $(this).data('source');
+            var index = $(this).data('index');
+            if (typeof index === 'undefined') return;
+
+            if (source === 'global') {
+                var globalInput = $('#globalSearch');
+                var previousPattern = buildSearchPattern(globalSearchTerms).value;
+                var ignoreInline = globalInput.val() === previousPattern;
+                globalSearchTerms.splice(index, 1);
+                renderGlobalSearchTags();
+                applyGlobalSearch({ ignoreInline: ignoreInline });
+            } else if (tableSearchTerms[source]) {
+                var tableInput = $('#' + source + '_filter input');
+                var currentTerms = tableSearchTerms[source] || [];
+                var previousTablePattern = buildSearchPattern(currentTerms).value;
+                var isAutoValue = tableInput.length && tableInput.val() === previousTablePattern;
+                tableSearchTerms[source].splice(index, 1);
+                renderTableSearchTags(source);
+                applyTableSearch(source, { ignoreInline: isAutoValue });
+            }
+            saveFilters();
+        });
+
+        // Cargar filtros guardados al final
+        loadFilters();
     });
     
+    function initializeAccordionStates() {
+        $('.accordion-content').each(function() {
+            if (!this.id) return;
+            accordionStates[this.id] = $(this).hasClass('active');
+        });
+    }
+
     function clearAllFilters() {
         $('#globalSearch').val('');
+        globalSearchTerms = [];
+        renderGlobalSearchTags();
         $('#filterFechaInicio').val('');
         $('#filterFechaFin').val('');
+        $('#filterFechaFin').removeAttr('min');
+        $('#errorFechaInicio, #errorFechaFin').hide().text('');
+        $('#filterFechaInicio, #filterFechaFin').css('border-color', '#ddd');
+        
+        for (var tableId in tableObjects) {
+            if (!tableObjects.hasOwnProperty(tableId)) continue;
+            tableSearchTerms[tableId] = [];
+            renderTableSearchTags(tableId);
+            var input = $('#' + tableId + '_filter input');
+            if (input.length) {
+                input.val('');
+            }
+            tableObjects[tableId].search('').columns().search('').draw();
+        }
         
         // Restaurar todas las columnas
         $('.column-toggle').each(function() {
@@ -928,10 +1153,9 @@
                 table.column(columnIdx).visible(true);
             }
         });
-        
-        tables.forEach(function(table) {
-            table.search('').columns().search('').draw();
-        });
+
+        updateRecordsCounter();
+        saveFilters();
     }
     
     function clearTableFilters() {
@@ -948,9 +1172,172 @@
         $('#filterFechaFin').removeAttr('min');
         $('#errorFechaInicio, #errorFechaFin').hide().text('');
         $('#filterFechaInicio, #filterFechaFin').css('border-color', '#ddd');
-        $('#filterFechaInicio').trigger('change');
+        saveFilters();
+        var tipo = $('#filterTipo').val() || '{{ tipo }}';
+        var url = '/reportes';
+        if (tipo && tipo !== 'todos') {
+            url += '?tipo=' + encodeURIComponent(tipo);
+        }
+        window.location.href = url;
+    }
+
+    function sanitizeSearchTerm(term) {
+        return (term || '').trim().replace(/\s+/g, ' ');
+    }
+
+    function escapeRegexTerm(term) {
+        return term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    }
+
+    function buildSearchPattern(terms) {
+        var clean = terms
+            .map(function(t) { return sanitizeSearchTerm(t); })
+            .filter(function(t) { return t.length > 0; });
+        if (!clean.length) {
+            return { value: '', useRegex: false };
+        }
+        var unique = Array.from(new Set(clean));
+        if (unique.length === 1) {
+            return { value: unique[0], useRegex: false };
+        }
+        var pattern = unique.map(escapeRegexTerm).join('|');
+        return { value: pattern, useRegex: true };
+    }
+
+    function renderGlobalSearchTags() {
+        var container = $('#globalSearchTags');
+        container.empty();
+        globalSearchTerms.forEach(function(term, index) {
+            var tag = $('<span class="search-tag"></span>');
+            tag.append($('<span></span>').text(term));
+            var btn = $('<button type="button" aria-label="Eliminar etiqueta">&times;</button>');
+            btn.data('source', 'global');
+            btn.data('index', index);
+            tag.append(btn);
+            container.append(tag);
+        });
+    }
+
+    function renderTableSearchTags(tableId) {
+        var container = $('.table-search-tags[data-table="' + tableId + '"]');
+        container.empty();
+        var terms = tableSearchTerms[tableId] || [];
+        terms.forEach(function(term, index) {
+            var tag = $('<span class="search-tag"></span>');
+            tag.append($('<span></span>').text(term));
+            var btn = $('<button type="button" aria-label="Eliminar etiqueta">&times;</button>');
+            btn.data('source', tableId);
+            btn.data('index', index);
+            tag.append(btn);
+            container.append(tag);
+        });
+    }
+
+    function addGlobalSearchTag(term) {
+        var clean = sanitizeSearchTerm(term);
+        if (!clean) return;
+        if (globalSearchTerms.some(function(t) { return t.toLowerCase() === clean.toLowerCase(); })) {
+            return;
+        }
+        globalSearchTerms.push(clean);
+        renderGlobalSearchTags();
+        $('#globalSearch').val('');
+        applyGlobalSearch();
+        saveFilters();
+    }
+
+    function addTableSearchTag(tableId, term) {
+        var clean = sanitizeSearchTerm(term);
+        if (!clean) return;
+        if (!tableSearchTerms[tableId]) {
+            tableSearchTerms[tableId] = [];
+        }
+        var exists = tableSearchTerms[tableId].some(function(t) { return t.toLowerCase() === clean.toLowerCase(); });
+        if (exists) return;
+        tableSearchTerms[tableId].push(clean);
+        renderTableSearchTags(tableId);
+        applyTableSearch(tableId);
+        saveFilters();
+    }
+
+    function applyGlobalSearch(options) {
+        options = options || {};
+        var activeTerms = globalSearchTerms.slice();
+        var inlineValue = sanitizeSearchTerm($('#globalSearch').val());
+        if (inlineValue && !options.ignoreInline) {
+            activeTerms.push(inlineValue);
+        }
+        var pattern = buildSearchPattern(activeTerms);
+        tables.forEach(function(table) {
+            table.search(pattern.value, pattern.useRegex, false).draw();
+        });
+        updateRecordsCounter();
+    }
+
+    function applyTableSearch(tableId, options) {
+        options = options || {};
+        var table = tableObjects[tableId];
+        if (!table) return;
+        var input = $('#' + tableId + '_filter input');
+        var inlineValue = input.length ? sanitizeSearchTerm(input.val()) : '';
+        var terms = (tableSearchTerms[tableId] || []).slice();
+        if (inlineValue && !options.ignoreInline) {
+            terms.push(inlineValue);
+        }
+        var pattern = buildSearchPattern(terms);
+        table.search(pattern.value, pattern.useRegex, false).draw();
+        updateRecordsCounter();
+    }
+
+    function resetAllTableSearchTerms() {
+        var changed = false;
+        for (var tableId in tableObjects) {
+            if (!tableObjects.hasOwnProperty(tableId)) continue;
+            var input = $('#' + tableId + '_filter input');
+            var hadInput = input.length && input.val().length > 0;
+            if (hadInput) {
+                input.val('');
+            }
+            var hadTerms = tableSearchTerms[tableId] && tableSearchTerms[tableId].length > 0;
+            if (hadTerms) {
+                tableSearchTerms[tableId] = [];
+                renderTableSearchTags(tableId);
+            }
+            if (hadInput || hadTerms) {
+                tableObjects[tableId].search('').draw();
+                changed = true;
+            }
+        }
+        if (changed) {
+            saveFilters();
+        }
+    }
+
+    function resetGlobalSearchState() {
+        var hadInput = $('#globalSearch').val().length > 0;
+        var hadTerms = globalSearchTerms.length > 0;
+        if (!hadInput && !hadTerms) {
+            return;
+        }
+        $('#globalSearch').val('');
+        globalSearchTerms = [];
+        renderGlobalSearchTags();
+        tables.forEach(function(table) {
+            table.search('').draw();
+        });
         updateRecordsCounter();
         saveFilters();
+    }
+    
+    function escapeHtml(text) {
+        var map = {
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#039;'
+        };
+        return text.replace(/[&<>"']/g, function(m) { return map[m]; });
     }
     
     function isValidDate(dateString) {
@@ -989,14 +1376,39 @@
         return new Date(year, month, 0).getDate();
     }
     
-    function toggleAccordion(id) {
+    function applyAccordionState(id, shouldOpen) {
         var content = document.getElementById(id);
+        if (!content) return;
         var arrow = document.getElementById('arrow' + id.replace('accordion', ''));
         var header = content.previousElementSibling;
-        
-        content.classList.toggle('active');
-        arrow.classList.toggle('rotated');
-        header.classList.toggle('active');
+
+        if (shouldOpen) {
+            content.classList.add('active');
+            if (arrow) {
+                arrow.classList.add('rotated');
+            }
+            if (header) {
+                header.classList.add('active');
+            }
+        } else {
+            content.classList.remove('active');
+            if (arrow) {
+                arrow.classList.remove('rotated');
+            }
+            if (header) {
+                header.classList.remove('active');
+            }
+        }
+
+        accordionStates[id] = shouldOpen;
+    }
+
+    function toggleAccordion(id) {
+        var content = document.getElementById(id);
+        if (!content) return;
+        var shouldOpen = !content.classList.contains('active');
+        applyAccordionState(id, shouldOpen);
+        saveFilters();
     }
     
     function capitalizeFirst(str) {
@@ -1074,12 +1486,21 @@
     function saveFilters() {
         var filters = {
             globalSearch: $('#globalSearch').val(),
+            globalSearchTerms: globalSearchTerms.slice(),
             fechaInicio: $('#filterFechaInicio').val(),
             fechaFin: $('#filterFechaFin').val(),
             visibleTables: [],
             visibleColumns: {},
-            tableOrders: JSON.parse(localStorage.getItem('tableOrders') || '{}')
+            tableOrders: JSON.parse(localStorage.getItem('tableOrders') || '{}'),
+            tableSearchTerms: {},
+            accordionStates: Object.assign({}, accordionStates)
         };
+
+        for (var tableId in tableSearchTerms) {
+            if (tableSearchTerms.hasOwnProperty(tableId)) {
+                filters.tableSearchTerms[tableId] = (tableSearchTerms[tableId] || []).slice();
+            }
+        }
         
         // Guardar tablas visibles
         $('.table-visibility-toggle:checked').each(function() {
@@ -1108,17 +1529,34 @@
         try {
             var filters = JSON.parse(filtersJson);
             
-            // Restaurar búsqueda global
-            if (filters.globalSearch) {
-                $('#globalSearch').val(filters.globalSearch);
-                tables.forEach(function(table) {
-                    table.search(filters.globalSearch).draw();
-                });
+            $('#globalSearch').val(filters.globalSearch || '');
+            globalSearchTerms = [];
+            if (Array.isArray(filters.globalSearchTerms)) {
+                globalSearchTerms = filters.globalSearchTerms.slice();
+            }
+            renderGlobalSearchTags();
+            if (globalSearchTerms.length || $('#globalSearch').val()) {
+                applyGlobalSearch();
+            }
+            
+            if (filters.tableSearchTerms) {
+                for (var tableId in filters.tableSearchTerms) {
+                    if (!filters.tableSearchTerms.hasOwnProperty(tableId)) continue;
+                    if (!tableSearchTerms[tableId]) {
+                        tableSearchTerms[tableId] = [];
+                    }
+                    tableSearchTerms[tableId] = (filters.tableSearchTerms[tableId] || []).slice();
+                    renderTableSearchTags(tableId);
+                    applyTableSearch(tableId);
+                }
             }
             
             // Restaurar fechas
             if (filters.fechaInicio) $('#filterFechaInicio').val(filters.fechaInicio);
             if (filters.fechaFin) $('#filterFechaFin').val(filters.fechaFin);
+            if (filters.fechaInicio || filters.fechaFin) {
+                $('#filterFechaInicio').trigger('change');
+            }
             
             // Restaurar tablas visibles
             if (filters.visibleTables && filters.visibleTables.length > 0) {
@@ -1128,6 +1566,9 @@
                     $('.table-visibility-toggle[data-target="' + target + '"]').prop('checked', true);
                     $('#section-' + target).show();
                 });
+            } else {
+                $('.table-visibility-toggle').prop('checked', true);
+                $('.report-card').show();
             }
             
             // Restaurar columnas visibles
@@ -1145,17 +1586,19 @@
                 }
             }
             
-            // Aplicar filtros de fecha si existen
-            if (filters.fechaInicio || filters.fechaFin) {
-                $('#filterFechaInicio').trigger('change');
-            }
-            
             // Restaurar ordenamiento de tablas
             if (filters.tableOrders) {
                 for (var tableId in filters.tableOrders) {
                     if (tableObjects[tableId]) {
                         tableObjects[tableId].order(filters.tableOrders[tableId]).draw();
                     }
+                }
+            }
+            
+            if (filters.accordionStates) {
+                for (var accId in filters.accordionStates) {
+                    if (!filters.accordionStates.hasOwnProperty(accId)) continue;
+                    applyAccordionState(accId, !!filters.accordionStates[accId]);
                 }
             }
             
@@ -1185,6 +1628,19 @@
         // Si solo hay una tabla, usar ese tipo; si hay varias, usar 'todos'
         var tipo = visibleTables.length === 1 ? visibleTables[0] : 'todos';
         var url = '/reportes/descargar?tipo=' + tipo + '&formato=csv';
+
+        if (visibleTables.length > 1) {
+            url += '&tablas=' + encodeURIComponent(visibleTables.join(','));
+        }
+
+        var fechaInicio = $('#filterFechaInicio').val();
+        var fechaFin = $('#filterFechaFin').val();
+        if (fechaInicio) {
+            url += '&fecha_inicio=' + encodeURIComponent(fechaInicio);
+        }
+        if (fechaFin) {
+            url += '&fecha_fin=' + encodeURIComponent(fechaFin);
+        }
         
         // Crear un elemento temporal para forzar la descarga
         var link = document.createElement('a');
