@@ -9,7 +9,7 @@
       <select id="banco" name="banco" class="form-control" required>
         <option value="">-- Seleccionar Banco --</option>
         {% for b in bancos %}
-          <option value="{{ b }}">{{ b }}</option>
+        <option value="{{ b }}">{{ b }}</option>
         {% endfor %}
       </select>
     </div>
@@ -24,7 +24,7 @@
       <select id="tipo" name="tipo" class="form-control" required>
         <option value="">-- Seleccionar Tipo --</option>
         {% for t in tipos %}
-          <option value="{{ t }}">{{ t }}</option>
+        <option value="{{ t }}">{{ t }}</option>
         {% endfor %}
       </select>
     </div>
@@ -39,7 +39,7 @@
       <select id="id_centro_costo" name="id_centro_costo" class="form-control" required>
         <option value="">-- Seleccionar Centro de Costo --</option>
         {% for c in centros %}
-          <option value="{{ c.id_centro_costo }}">{{ c.nombre }} (ID: {{ c.id_centro_costo }})</option>
+        <option value="{{ c.id_centro_costo }}">{{ c.nombre }} (ID: {{ c.id_centro_costo }})</option>
         {% endfor %}
       </select>
     </div>
@@ -48,247 +48,365 @@
   </form>
 </div>
 
-{% if cuentas %}
-<table class="table" style="width:95%;margin:20px auto;">
-  <thead>
-    <tr>
-      <th>ID</th>
-      <th>Banco</th>
-      <th>Número de cuenta</th>
-      <th>Tipo</th>
-      <th>Saldo</th>
-      <th>Centro de costo</th>
-      <th>Acciones</th>
-    </tr>
-  </thead>
+<h2 style="margin-top:40px;">Registros de Cuentas Contables</h2>
 
-  <style>
-/* overlay */
-.modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.35);
-  display: none;
-  z-index: 999;
-}
+<div style="width:95%;margin:20px auto;display:flex;gap:10px;align-items:center;">
+  <button type="button" id="toggle-cuentas" class="btn btn-primary" onclick="toggleCuentas()"
+    style="padding:8px 16px;border-radius:6px;">▼ Cargar Cuentas Contables</button>
+  <input type="text" id="search-cuentas" placeholder="Buscar en cuentas..." onkeyup="filterCuentasTable()"
+    style="flex:1;padding:8px;border-radius:6px;border:1px solid #ddd;display:none;">
+</div>
 
-/* tarjeta centrada */
-.edit-modal {
-  position: fixed;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%,-50%);
-  width: 380px;
-  max-width: 90%;
-  background: #fff;
-  border-radius: 8px;
-  box-shadow: 0 6px 24px rgba(0,0,0,0.18);
-  padding: 22px;
-  display: none;
-  z-index: 1000;
-}
+<div id="cuentas-container" style="display:none;">
 
-.edit-modal h3 { margin-top: 0; margin-bottom: 14px; font-size: 20px; }
-.edit-modal .form-group { margin-bottom: 12px; }
-.edit-modal .form-control { width:100%; padding:8px 10px; border-radius:6px; border:1px solid #ddd; }
+  {% if cuentas %}
+  <table class="table" style="width:95%;margin:20px auto;">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Banco</th>
+        <th>Número de cuenta</th>
+        <th>Tipo</th>
+        <th>Saldo</th>
+        <th>Centro de costo</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
 
-.edit-modal .actions { display:flex; gap:10px; margin-top:12px; }
-.edit-modal .actions .btn { flex:1; padding:10px; border-radius:6px; border:0; cursor:pointer; }
-.edit-modal .btn-save { background:#0069ff; color:#fff; }
-.edit-modal .btn-cancel { background:#e9ecef; color:#333; }
+    <style>
+      /* overlay */
+      .modal-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.35);
+        display: none;
+        z-index: 999;
+      }
 
-/* estilos adicionales para la columna Acciones (botón Eliminar más reducido) */
-.actions-cell {
-  display: flex;
-  align-items: center;
-  justify-content: center; /* centrar los controles horizontalmente */
-  gap: 12px;
-}
+      /* tarjeta centrada */
+      .edit-modal {
+        position: fixed;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        width: 380px;
+        max-width: 90%;
+        background: #fff;
+        border-radius: 8px;
+        box-shadow: 0 6px 24px rgba(0, 0, 0, 0.18);
+        padding: 22px;
+        display: none;
+        z-index: 1000;
+      }
 
-/* botón Eliminar más compacto */
-.actions-cell .delete-btn {
-  padding: 6px 10px;
-  min-width: 64px;
-}
+      .edit-modal h3 {
+        margin-top: 0;
+        margin-bottom: 14px;
+        font-size: 20px;
+      }
 
-/* opcional: centrar el contenido de la columna Acciones */
-table.table th:last-child,
-table.table td:last-child {
-  text-align: center;
-}
-  </style>
+      .edit-modal .form-group {
+        margin-bottom: 12px;
+      }
 
-  
-  <tbody>
-    {% for c in cuentas %}
-    <tr id="row-{{ c.id_cuenta_contable }}">
-      <td>{{ c.id_cuenta_contable }}</td>
-      <td>{{ c.banco }}</td>
-      <td>{{ c.numero_cuenta }}</td>
-      <td>{{ c.tipo }}</td>
-      <td>{{ c.saldo | currency }}</td>
-      <td>{{ c.id_centro_costo }}</td>
-      <td>
-        <div class="actions-cell">
-          <button type="button" class="edit-btn" onclick="toggleEdit({{ c.id_cuenta_contable }})">Editar</button>
+      .edit-modal .form-control {
+        width: 100%;
+        padding: 8px 10px;
+        border-radius: 6px;
+        border: 1px solid #ddd;
+      }
 
-          <form class="delete-form" action="{{ url_for('cuentas.eliminar_cuenta_contable', id_cuenta=c.id_cuenta_contable) }}" method="POST">
-            <button type="submit" class="delete-btn" onclick="return confirm('Eliminar cuenta?')">Eliminar</button>
-          </form>
-        </div>
-      </td>
-    </tr>
+      .edit-modal .actions {
+        display: flex;
+        gap: 10px;
+        margin-top: 12px;
+      }
 
-    <!-- fila de edición oculta -->
-    <tr id="edit-{{ c.id_cuenta_contable }}" class="edit-row" style="display:none;background:#f8f9fa;">
-      <td colspan="7">
-        <form action="{{ url_for('cuentas.actualizar_cuenta_contable', id=c.id_cuenta_contable) }}" method="POST" style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;">
-          <select name="banco" value="{{ c.banco }}" required class="form-control" style="flex:1;min-width:140px;">
-            {% for b in bancos %}
-              <option value="{{ b }}" {% if b == c.banco %}selected{% endif %}>{{ b }}</option>
-            {% endfor %}
+      .edit-modal .actions .btn {
+        flex: 1;
+        padding: 10px;
+        border-radius: 6px;
+        border: 0;
+        cursor: pointer;
+      }
 
-          <input name="numero_cuenta" value="{{ c.numero_cuenta }}" required class="form-control" style="flex:1;min-width:140px;">
-          <select name="tipo" class="form-control" required style="flex:1;min-width:140px;">
-            {% for t in tipos %}
-              <option value="{{ t }}" {% if t == c.tipo %}selected{% endif %}>{{ t }}</option>
-            {% endfor %}
-          </select>
-          <input name="saldo" type="number" step="0.01" value="{{ c.saldo }}" required class="form-control" style="width:140px;">
-          <select name="id_centro_costo" class="form-control" required style="width:220px;">
-            {% for cc in centros %}
-              <option value="{{ cc.id_centro_costo }}" {% if cc.id_centro_costo == c.id_centro_costo %}selected{% endif %}>{{ cc.nombre }}</option>
-            {% endfor %}
-          </select>
+      .edit-modal .btn-save {
+        background: #0069ff;
+        color: #fff;
+      }
 
-          <div style="display:flex;gap:8px;margin-left:auto;">
-            <button type="submit" class="btn btn-success">Guardar</button>
-            <button type="button" class="btn btn-secondary" onclick="toggleEdit({{ c.id_cuenta_contable }})">Cancelar</button>
+      .edit-modal .btn-cancel {
+        background: #e9ecef;
+        color: #333;
+      }
+
+      /* estilos adicionales para la columna Acciones (botón Eliminar más reducido) */
+      .actions-cell {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        /* centrar los controles horizontalmente */
+        gap: 12px;
+      }
+
+      /* botón Eliminar más compacto */
+      .actions-cell .delete-btn {
+        padding: 6px 10px;
+        min-width: 64px;
+      }
+
+      /* opcional: centrar el contenido de la columna Acciones */
+      table.table th:last-child,
+      table.table td:last-child {
+        text-align: center;
+      }
+    </style>
+
+
+    <tbody id="cuentas-tbody">
+      {% for c in cuentas %}
+      <tr id="row-{{ c.id_cuenta_contable }}">
+        <td>{{ c.id_cuenta_contable }}</td>
+        <td>{{ c.banco }}</td>
+        <td>{{ c.numero_cuenta }}</td>
+        <td>{{ c.tipo }}</td>
+        <td>{{ c.saldo | currency }}</td>
+        <td>{{ c.id_centro_costo }}</td>
+        <td>
+          <div class="actions-cell">
+            <button type="button" class="edit-btn" onclick="toggleEdit({{ c.id_cuenta_contable }})">Editar</button>
+
+            <form class="delete-form"
+              action="{{ url_for('cuentas.eliminar_cuenta_contable', id_cuenta=c.id_cuenta_contable) }}" method="POST">
+              <button type="submit" class="delete-btn" onclick="return confirm('Eliminar cuenta?')">Eliminar</button>
+            </form>
           </div>
-        </form>
-      </td>
-    </tr>
-    {% endfor %}
-  </tbody>
-</table>
+        </td>
+      </tr>
+
+      <!-- fila de edición oculta -->
+      <tr id="edit-{{ c.id_cuenta_contable }}" class="edit-row" style="display:none;background:#f8f9fa;">
+        <td colspan="7">
+          <form action="{{ url_for('cuentas.actualizar_cuenta_contable', id=c.id_cuenta_contable) }}" method="POST"
+            style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;">
+            <select name="banco" value="{{ c.banco }}" required class="form-control" style="flex:1;min-width:140px;">
+              {% for b in bancos %}
+              <option value="{{ b }}" {% if b==c.banco %}selected{% endif %}>{{ b }}</option>
+              {% endfor %}
+
+              <input name="numero_cuenta" value="{{ c.numero_cuenta }}" required class="form-control"
+                style="flex:1;min-width:140px;">
+              <select name="tipo" class="form-control" required style="flex:1;min-width:140px;">
+                {% for t in tipos %}
+                <option value="{{ t }}" {% if t==c.tipo %}selected{% endif %}>{{ t }}</option>
+                {% endfor %}
+              </select>
+              <input name="saldo" type="number" step="0.01" value="{{ c.saldo }}" required class="form-control"
+                style="width:140px;">
+              <select name="id_centro_costo" class="form-control" required style="width:220px;">
+                {% for cc in centros %}
+                <option value="{{ cc.id_centro_costo }}" {% if cc.id_centro_costo==c.id_centro_costo %}selected{% endif
+                  %}>{{ cc.nombre }}</option>
+                {% endfor %}
+              </select>
+
+              <div style="display:flex;gap:8px;margin-left:auto;">
+                <button type="submit" class="btn btn-success">Guardar</button>
+                <button type="button" class="btn btn-secondary"
+                  onclick="toggleEdit({{ c.id_cuenta_contable }})">Cancelar</button>
+              </div>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
 {% else %}
 <p style="text-align:center;">No hay cuentas registradas.</p>
+</div>
 {% endif %}
 
 <!-- ESTILOS PARA MODAL/TARJETA DE EDICIÓN -->
 <style>
-/* overlay */
-.modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.35);
-  display: none;
-  z-index: 999;
-}
+  /* overlay */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.35);
+    display: none;
+    z-index: 999;
+  }
 
-/* tarjeta centrada */
-.edit-modal {
-  position: fixed;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%,-50%);
-  width: 380px;
-  max-width: 90%;
-  background: #fff;
-  border-radius: 8px;
-  box-shadow: 0 6px 24px rgba(0,0,0,0.18);
-  padding: 22px;
-  display: none;
-  z-index: 1000;
-}
+  /* tarjeta centrada */
+  .edit-modal {
+    position: fixed;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 380px;
+    max-width: 90%;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.18);
+    padding: 22px;
+    display: none;
+    z-index: 1000;
+  }
 
-.edit-modal h3 { margin-top: 0; margin-bottom: 14px; font-size: 20px; }
-.edit-modal .form-group { margin-bottom: 12px; }
-.edit-modal .form-control { width:100%; padding:8px 10px; border-radius:6px; border:1px solid #ddd; }
+  .edit-modal h3 {
+    margin-top: 0;
+    margin-bottom: 14px;
+    font-size: 20px;
+  }
 
-.edit-modal .actions { display:flex; gap:10px; margin-top:12px; }
-.edit-modal .actions .btn { flex:1; padding:10px; border-radius:6px; border:0; cursor:pointer; }
-.edit-modal .btn-save { background:#0069ff; color:#fff; }
-.edit-modal .btn-cancel { background:#e9ecef; color:#333; }
+  .edit-modal .form-group {
+    margin-bottom: 12px;
+  }
+
+  .edit-modal .form-control {
+    width: 100%;
+    padding: 8px 10px;
+    border-radius: 6px;
+    border: 1px solid #ddd;
+  }
+
+  .edit-modal .actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 12px;
+  }
+
+  .edit-modal .actions .btn {
+    flex: 1;
+    padding: 10px;
+    border-radius: 6px;
+    border: 0;
+    cursor: pointer;
+  }
+
+  .edit-modal .btn-save {
+    background: #0069ff;
+    color: #fff;
+  }
+
+  .edit-modal .btn-cancel {
+    background: #e9ecef;
+    color: #333;
+  }
 </style>
 
 <!-- Reemplaza la fila de edición oculta por modal específico por cuenta -->
 {% for c in cuentas %}
-  <!-- mantener la fila normal (ya existe) -->
-  <!-- Modal/overlay para edición de la cuenta -->
-  <div id="overlay-edit-{{ c.id_cuenta_contable }}" class="modal-overlay" onclick="closeEditModal({{ c.id_cuenta_contable }})"></div>
+<!-- mantener la fila normal (ya existe) -->
+<!-- Modal/overlay para edición de la cuenta -->
+<div id="overlay-edit-{{ c.id_cuenta_contable }}" class="modal-overlay"
+  onclick="closeEditModal({{ c.id_cuenta_contable }})"></div>
 
-  <div id="modal-edit-{{ c.id_cuenta_contable }}" class="edit-modal" role="dialog" aria-modal="true" aria-labelledby="editTitle-{{ c.id_cuenta_contable }}">
-    <h3 id="editTitle-{{ c.id_cuenta_contable }}">Editar Cuenta</h3>
+<div id="modal-edit-{{ c.id_cuenta_contable }}" class="edit-modal" role="dialog" aria-modal="true"
+  aria-labelledby="editTitle-{{ c.id_cuenta_contable }}">
+  <h3 id="editTitle-{{ c.id_cuenta_contable }}">Editar Cuenta</h3>
 
-    <form action="{{ url_for('cuentas.actualizar_cuenta_contable', id=c.id_cuenta_contable) }}" method="POST">
-      <div class="form-group">
-        <label for="banco-{{ c.id_cuenta_contable }}">Banco</label>
-        <select id="banco-{{ c.id_cuenta_contable }}" name="banco" class="form-control" required>
-          {% for b in bancos %}
-            <option value="{{ b }}" {% if b == c.banco %}selected{% endif %}>{{ b }}</option>
-          {% endfor %}
-        </select>
-      </div>
+  <form action="{{ url_for('cuentas.actualizar_cuenta_contable', id=c.id_cuenta_contable) }}" method="POST">
+    <div class="form-group">
+      <label for="banco-{{ c.id_cuenta_contable }}">Banco</label>
+      <select id="banco-{{ c.id_cuenta_contable }}" name="banco" class="form-control" required>
+        {% for b in bancos %}
+        <option value="{{ b }}" {% if b==c.banco %}selected{% endif %}>{{ b }}</option>
+        {% endfor %}
+      </select>
+    </div>
 
-      <div class="form-group">
-        <label for="numero-{{ c.id_cuenta_contable }}">Número de cuenta</label>
-        <input id="numero-{{ c.id_cuenta_contable }}" name="numero_cuenta" value="{{ c.numero_cuenta }}" class="form-control" required>
-      </div>
+    <div class="form-group">
+      <label for="numero-{{ c.id_cuenta_contable }}">Número de cuenta</label>
+      <input id="numero-{{ c.id_cuenta_contable }}" name="numero_cuenta" value="{{ c.numero_cuenta }}"
+        class="form-control" required>
+    </div>
 
-      <div class="form-group">
-        <label for="tipo-{{ c.id_cuenta_contable }}">Tipo</label>
-        <select id="tipo-{{ c.id_cuenta_contable }}" name="tipo" class="form-control" required>
-          {% for t in tipos %}
-            <option value="{{ t }}" {% if t == c.tipo %}selected{% endif %}>{{ t }}</option>
-          {% endfor %}
-        </select>
-      </div>
+    <div class="form-group">
+      <label for="tipo-{{ c.id_cuenta_contable }}">Tipo</label>
+      <select id="tipo-{{ c.id_cuenta_contable }}" name="tipo" class="form-control" required>
+        {% for t in tipos %}
+        <option value="{{ t }}" {% if t==c.tipo %}selected{% endif %}>{{ t }}</option>
+        {% endfor %}
+      </select>
+    </div>
 
-      <div class="form-group">
-        <label for="saldo-{{ c.id_cuenta_contable }}">Saldo</label>
-        <input id="saldo-{{ c.id_cuenta_contable }}" name="saldo" type="number" step="0.01" value="{{ c.saldo }}" class="form-control" required>
-      </div>
+    <div class="form-group">
+      <label for="saldo-{{ c.id_cuenta_contable }}">Saldo</label>
+      <input id="saldo-{{ c.id_cuenta_contable }}" name="saldo" type="number" step="0.01" value="{{ c.saldo }}"
+        class="form-control" required>
+    </div>
 
-      <div class="form-group">
-        <label for="cc-{{ c.id_cuenta_contable }}">Centro de costo</label>
-        <select id="cc-{{ c.id_cuenta_contable }}" name="id_centro_costo" class="form-control" required>
-          {% for cc in centros %}
-            <option value="{{ cc.id_centro_costo }}" {% if cc.id_centro_costo == c.id_centro_costo %}selected{% endif %}>{{ cc.nombre }}</option>
-          {% endfor %}
-        </select>
-      </div>
+    <div class="form-group">
+      <label for="cc-{{ c.id_cuenta_contable }}">Centro de costo</label>
+      <select id="cc-{{ c.id_cuenta_contable }}" name="id_centro_costo" class="form-control" required>
+        {% for cc in centros %}
+        <option value="{{ cc.id_centro_costo }}" {% if cc.id_centro_costo==c.id_centro_costo %}selected{% endif %}>{{
+          cc.nombre }}</option>
+        {% endfor %}
+      </select>
+    </div>
 
-      <div class="actions">
-        <button type="submit" class="btn btn-save">Actualizar</button>
-        <button type="button" class="btn btn-cancel" onclick="closeEditModal({{ c.id_cuenta_contable }})">Cancelar</button>
-      </div>
-    </form>
-  </div>
+    <div class="actions">
+      <button type="submit" class="btn btn-save">Actualizar</button>
+      <button type="button" class="btn btn-cancel"
+        onclick="closeEditModal({{ c.id_cuenta_contable }})">Cancelar</button>
+    </div>
+  </form>
+</div>
 {% endfor %}
 
 <!-- JS: abrir/cerrar modal -->
 <script>
-function openEditModal(id){
-  document.getElementById('overlay-edit-' + id).style.display = 'block';
-  document.getElementById('modal-edit-' + id).style.display = 'block';
-  // optional: focus first input
-  const first = document.querySelector('#modal-edit-' + id + ' .form-control');
-  if(first) first.focus();
-}
-function closeEditModal(id){
-  const ov = document.getElementById('overlay-edit-' + id);
-  const mo = document.getElementById('modal-edit-' + id);
-  if(ov) ov.style.display = 'none';
-  if(mo) mo.style.display = 'none';
-}
+  function openEditModal(id) {
+    document.getElementById('overlay-edit-' + id).style.display = 'block';
+    document.getElementById('modal-edit-' + id).style.display = 'block';
+    // optional: focus first input
+    const first = document.querySelector('#modal-edit-' + id + ' .form-control');
+    if (first) first.focus();
+  }
+  function closeEditModal(id) {
+    const ov = document.getElementById('overlay-edit-' + id);
+    const mo = document.getElementById('modal-edit-' + id);
+    if (ov) ov.style.display = 'none';
+    if (mo) mo.style.display = 'none';
+  }
 
-/* modifica el botón Editar existente para llamar al modal */
-function toggleEdit(id){
-  const mo = document.getElementById('modal-edit-' + id);
-  if(!mo) return openEditModal(id);
-  // si está visible, cerrar; sino abrir
-  if(mo.style.display === 'block') closeEditModal(id); else openEditModal(id);
-}
+  /* modifica el botón Editar existente para llamar al modal */
+  function toggleEdit(id) {
+    const mo = document.getElementById('modal-edit-' + id);
+    if (!mo) return openEditModal(id);
+    // si está visible, cerrar; sino abrir
+    if (mo.style.display === 'block') closeEditModal(id); else openEditModal(id);
+  }
+
+  // Toggle function for Cuentas Contables table
+  function toggleCuentas() {
+    const container = document.getElementById('cuentas-container');
+    const btn = document.getElementById('toggle-cuentas');
+    const search = document.getElementById('search-cuentas');
+
+    if (container.style.display === 'none') {
+      container.style.display = 'block';
+      search.style.display = 'block';
+      btn.textContent = '▲ Ocultar Cuentas Contables';
+    } else {
+      container.style.display = 'none';
+      search.style.display = 'none';
+      btn.textContent = '▼ Cargar Cuentas Contables';
+    }
+  }
+
+  // Filter function for Cuentas Contables table
+  function filterCuentasTable() {
+    const searchInput = document.getElementById('search-cuentas').value.toLowerCase();
+    const rows = document.querySelectorAll('#cuentas-tbody tr:not(.edit-row)');
+
+    rows.forEach(row => {
+      const text = row.textContent.toLowerCase();
+      row.style.display = text.includes(searchInput) ? '' : 'none';
+    });
+  }
 </script>
 {% endblock %}

@@ -20,93 +20,106 @@
   </form>
 </div>
 
-<table class="table" style="width:95%;margin:20px auto;">
-  <thead>
-    <tr>
-      <th>ID nomina</th>
-      <th>Empleado</th>
-      <th>ID empleado</th>
-      <th>Salario base</th>
-      <th>Deducciones</th>
-      <th>Percepciones</th>
-      < th>Total a pagar</th>
+<h2 style="margin-top:40px;">Registros de Nómina</h2>
+
+<div style="width:95%;margin:20px auto;display:flex;gap:10px;align-items:center;">
+  <button type="button" id="toggle-nomina" class="btn btn-primary" onclick="toggleNomina()"
+    style="padding:8px 16px;border-radius:6px;">▼ Cargar Nómina</button>
+  <input type="text" id="search-nomina" placeholder="Buscar en nómina..." onkeyup="filterNominaTable()"
+    style="flex:1;padding:8px;border-radius:6px;border:1px solid #ddd;display:none;">
+</div>
+
+<div id="nomina-container" style="display:none;">
+  <table class="table" style="width:95%;margin:20px auto;">
+    <thead>
+      <tr>
+        <th>ID nomina</th>
+        <th>Empleado</th>
+        <th>ID empleado</th>
+        <th>Salario base</th>
+        <th>Deducciones</th>
+        <th>Percepciones</th>
+        <th>Total a pagar</th>
         <th>Acciones</th>
-    </tr>
-  </thead>
-  <tbody>
-    {% for n in nomina %}
-    <tr id="row-{{ n.id_nomina }}">
-      <td>{{ n.id_nomina }}</td>
-      <td>{{ n.nombre_completo }}</td>
-      <td>{{ n.id_empleado }}</td>
-      <td>{{ n.salario_base | currency }}</td>
-      <td>{{ n.deducciones | currency }}</td>
-      <td>{{ n.percepciones | currency }}</td>
-      <td>{{ n.total_pagar | currency }}</td>
-      <td style="width:220px;">
-        <div style="display:flex;gap:8px;justify-content:flex-end;align-items:center;">
-          <button type="button" class="btn btn-link" onclick="openEditModal({{ n.id_nomina }})"
-            style="padding:0 8px;">Editar</button>
-          <form action="{{ url_for('nomina.eliminar_nomina', id_nomina=n.id_nomina) }}" method="POST" style="margin:0;">
-            <button type="submit" class="btn btn-primary"
-              style="background:#007bff;border-color:#007bff;padding:6px 18px;border-radius:6px;color:#fff;"
-              onclick="return confirm('Eliminar nómina?')">Eliminar</button>
-          </form>
-        </div>
-      </td>
-    </tr>
-
-    <!-- Modal de edición (precargado por registro) -->
-    <div id="overlay-nomina-{{ n.id_nomina }}" class="modal-overlay"
-      style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.35);z-index:999;"
-      onclick="closeEditModal({{ n.id_nomina }})"></div>
-
-    <div id="modal-nomina-{{ n.id_nomina }}" class="edit-modal"
-      style="display:none;position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);width:380px;background:#fff;border-radius:8px;padding:22px;z-index:1000;">
-      <h3>Editar Nómina</h3>
-      <form action="{{ url_for('nomina.editar_nomina', id_nomina=n.id_nomina) }}" method="POST"
-        onsubmit="return validateNomina(this)">
-        <!-- Mostrar empleado (no editable) -->
-        <div class="form-group" style="margin-bottom:12px;">
-          <label>Empleado</label>
-          <div style="padding:8px 10px;border-radius:6px;border:1px solid #eee;background:#fafafa;">
-            <strong>{{ n.nombre_completo }}</strong>
+      </tr>
+    </thead>
+    <tbody id="nomina-tbody">
+      {% for n in nomina %}
+      <tr id="row-{{ n.id_nomina }}">
+        <td>{{ n.id_nomina }}</td>
+        <td>{{ n.nombre_completo }}</td>
+        <td>{{ n.id_empleado }}</td>
+        <td>{{ n.salario_base | currency }}</td>
+        <td>{{ n.deducciones | currency }}</td>
+        <td>{{ n.percepciones | currency }}</td>
+        <td>{{ n.total_pagar | currency }}</td>
+        <td style="width:220px;">
+          <div style="display:flex;gap:8px;justify-content:flex-end;align-items:center;">
+            <button type="button" class="btn btn-link" onclick="openEditModal({{ n.id_nomina }})"
+              style="padding:0 8px;">Editar</button>
+            <form action="{{ url_for('nomina.eliminar_nomina', id_nomina=n.id_nomina) }}" method="POST"
+              style="margin:0;">
+              <button type="submit" class="btn btn-primary"
+                style="background:#007bff;border-color:#007bff;padding:6px 18px;border-radius:6px;color:#fff;"
+                onclick="return confirm('Eliminar nómina?')">Eliminar</button>
+            </form>
           </div>
-        </div>
+        </td>
+      </tr>
 
-        <div class="form-group" style="margin-bottom:12px;">
-          <label for="sal-{{ n.id_nomina }}">Salario base</label>
-          <input id="sal-{{ n.id_nomina }}" name="salario_base" type="number" step="0.01" value="{{ n.salario_base }}"
-            class="form-control" style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;" required>
-        </div>
+      <!-- Modal de edición (precargado por registro) -->
+      <div id="overlay-nomina-{{ n.id_nomina }}" class="modal-overlay"
+        style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.35);z-index:999;"
+        onclick="closeEditModal({{ n.id_nomina }})"></div>
 
-        <div class="form-group" style="margin-bottom:12px;">
-          <label for="ded-{{ n.id_nomina }}">Deducciones</label>
-          <input id="ded-{{ n.id_nomina }}" name="deducciones" type="number" step="0.01" value="{{ n.deducciones }}"
-            class="form-control" style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;" required>
-        </div>
+      <div id="modal-nomina-{{ n.id_nomina }}" class="edit-modal"
+        style="display:none;position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);width:380px;background:#fff;border-radius:8px;padding:22px;z-index:1000;">
+        <h3>Editar Nómina</h3>
+        <form action="{{ url_for('nomina.editar_nomina', id_nomina=n.id_nomina) }}" method="POST"
+          onsubmit="return validateNomina(this)">
+          <!-- Mostrar empleado (no editable) -->
+          <div class="form-group" style="margin-bottom:12px;">
+            <label>Empleado</label>
+            <div style="padding:8px 10px;border-radius:6px;border:1px solid #eee;background:#fafafa;">
+              <strong>{{ n.nombre_completo }}</strong>
+            </div>
+          </div>
 
-        <div class="form-group" style="margin-bottom:12px;">
-          <label for="perc-{{ n.id_nomina }}">Percepciones</label>
-          <input id="perc-{{ n.id_nomina }}" name="percepciones" type="number" step="0.01" value="{{ n.percepciones }}"
-            class="form-control" style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;" required>
-        </div>
+          <div class="form-group" style="margin-bottom:12px;">
+            <label for="sal-{{ n.id_nomina }}">Salario base</label>
+            <input id="sal-{{ n.id_nomina }}" name="salario_base" type="number" step="0.01" value="{{ n.salario_base }}"
+              class="form-control" style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;" required>
+          </div>
 
-        <div style="display:flex;gap:10px;margin-top:12px;">
-          <button type="submit" class="btn"
-            style="flex:1;background:#0069ff;color:#fff;padding:10px;border-radius:6px;border:0;">Actualizar</button>
-          <button type="button" class="btn"
-            style="flex:1;background:#e9ecef;color:#333;padding:10px;border-radius:6px;border:0;"
-            onclick="closeEditModal({{ n.id_nomina }})">Cancelar</button>
-        </div>
-      </form>
-    </div>
-    {% endfor %}
-  </tbody>
-</table>
+          <div class="form-group" style="margin-bottom:12px;">
+            <label for="ded-{{ n.id_nomina }}">Deducciones</label>
+            <input id="ded-{{ n.id_nomina }}" name="deducciones" type="number" step="0.01" value="{{ n.deducciones }}"
+              class="form-control" style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;" required>
+          </div>
+
+          <div class="form-group" style="margin-bottom:12px;">
+            <label for="perc-{{ n.id_nomina }}">Percepciones</label>
+            <input id="perc-{{ n.id_nomina }}" name="percepciones" type="number" step="0.01"
+              value="{{ n.percepciones }}" class="form-control"
+              style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;" required>
+          </div>
+
+          <div style="display:flex;gap:10px;margin-top:12px;">
+            <button type="submit" class="btn"
+              style="flex:1;background:#0069ff;color:#fff;padding:10px;border-radius:6px;border:0;">Actualizar</button>
+            <button type="button" class="btn"
+              style="flex:1;background:#e9ecef;color:#333;padding:10px;border-radius:6px;border:0;"
+              onclick="closeEditModal({{ n.id_nomina }})">Cancelar</button>
+          </div>
+        </form>
+      </div>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
 
 <!-- CUENTAS BANCARIAS SECTION -->
-<h2 style="margin-top:40px;">Cuentas Bancarias</h2>
+<h2 style="margin-top:40px;text-align:center;">Cuentas Bancarias</h2>
 
 <div class="form-container">
   <form action="{{ url_for('nomina.agregar_cuenta_bancaria') }}" method="POST">
@@ -119,62 +132,89 @@
   </form>
 </div>
 
-<table class="table" style="width:95%;margin:20px auto;">
-  <thead>
-    <tr>
-      <th>ID</th>
-      <th>Banco</th>
-      <th>Número de Cuenta</th>
-      <th>Saldo</th>
-      <th>Acciones</th>
-    </tr>
-  </thead>
-  <tbody>
-    {% for c in cuentas_bancarias %}
-    <tr id="row-cuenta-{{ c.id_cuenta_bancaria }}">
-      <td>{{ c.id_cuenta_bancaria }}</td>
-      <td>{{ c.banco }}</td>
-      <td>{{ c.numero_cuenta }}</td>
-      <td>{{ c.saldo | currency }}</td>
-      <td style="width:220px;">
-        <div style="display:flex;gap:8px;justify-content:flex-end;align-items:center;">
-          <button type="button" class="btn btn-link" onclick="openEditModalCuenta({{ c.id_cuenta_bancaria }})"
-            style="padding:0 8px;">Editar</button>
-          <form action="{{ url_for('nomina.eliminar_cuenta_bancaria', id_cuenta=c.id_cuenta_bancaria) }}" method="POST"
-            style="margin:0;">
-            <button type="submit" class="btn btn-primary"
-              style="background:#007bff;border-color:#007bff;padding:6px 18px;border-radius:6px;color:#fff;"
-              onclick="return confirm('¿Eliminar cuenta bancaria?')">Eliminar</button>
-          </form>
-        </div>
-      </td>
-    </tr>
+<h2 style="margin-top:40px;">Registros de Cuentas Bancarias</h2>
 
-    <!-- Modal de edición cuenta bancaria -->
-    <div id="overlay-cuenta-{{ c.id_cuenta_bancaria }}" class="modal-overlay"
-      style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.35);z-index:999;"
-      onclick="closeEditModalCuenta({{ c.id_cuenta_bancaria }})"></div>
+<div style="width:95%;margin:20px auto;display:flex;gap:10px;align-items:center;">
+  <button type="button" id="toggle-cuentas" class="btn btn-primary" onclick="toggleCuentas()"
+    style="padding:8px 16px;border-radius:6px;">▼ Cargar Cuentas Bancarias</button>
+  <input type="text" id="search-cuentas" placeholder="Buscar en cuentas bancarias..." onkeyup="filterCuentasTable()"
+    style="flex:1;padding:8px;border-radius:6px;border:1px solid #ddd;display:none;">
+</div>
 
-    <div id="modal-cuenta-{{ c.id_cuenta_bancaria }}" class="edit-modal"
-      style="display:none;position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);width:380px;background:#fff;border-radius:8px;padding:22px;z-index:1000;">
-      <h3>Editar Cuenta Bancaria</h3>
-      <form action="{{ url_for('nomina.editar_cuenta_bancaria', id_cuenta=c.id_cuenta_bancaria) }}" method="POST">
-        <div class="form-group" style="margin-bottom:12px;">
-          <label for="banco-{{ c.id_cuenta_bancaria }}">Banco</label>
-        </div>
+<div id="cuentas-container" style="display:none;">
+  <table class="table" style="width:95%;margin:20px auto;">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Banco</th>
+        <th>Número de Cuenta</th>
+        <th>Saldo</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
+    <tbody id="cuentas-tbody">
+      {% for c in cuentas_bancarias %}
+      <tr id="row-cuenta-{{ c.id_cuenta_bancaria }}">
+        <td>{{ c.id_cuenta_bancaria }}</td>
+        <td>{{ c.banco }}</td>
+        <td>{{ c.numero_cuenta }}</td>
+        <td>{{ c.saldo | currency }}</td>
+        <td style="width:220px;">
+          <div style="display:flex;gap:8px;justify-content:flex-end;align-items:center;">
+            <button type="button" class="btn btn-link" onclick="openEditModalCuenta({{ c.id_cuenta_bancaria }})"
+              style="padding:0 8px;">Editar</button>
+            <form action="{{ url_for('nomina.eliminar_cuenta_bancaria', id_cuenta=c.id_cuenta_bancaria) }}"
+              method="POST" style="margin:0;">
+              <button type="submit" class="btn btn-primary"
+                style="background:#007bff;border-color:#007bff;padding:6px 18px;border-radius:6px;color:#fff;"
+                onclick="return confirm('¿Eliminar cuenta bancaria?')">Eliminar</button>
+            </form>
+          </div>
+        </td>
+      </tr>
 
-        <div style="display:flex;gap:10px;margin-top:12px;">
-          <button type="submit" class="btn"
-            style="flex:1;background:#0069ff;color:#fff;padding:10px;border-radius:6px;border:0;">Actualizar</button>
-          <button type="button" class="btn"
-            style="flex:1;background:#e9ecef;color:#333;padding:10px;border-radius:6px;border:0;"
-            onclick="closeEditModalCuenta({{ c.id_cuenta_bancaria }})">Cancelar</button>
-        </div>
-      </form>
-    </div>
-    {% endfor %}
-  </tbody>
-</table>
+      <!-- Modal de edición cuenta bancaria -->
+      <div id="overlay-cuenta-{{ c.id_cuenta_bancaria }}" class="modal-overlay"
+        style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.35);z-index:999;"
+        onclick="closeEditModalCuenta({{ c.id_cuenta_bancaria }})"></div>
+
+      <div id="modal-cuenta-{{ c.id_cuenta_bancaria }}" class="edit-modal"
+        style="display:none;position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);width:380px;background:#fff;border-radius:8px;padding:22px;z-index:1000;">
+        <h3>Editar Cuenta Bancaria</h3>
+        <form action="{{ url_for('nomina.editar_cuenta_bancaria', id_cuenta=c.id_cuenta_bancaria) }}" method="POST">
+          <div class="form-group" style="margin-bottom:12px;">
+            <label for="banco-{{ c.id_cuenta_bancaria }}">Banco</label>
+            <input id="banco-{{ c.id_cuenta_bancaria }}" name="banco" type="text" value="{{ c.banco }}"
+              class="form-control" style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;" required>
+          </div>
+
+          <div class="form-group" style="margin-bottom:12px;">
+            <label for="numero_cuenta-{{ c.id_cuenta_bancaria }}">Número de Cuenta</label>
+            <input id="numero_cuenta-{{ c.id_cuenta_bancaria }}" name="numero_cuenta" type="text"
+              value="{{ c.numero_cuenta }}" pattern="[0-9]+" title="Solo se permiten números enteros"
+              oninput="this.value = this.value.replace(/[^0-9]/g, '')" class="form-control"
+              style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;" required>
+          </div>
+
+          <div class="form-group" style="margin-bottom:12px;">
+            <label for="saldo-{{ c.id_cuenta_bancaria }}">Saldo</label>
+            <input id="saldo-{{ c.id_cuenta_bancaria }}" name="saldo" type="number" step="0.01" value="{{ c.saldo }}"
+              class="form-control" style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;" required>
+          </div>
+
+          <div style="display:flex;gap:10px;margin-top:12px;">
+            <button type="submit" class="btn"
+              style="flex:1;background:#0069ff;color:#fff;padding:10px;border-radius:6px;border:0;">Actualizar</button>
+            <button type="button" class="btn"
+              style="flex:1;background:#e9ecef;color:#333;padding:10px;border-radius:6px;border:0;"
+              onclick="closeEditModalCuenta({{ c.id_cuenta_bancaria }})">Cancelar</button>
+          </div>
+        </form>
+      </div>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
 
 <script>
   function openEditModal(id) {
@@ -192,6 +232,62 @@
   function closeEditModalCuenta(id) {
     document.getElementById('overlay-cuenta-' + id).style.display = 'none';
     document.getElementById('modal-cuenta-' + id).style.display = 'none';
+  }
+
+  // Toggle function for Nómina table
+  function toggleNomina() {
+    const container = document.getElementById('nomina-container');
+    const btn = document.getElementById('toggle-nomina');
+    const search = document.getElementById('search-nomina');
+
+    if (container.style.display === 'none') {
+      container.style.display = 'block';
+      search.style.display = 'block';
+      btn.textContent = '▲ Ocultar Nómina';
+    } else {
+      container.style.display = 'none';
+      search.style.display = 'none';
+      btn.textContent = '▼ Cargar Nómina';
+    }
+  }
+
+  // Toggle function for Cuentas Bancarias table
+  function toggleCuentas() {
+    const container = document.getElementById('cuentas-container');
+    const btn = document.getElementById('toggle-cuentas');
+    const search = document.getElementById('search-cuentas');
+
+    if (container.style.display === 'none') {
+      container.style.display = 'block';
+      search.style.display = 'block';
+      btn.textContent = '▲ Ocultar Cuentas Bancarias';
+    } else {
+      container.style.display = 'none';
+      search.style.display = 'none';
+      btn.textContent = '▼ Cargar Cuentas Bancarias';
+    }
+  }
+
+  // Filter function for Nómina table
+  function filterNominaTable() {
+    const searchInput = document.getElementById('search-nomina').value.toLowerCase();
+    const rows = document.querySelectorAll('#nomina-tbody tr');
+
+    rows.forEach(row => {
+      const text = row.textContent.toLowerCase();
+      row.style.display = text.includes(searchInput) ? '' : 'none';
+    });
+  }
+
+  // Filter function for Cuentas Bancarias table
+  function filterCuentasTable() {
+    const searchInput = document.getElementById('search-cuentas').value.toLowerCase();
+    const rows = document.querySelectorAll('#cuentas-tbody tr');
+
+    rows.forEach(row => {
+      const text = row.textContent.toLowerCase();
+      row.style.display = text.includes(searchInput) ? '' : 'none';
+    });
   }
 
   function validateNomina(form) {

@@ -54,56 +54,68 @@
   </form>
 </div>
 
-<table class="table" style="width:95%;margin:20px auto;">
-  <thead>
-    <tr>
-      <th>ID</th>
-      <th>Nombre Completo</th>
-      <th>Dirección</th>
-      <th>Teléfono</th>
-      <th>Fecha Nacimiento</th>
-      <th>Cargo</th>
-      <th>Fecha Contratación</th>
-      <th>Historial Laboral</th>
-      <th>Objetivo Plan Carrera</th>
-      <th>Cuenta Bancaria</th>
-      <th>Departamento</th>
-      <th>Acciones</th>
-    </tr>
-  </thead>
+<h2 style="margin-top:40px;">Registros de Empleados</h2>
 
-  <tbody>
-    {% for e in empleados %}
-    <tr id="row-{{ e.id_empleado }}">
-      <td>{{ e.id_empleado }}</td>
-      <td>{{ e.nombre_completo }}</td>
-      <td>{{ e.direccion }}</td>
-      <td>{{ e.telefono }}</td>
-      <td>{{ e.fecha_nacimiento }}</td>
-      <td>{{ e.cargo }}</td>
-      <td>{{ e.fecha_contratacion }}</td>
-      <td>{{ e.historial_laboral }}</td>
-      <td>{{ e.plan_carrera_objetivo or 'Sin asignar' }}</td>
-      <td>{{ e.cuenta_banco or 'Sin asignar' }}</td>
-      <td>{{ e.departamento_nombre or 'Sin asignar' }}</td>
+<div style="width:95%;margin:20px auto;display:flex;gap:10px;align-items:center;">
+  <button type="button" id="toggle-empleados" class="btn btn-primary" onclick="toggleEmpleados()"
+    style="padding:8px 16px;border-radius:6px;">▼ Cargar Empleados</button>
+  <input type="text" id="search-empleados" placeholder="Buscar en empleados..." onkeyup="filterEmpleadosTable()"
+    style="flex:1;padding:8px;border-radius:6px;border:1px solid #ddd;display:none;">
+</div>
 
-      <td style="width:220px;">
-        <div style="display:flex;gap:8px;justify-content:flex-end;align-items:center;">
-          <button type="button" class="btn btn-link" onclick="openEditModal('{{ e.id_empleado }}')"
-            style="padding:0 8px;">Editar</button>
-          <button type="button" class="btn btn-primary"
-            style="background:#007bff;border-color:#007bff;padding:6px 18px;border-radius:6px;color:#fff;"
-            onclick="eliminarEmpleado('{{ e.id_empleado }}')">Eliminar</button>
-        </div>
-      </td>
-    </tr>
-    {% else %}
-    <tr>
-      <td colspan="12" style="text-align:center;">No hay empleados registrados.</td>
-    </tr>
-    {% endfor %}
-  </tbody>
-</table>
+<div id="empleados-container" style="display:none;">
+
+  <table class="table" style="width:95%;margin:20px auto;">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Nombre Completo</th>
+        <th>Dirección</th>
+        <th>Teléfono</th>
+        <th>Fecha Nacimiento</th>
+        <th>Cargo</th>
+        <th>Fecha Contratación</th>
+        <th>Historial Laboral</th>
+        <th>Objetivo Plan Carrera</th>
+        <th>Cuenta Bancaria</th>
+        <th>Departamento</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
+
+    <tbody id="empleados-tbody">
+      {% for e in empleados %}
+      <tr id="row-{{ e.id_empleado }}">
+        <td>{{ e.id_empleado }}</td>
+        <td>{{ e.nombre_completo }}</td>
+        <td>{{ e.direccion }}</td>
+        <td>{{ e.telefono }}</td>
+        <td>{{ e.fecha_nacimiento }}</td>
+        <td>{{ e.cargo }}</td>
+        <td>{{ e.fecha_contratacion }}</td>
+        <td>{{ e.historial_laboral }}</td>
+        <td>{{ e.plan_carrera_objetivo or 'Sin asignar' }}</td>
+        <td>{{ e.cuenta_banco or 'Sin asignar' }}</td>
+        <td>{{ e.departamento_nombre or 'Sin asignar' }}</td>
+
+        <td style="width:220px;">
+          <div style="display:flex;gap:8px;justify-content:flex-end;align-items:center;">
+            <button type="button" class="btn btn-link" onclick="openEditModal('{{ e.id_empleado }}')"
+              style="padding:0 8px;">Editar</button>
+            <button type="button" class="btn btn-primary"
+              style="background:#007bff;border-color:#007bff;padding:6px 18px;border-radius:6px;color:#fff;"
+              onclick="eliminarEmpleado('{{ e.id_empleado }}')">Eliminar</button>
+          </div>
+        </td>
+      </tr>
+      {% else %}
+      <tr>
+        <td colspan="12" style="text-align:center;">No hay empleados registrados.</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
 
 <!-- Modals outside the table -->
 {% for e in empleados %}
@@ -201,6 +213,13 @@
           {% endfor %}
         </select>
       </div>
+    </div>
+
+    <!-- Historial Laboral - Full width -->
+    <div class="form-group" style="margin-top:15px;">
+      <label style="display:block;margin-bottom:5px;font-weight:bold;color:#555;">Historial Laboral</label>
+      <textarea name="historial_laboral" rows="3"
+        style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;box-sizing:border-box;resize:vertical;font-family:inherit;">{{ e.historial_laboral }}</textarea>
     </div>
 
     <div style="display:flex;gap:10px;margin-top:20px;">
@@ -304,6 +323,34 @@
       }
     }
     return true;
+  }
+
+  // Toggle function for Empleados table
+  function toggleEmpleados() {
+    const container = document.getElementById('empleados-container');
+    const btn = document.getElementById('toggle-empleados');
+    const search = document.getElementById('search-empleados');
+
+    if (container.style.display === 'none') {
+      container.style.display = 'block';
+      search.style.display = 'block';
+      btn.textContent = '▲ Ocultar Empleados';
+    } else {
+      container.style.display = 'none';
+      search.style.display = 'none';
+      btn.textContent = '▼ Cargar Empleados';
+    }
+  }
+
+  // Filter function for Empleados table
+  function filterEmpleadosTable() {
+    const searchInput = document.getElementById('search-empleados').value.toLowerCase();
+    const rows = document.querySelectorAll('#empleados-tbody tr');
+
+    rows.forEach(row => {
+      const text = row.textContent.toLowerCase();
+      row.style.display = text.includes(searchInput) ? '' : 'none';
+    });
   }
 </script>
 {% endif %}
